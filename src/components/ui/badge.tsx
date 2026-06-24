@@ -12,9 +12,9 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
         'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
         {
           'bg-secondary text-secondary-foreground': variant === 'default',
-          'bg-green-500/20 text-green-400': variant === 'success',
-          'bg-yellow-500/20 text-yellow-400': variant === 'warning',
-          'bg-red-500/20 text-red-400': variant === 'destructive',
+          'bg-green-100 text-green-700': variant === 'success',
+          'bg-amber-100 text-amber-700': variant === 'warning',
+          'bg-red-100 text-red-700': variant === 'destructive',
         },
         className
       )}

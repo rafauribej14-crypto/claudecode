@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { generateId, formatCurrency } from '@/lib/utils'
 import type { PurchaseItem } from '@/types'
-import { Plus, Trash2, ShoppingBag } from 'lucide-react'
+import { Plus, Trash2, ShoppingBag, Camera, Image, X } from 'lucide-react'
 
 interface LineItem {
   tempId: string
@@ -25,6 +25,9 @@ export function Capture() {
     { tempId: generateId(), product_name: '', qty: 0, unit: 'g', price_paid: 0, category: 'otro' },
   ])
   const [submitted, setSubmitted] = useState(false)
+  const [photos, setPhotos] = useState<{ id: string; url: string; name: string }[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
 
   const total = lines.reduce((s, l) => s + l.price_paid, 0)
 
@@ -38,6 +41,24 @@ export function Capture() {
 
   const removeLine = (id: string) => {
     setLines(prev => prev.filter(l => l.tempId !== id))
+  }
+
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    for (const file of Array.from(files)) {
+      const url = URL.createObjectURL(file)
+      setPhotos(prev => [...prev, { id: generateId(), url, name: file.name }])
+    }
+    e.target.value = ''
+  }
+
+  const removePhoto = (id: string) => {
+    setPhotos(prev => {
+      const photo = prev.find(p => p.id === id)
+      if (photo) URL.revokeObjectURL(photo.url)
+      return prev.filter(p => p.id !== id)
+    })
   }
 
   const handleSubmit = () => {
@@ -68,21 +89,71 @@ export function Capture() {
       store: selectedStore,
       total,
       purchased_at: new Date().toISOString(),
-      source: 'manual',
+      source: photos.length > 0 ? 'receipt_scan' : 'manual',
       receipt_image_url: null,
       items,
     })
 
     setSubmitted(true)
+    photos.forEach(p => URL.revokeObjectURL(p.url))
     setTimeout(() => {
       setSubmitted(false)
       setLines([{ tempId: generateId(), product_name: '', qty: 0, unit: 'g', price_paid: 0, category: 'otro' }])
+      setPhotos([])
     }, 2000)
   }
 
   return (
     <div className="space-y-6 max-w-3xl pb-20 md:pb-0">
       <h1 className="text-2xl font-bold">Registrar compra</h1>
+
+      <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="text-primary" size={20} />
+            Fotos de factura o productos
+          </CardTitle>
+        </CardHeader>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex flex-col items-center justify-center w-28 h-28 border-2 border-dashed border-primary/40 rounded-xl hover:bg-primary/10 transition-colors cursor-pointer gap-1"
+          >
+            <Camera className="text-primary" size={24} />
+            <span className="text-xs text-primary font-medium">Tomar foto</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex flex-col items-center justify-center w-28 h-28 border-2 border-dashed border-accent/40 rounded-xl hover:bg-accent/10 transition-colors cursor-pointer gap-1"
+          >
+            <Image className="text-accent" size={24} />
+            <span className="text-xs text-accent font-medium">Subir imagen</span>
+          </button>
+
+          {photos.map(photo => (
+            <div key={photo.id} className="relative w-28 h-28 rounded-xl overflow-hidden border border-border">
+              <img src={photo.url} alt={photo.name} className="w-full h-full object-cover" />
+              <button
+                onClick={() => removePhoto(photo.id)}
+                className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-destructive transition-colors cursor-pointer"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} className="hidden" />
+        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhoto} className="hidden" />
+
+        <p className="text-xs text-muted-foreground mt-3">
+          Con la integración de IA, las fotos se leerán automáticamente para extraer productos y precios. Por ahora, ingresa los datos manualmente abajo.
+        </p>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>Tienda</CardTitle></CardHeader>
@@ -102,7 +173,7 @@ export function Capture() {
         </CardHeader>
 
         <div className="space-y-4">
-          {lines.map((line, idx) => (
+          {lines.map(line => (
             <div key={line.tempId} className="grid grid-cols-12 gap-2 items-end p-3 bg-muted rounded-lg">
               <div className="col-span-12 sm:col-span-4">
                 <label className="text-xs text-muted-foreground">Producto</label>
@@ -149,7 +220,7 @@ export function Capture() {
                   <option value="otro">Otro</option>
                 </Select>
                 {lines.length > 1 && (
-                  <button onClick={() => removeLine(line.tempId)} className="text-muted-foreground hover:text-destructive p-1">
+                  <button onClick={() => removeLine(line.tempId)} className="text-muted-foreground hover:text-destructive p-1 cursor-pointer">
                     <Trash2 size={16} />
                   </button>
                 )}
@@ -162,7 +233,7 @@ export function Capture() {
       <Card className="flex items-center justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold">{formatCurrency(total)}</p>
+          <p className="text-2xl font-bold text-primary">{formatCurrency(total)}</p>
         </div>
         <Button onClick={handleSubmit} size="lg" disabled={submitted}>
           <ShoppingBag size={18} className="mr-2" />
