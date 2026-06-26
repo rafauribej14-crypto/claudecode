@@ -179,8 +179,11 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
   const current = steps[step]
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 via-background to-orange-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50/80 via-background to-amber-50/50">
       <div className="w-full max-w-lg space-y-6">
+        <div className="text-center mb-2">
+          <span className="text-lg font-bold tracking-tight">Fresh<span className="text-primary">Plan</span></span>
+        </div>
         <div className="flex justify-center gap-2">
           {steps.map((_, i) => (
             <div

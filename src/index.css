@@ -1,27 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f8faf5;
-  --color-foreground: #1a2e1a;
+  --color-background: #fafcf8;
+  --color-foreground: #2d3a2d;
   --color-card: #ffffff;
-  --color-card-foreground: #1a2e1a;
-  --color-primary: #16a34a;
+  --color-card-foreground: #2d3a2d;
+  --color-primary: #5cb85c;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f0fdf4;
-  --color-secondary-foreground: #166534;
-  --color-muted: #f1f5f0;
-  --color-muted-foreground: #5a6e5a;
-  --color-accent: #f97316;
-  --color-border: #d4e4d4;
-  --color-destructive: #ef4444;
-  --color-warning: #f59e0b;
-  --radius-sm: 0.5rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
+  --color-secondary: #f0f7f0;
+  --color-secondary-foreground: #3d6b3d;
+  --color-muted: #f4f6f3;
+  --color-muted-foreground: #7a8a7a;
+  --color-accent: #ffb74d;
+  --color-accent-foreground: #5d3a00;
+  --color-border: #e2ebe2;
+  --color-destructive: #e57373;
+  --color-warning: #ffca28;
+  --radius-sm: 0.625rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgba(92, 184, 92, 0.2);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
 }

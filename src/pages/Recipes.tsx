@@ -65,7 +65,7 @@ function IngredientAutocomplete({
         placeholder="Escribe para buscar..."
       />
       {open && filtered.length > 0 && (
-        <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-lg shadow-lg max-h-48 overflow-auto">
+        <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg max-h-48 overflow-auto">
           {filtered.map(p => (
             <button
               key={p.id}
