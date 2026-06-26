@@ -1,8 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
-  <rect width="40" height="40" rx="10" fill="#E8F5E9"/>
-  <path d="M20 8c-1.5 3-6 5-6 10a6 6 0 0 0 12 0c0-5-4.5-7-6-10z" fill="#66BB6A"/>
-  <path d="M20 12c-1 2-3.5 3.5-3.5 7a3.5 3.5 0 0 0 7 0c0-3.5-2.5-5-3.5-7z" fill="#A5D6A7"/>
-  <path d="M18.5 24c0 0 1.5 5 1.5 8" stroke="#66BB6A" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M21.5 24c0 0-1.5 5-1.5 8" stroke="#66BB6A" stroke-width="1.5" stroke-linecap="round"/>
-  <path d="M15 28h10" stroke="#81C784" stroke-width="1.2" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Background -->
+  <rect width="120" height="120" rx="24" fill="#f0f5f0"/>
+
+  <!-- Circular arcs around bowl -->
+  <path d="M30 55 C25 35, 45 18, 65 18" stroke="#7cb87c" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M90 55 C95 35, 80 18, 65 22" stroke="#8ec5d6" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+  <!-- Chat bubble -->
+  <rect x="58" y="12" width="28" height="18" rx="7" fill="#8ec5d6"/>
+  <path d="M68 30 L64 36 L72 30" fill="#8ec5d6"/>
+  <circle cx="66" cy="21" r="1.8" fill="white"/>
+  <circle cx="72" cy="21" r="1.8" fill="white"/>
+  <circle cx="78" cy="21" r="1.8" fill="white"/>
+
+  <!-- Bowl -->
+  <path d="M25 58 Q27 90, 60 95 Q93 90, 95 58 Z" fill="#b8d4a8" opacity="0.6"/>
+  <path d="M22 58 L98 58" stroke="#5a8a5a" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Vegetables in bowl -->
+  <!-- Leaf/lettuce -->
+  <ellipse cx="42" cy="52" rx="8" ry="14" fill="#6aaa6a" transform="rotate(-15 42 52)"/>
+  <ellipse cx="42" cy="52" rx="5" ry="10" fill="#7cb87c" transform="rotate(-15 42 52)"/>
+  <line x1="42" y1="42" x2="42" y2="58" stroke="#5a8a5a" stroke-width="1" opacity="0.5"/>
+
+  <!-- Carrot/orange -->
+  <ellipse cx="58" cy="48" rx="6" ry="8" fill="#f0a070" transform="rotate(10 58 48)"/>
+
+  <!-- Potato/yellow -->
+  <ellipse cx="74" cy="50" rx="8" ry="7" fill="#e8c860" transform="rotate(-5 74 50)"/>
+
+  <!-- Small dot decorations -->
+  <circle cx="28" cy="65" r="2.5" fill="#7cb87c" opacity="0.5"/>
+  <circle cx="92" cy="48" r="2" fill="#8ec5d6" opacity="0.5"/>
 </svg>

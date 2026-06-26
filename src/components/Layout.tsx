@@ -16,9 +16,9 @@ export function Layout({ user, onLogout }: { user: AuthUser; onLogout: () => voi
     <div className="min-h-screen flex flex-col bg-background">
       <header className="border-b border-border bg-white px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2.5">
-          <img src="/logo.svg" alt="FreshPlan" className="w-8 h-8" />
+          <img src="/logo.svg" alt="freshapp" className="w-8 h-8" />
           <span className="text-lg font-bold tracking-tight text-foreground">
-            Fresh<span className="text-primary">Plan</span>
+            fresh<span className="text-primary">app</span>
           </span>
         </div>
         <div className="flex items-center gap-2">

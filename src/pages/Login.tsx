@@ -35,13 +35,13 @@ export function Login({ onAuth }: { onAuth: (user: AuthUser) => void }) {
         {/* Logo & Tagline */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
-            <img src="/logo.svg" alt="FreshPlan" className="w-16 h-16 drop-shadow-sm" />
+            <img src="/logo.svg" alt="freshapp" className="w-16 h-16 drop-shadow-sm" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Fresh<span className="text-primary">Plan</span>
+              fresh<span className="text-primary">app</span>
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">Planifica, compra y cocina inteligentemente</p>
+            <p className="text-muted-foreground text-sm mt-1">Registra · Crea con IA · Mejora contigo</p>
           </div>
         </div>
 

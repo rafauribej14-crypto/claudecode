@@ -182,7 +182,7 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50/80 via-background to-amber-50/50">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center mb-2">
-          <span className="text-lg font-bold tracking-tight">Fresh<span className="text-primary">Plan</span></span>
+          <span className="text-lg font-bold tracking-tight">fresh<span className="text-primary">app</span></span>
         </div>
         <div className="flex justify-center gap-2">
           {steps.map((_, i) => (

@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { generateId } from '@/lib/utils'
+import { generateRecipes, hasGrokKey } from '@/services/grok'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
-import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff } from 'lucide-react'
+import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2 } from 'lucide-react'
 
 function IngredientAutocomplete({ value, onChange, products, inventory }: {
   value: string
@@ -68,6 +69,8 @@ export function Recipes() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiError, setAiError] = useState('')
 
   const reload = () => { setRecipes(store.getRecipes()); setProducts(store.getProducts()); setInventory(store.getInventory()) }
   useEffect(reload, [])
@@ -150,6 +153,23 @@ export function Recipes() {
     return !item || item.qty_remaining < ing.qty
   })
 
+  const handleGenerateAI = async () => {
+    setAiError('')
+    setAiLoading(true)
+    try {
+      const profile = store.getProfile()
+      const aiRecipes = await generateRecipes({ inventory, products, profile })
+      for (const recipe of aiRecipes) {
+        store.addRecipe(recipe)
+      }
+      reload()
+    } catch (err: any) {
+      setAiError(err.message ?? 'Error al generar recetas')
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
   const mealLabel: Record<string, string> = { lunch: 'Almuerzo', dinner: 'Cena', snack: 'Snack' }
   const proteinLabel: Record<string, string> = { low: 'Baja', med: 'Media', high: 'Alta' }
 
@@ -169,16 +189,29 @@ export function Recipes() {
       {/* AI Banner */}
       <Card className="bg-gradient-to-r from-violet-50 to-sky-50 border-violet-100">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-violet-100 rounded-xl"><Sparkles className="text-violet-600" size={18} /></div>
+          <div className="p-2 bg-violet-100 rounded-xl">
+            {aiLoading ? <Loader2 className="text-violet-600 animate-spin" size={18} /> : <Sparkles className="text-violet-600" size={18} />}
+          </div>
           <div className="flex-1">
             <h3 className="font-semibold text-violet-800 text-sm">Recetas con IA</h3>
             <p className="text-xs text-violet-600 mt-0.5">
-              {inventory.filter(i => i.qty_remaining > 0).length > 0
-                ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. La IA (Grok) generará recetas con lo que tienes.`
-                : 'Agrega productos al inventario para que la IA sugiera recetas.'}
+              {!hasGrokKey()
+                ? 'Configura tu API key de Grok en Ajustes para generar recetas con IA.'
+                : inventory.filter(i => i.qty_remaining > 0).length > 0
+                  ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. Grok generará recetas con lo que tienes.`
+                  : 'Agrega productos al inventario para que la IA sugiera recetas.'}
             </p>
-            <Button size="sm" variant="outline" className="mt-2 border-violet-200 text-violet-700 text-xs" disabled>
-              <Sparkles size={12} className="mr-1" /> Generar recetas (próximamente)
+            {aiError && <p className="text-xs text-red-600 mt-1 bg-red-50 px-2 py-1 rounded-lg">{aiError}</p>}
+            <Button
+              size="sm"
+              variant="outline"
+              className="mt-2 border-violet-200 text-violet-700 text-xs"
+              disabled={!hasGrokKey() || inventory.filter(i => i.qty_remaining > 0).length === 0 || aiLoading}
+              onClick={handleGenerateAI}
+            >
+              {aiLoading
+                ? <><Loader2 size={12} className="mr-1 animate-spin" /> Generando...</>
+                : <><Sparkles size={12} className="mr-1" /> Generar recetas con IA</>}
             </Button>
           </div>
         </div>
