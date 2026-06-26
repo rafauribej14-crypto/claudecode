@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { generateId } from '@/lib/utils'
-import { generateRecipes, hasGrokKey } from '@/services/grok'
+import { generateRecipes as generateRecipesAI, hasGrokKey } from '@/services/grok'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
 import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2 } from 'lucide-react'
 
@@ -158,7 +158,7 @@ export function Recipes() {
     setAiLoading(true)
     try {
       const profile = store.getProfile()
-      const aiRecipes = await generateRecipes({ inventory, products, profile })
+      const aiRecipes = await generateRecipesAI({ inventory, products, profile })
       for (const recipe of aiRecipes) {
         store.addRecipe(recipe)
       }
@@ -196,7 +196,7 @@ export function Recipes() {
             <h3 className="font-semibold text-violet-800 text-sm">Recetas con IA</h3>
             <p className="text-xs text-violet-600 mt-0.5">
               {!hasGrokKey()
-                ? 'Configura tu API key de Grok en Ajustes para generar recetas con IA.'
+                ? 'La IA no está disponible. Contacta al administrador para configurarla.'
                 : inventory.filter(i => i.qty_remaining > 0).length > 0
                   ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. Grok generará recetas con lo que tienes.`
                   : 'Agrega productos al inventario para que la IA sugiera recetas.'}

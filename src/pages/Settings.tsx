@@ -5,17 +5,14 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { updateUserName } from '@/store/auth'
-import { getGrokKey, setGrokKey, hasGrokKey } from '@/services/grok'
 import type { UserProfile } from '@/types'
-import { Settings as SettingsIcon, Save, Key, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { Settings as SettingsIcon, Save } from 'lucide-react'
 
 export function Settings() {
   const [profile, setProfile] = useState<UserProfile>(store.getProfile())
   const [saved, setSaved] = useState(false)
   const [newRestriction, setNewRestriction] = useState('')
-  const [grokKey, setGrokKeyState] = useState(getGrokKey())
-  const [showKey, setShowKey] = useState(false)
-  const [keySaved, setKeySaved] = useState(false)
+
 
   useEffect(() => { setProfile(store.getProfile()) }, [])
 
@@ -125,49 +122,6 @@ export function Settings() {
               </div>
             )}
           </div>
-        </div>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2"><Key size={18} /> API de Grok (IA)</CardTitle></CardHeader>
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Conecta tu API key de Grok para generar recetas con IA basadas en tu inventario.
-            Obtén tu key gratis en <a href="https://console.x.ai" target="_blank" rel="noopener noreferrer" className="text-primary underline">console.x.ai</a>
-          </p>
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Input
-                type={showKey ? 'text' : 'password'}
-                value={grokKey}
-                onChange={e => { setGrokKeyState(e.target.value); setKeySaved(false) }}
-                placeholder="xai-..."
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setGrokKey(grokKey.trim())
-                setKeySaved(true)
-                setTimeout(() => setKeySaved(false), 2000)
-              }}
-            >
-              {keySaved ? <CheckCircle size={16} className="text-emerald-600" /> : 'Guardar'}
-            </Button>
-          </div>
-          {hasGrokKey() && (
-            <p className="text-xs text-emerald-600 flex items-center gap-1">
-              <CheckCircle size={12} /> API key configurada — la IA está lista
-            </p>
-          )}
         </div>
       </Card>
 

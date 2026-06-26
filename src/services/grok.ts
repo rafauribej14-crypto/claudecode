@@ -3,12 +3,8 @@ import { generateId } from '@/lib/utils'
 
 const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
 
-export function getGrokKey(): string {
-  return localStorage.getItem('grok_api_key') ?? ''
-}
-
-export function setGrokKey(key: string) {
-  localStorage.setItem('grok_api_key', key)
+function getGrokKey(): string {
+  return import.meta.env.VITE_GROK_API_KEY ?? ''
 }
 
 export function hasGrokKey(): boolean {
@@ -23,7 +19,7 @@ interface GenerateRecipesInput {
 
 export async function generateRecipes(input: GenerateRecipesInput): Promise<Recipe[]> {
   const apiKey = getGrokKey()
-  if (!apiKey) throw new Error('No hay API key de Grok configurada. Ve a Ajustes para agregarla.')
+  if (!apiKey) throw new Error('No hay API key de Grok configurada. Contacta al administrador.')
 
   const availableProducts = input.inventory
     .filter(i => i.qty_remaining > 0)
