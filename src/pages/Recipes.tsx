@@ -198,7 +198,7 @@ export function Recipes() {
               {!hasGrokKey()
                 ? 'La IA no está disponible. Contacta al administrador para configurarla.'
                 : inventory.filter(i => i.qty_remaining > 0).length > 0
-                  ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. Grok generará recetas con lo que tienes.`
+                  ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. La IA generará recetas con lo que tienes.`
                   : 'Agrega productos al inventario para que la IA sugiera recetas.'}
             </p>
             {aiError && <p className="text-xs text-red-600 mt-1 bg-red-50 px-2 py-1 rounded-lg">{aiError}</p>}

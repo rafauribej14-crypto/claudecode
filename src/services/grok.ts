@@ -1,14 +1,14 @@
 import type { InventoryItem, Product, UserProfile, Recipe, RecipeIngredient } from '@/types'
 import { generateId } from '@/lib/utils'
 
-const GROK_API_URL = 'https://api.x.ai/v1/chat/completions'
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-function getGrokKey(): string {
-  return import.meta.env.VITE_GROK_API_KEY ?? ''
+function getGroqKey(): string {
+  return import.meta.env.VITE_GROQ_API_KEY ?? ''
 }
 
 export function hasGrokKey(): boolean {
-  return getGrokKey().length > 0
+  return getGroqKey().length > 0
 }
 
 interface GenerateRecipesInput {
@@ -18,8 +18,8 @@ interface GenerateRecipesInput {
 }
 
 export async function generateRecipes(input: GenerateRecipesInput): Promise<Recipe[]> {
-  const apiKey = getGrokKey()
-  if (!apiKey) throw new Error('No hay API key de Grok configurada. Contacta al administrador.')
+  const apiKey = getGroqKey()
+  if (!apiKey) throw new Error('No hay API key de Groq configurada. Contacta al administrador.')
 
   const availableProducts = input.inventory
     .filter(i => i.qty_remaining > 0)
@@ -76,14 +76,14 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
   }
 ]`
 
-  const response = await fetch(GROK_API_URL, {
+  const response = await fetch(GROQ_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'grok-3-mini',
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: 'Eres un asistente de cocina. Responde SOLO con JSON válido, sin markdown.' },
         { role: 'user', content: prompt },
@@ -94,9 +94,9 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
 
   if (!response.ok) {
     const err = await response.text()
-    if (response.status === 401) throw new Error('API key de Grok inválida. Revísala en Ajustes.')
+    if (response.status === 401) throw new Error('API key de Groq inválida.')
     if (response.status === 429) throw new Error('Límite de uso alcanzado. Intenta en unos minutos.')
-    throw new Error(`Error de Grok API: ${response.status} ${err}`)
+    throw new Error(`Error de Groq API: ${response.status} ${err}`)
   }
 
   const data = await response.json()
