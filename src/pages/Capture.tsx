@@ -114,7 +114,9 @@ export function Capture() {
   }
 
   const handleSubmit = () => {
-    const validLines = lines.filter(l => l.product_name && l.qty > 0 && l.price_paid > 0)
+    // Para entrar al inventario basta con nombre y cantidad. El precio es opcional
+    // (si la IA no lo pudo leer, el producto igual se registra).
+    const validLines = lines.filter(l => l.product_name.trim() && l.qty > 0)
     if (validLines.length === 0) return
 
     const purchaseId = generateId()

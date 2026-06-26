@@ -93,16 +93,18 @@ export const store = {
       const product = store.getProducts().find(pr => pr.id === item.product_id)
       if (!product) continue
 
-      store.addPrice({
-        user_id: USER_ID,
-        product_id: item.product_id,
-        store: p.store,
-        price: item.price_paid,
-        package_size: item.qty,
-        unit_price: item.price_paid / item.qty,
-        source: p.source,
-        observed_at: p.purchased_at,
-      })
+      if (item.price_paid > 0) {
+        store.addPrice({
+          user_id: USER_ID,
+          product_id: item.product_id,
+          store: p.store,
+          price: item.price_paid,
+          package_size: item.qty,
+          unit_price: item.price_paid / item.qty,
+          source: p.source,
+          observed_at: p.purchased_at,
+        })
+      }
 
       store.addInventoryItem({
         user_id: USER_ID,
