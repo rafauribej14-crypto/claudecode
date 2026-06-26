@@ -85,6 +85,27 @@ export function completeOnboarding(name: string) {
   }
 }
 
+export function loginWithGoogle(credential: string): { ok: true; user: AuthUser } | { ok: false; error: string } {
+  try {
+    const payload = JSON.parse(atob(credential.split('.')[1]))
+    const email = payload.email as string
+    const googleName = (payload.name as string) ?? ''
+    const users = getUsers()
+    let found = users.find(u => u.username.toLowerCase() === email.toLowerCase())
+    if (!found) {
+      const id = crypto.randomUUID()
+      found = { id, username: email, password: '', name: googleName, onboarded: false }
+      users.push(found)
+      saveUsers(users)
+    }
+    const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded }
+    setCurrentUser(authUser)
+    return { ok: true, user: authUser }
+  } catch {
+    return { ok: false, error: 'Error al iniciar sesión con Google' }
+  }
+}
+
 export function updateUserName(name: string) {
   const users = getUsers()
   const current = getCurrentUser()
