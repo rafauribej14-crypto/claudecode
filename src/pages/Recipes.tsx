@@ -7,14 +7,9 @@ import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { generateId } from '@/lib/utils'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
-import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2 } from 'lucide-react'
+import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff } from 'lucide-react'
 
-function IngredientAutocomplete({
-  value,
-  onChange,
-  products,
-  inventory,
-}: {
+function IngredientAutocomplete({ value, onChange, products, inventory }: {
   value: string
   onChange: (name: string, productId: string | null) => void
   products: Product[]
@@ -25,62 +20,35 @@ function IngredientAutocomplete({
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setSearch(value) }, [value])
-
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
-  const availableProducts = products.filter(p => {
+  const available = products.filter(p => {
     const inv = inventory.find(i => i.product_id === p.id)
     return inv && inv.qty_remaining > 0
   })
-
-  const filtered = search.trim()
-    ? availableProducts.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
-    : availableProducts
-
-  const getQty = (productId: string) => {
-    const inv = inventory.find(i => i.product_id === productId)
+  const filtered = search.trim() ? available.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : available
+  const getQty = (pid: string) => {
+    const inv = inventory.find(i => i.product_id === pid)
     if (!inv) return ''
-    const p = products.find(pr => pr.id === productId)
-    const unit = p?.base_unit ?? 'g'
-    if (unit === 'g' && inv.qty_remaining >= 1000) return `${(inv.qty_remaining / 1000).toFixed(1)} kg`
-    return `${inv.qty_remaining.toFixed(0)} ${unit}`
+    const p = products.find(pr => pr.id === pid)
+    const u = p?.base_unit ?? 'g'
+    if (u === 'g' && inv.qty_remaining >= 1000) return `${(inv.qty_remaining / 1000).toFixed(1)} kg`
+    return `${inv.qty_remaining.toFixed(0)} ${u}`
   }
 
   return (
     <div ref={ref} className="relative">
-      <Input
-        value={search}
-        onChange={e => {
-          setSearch(e.target.value)
-          setOpen(true)
-          onChange(e.target.value, null)
-        }}
-        onFocus={() => setOpen(true)}
-        placeholder="Escribe para buscar..."
-      />
+      <Input value={search} onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value, null) }} onFocus={() => setOpen(true)} placeholder="Buscar producto..." />
       {open && filtered.length > 0 && (
         <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg max-h-48 overflow-auto">
           {filtered.map(p => (
-            <button
-              key={p.id}
-              type="button"
-              className="w-full flex justify-between items-center px-3 py-2 hover:bg-primary/5 text-left text-sm cursor-pointer"
-              onClick={() => {
-                setSearch(p.name)
-                onChange(p.name, p.id)
-                setOpen(false)
-              }}
-            >
+            <button key={p.id} type="button" className="w-full flex justify-between items-center px-3 py-2 hover:bg-primary/5 text-left text-sm cursor-pointer" onClick={() => { setSearch(p.name); onChange(p.name, p.id); setOpen(false) }}>
               <span className="font-medium">{p.name}</span>
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                {getQty(p.id)} disponible
-              </span>
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{getQty(p.id)}</span>
             </button>
           ))}
         </div>
@@ -89,58 +57,74 @@ function IngredientAutocomplete({
   )
 }
 
+const emptyForm = { name: '', meal_type: 'lunch' as MealType, cooking_level: 'basic' as CookingLevel, instructions: '', est_calories: 0, protein_level: 'med' as 'low' | 'med' | 'high', prep_minutes: 30, servings: 4, days_covered: 3 }
+const emptyIngredient = () => ({ name: '', qty: 0, unit: 'g', product_id: null as string | null })
+
 export function Recipes() {
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const reload = () => {
-    setRecipes(store.getRecipes())
-    setProducts(store.getProducts())
-    setInventory(store.getInventory())
-  }
-
+  const reload = () => { setRecipes(store.getRecipes()); setProducts(store.getProducts()); setInventory(store.getInventory()) }
   useEffect(reload, [])
 
-  const [form, setForm] = useState({
-    name: '',
-    meal_type: 'lunch' as MealType,
-    cooking_level: 'basic' as CookingLevel,
-    instructions: '',
-    est_calories: 0,
-    protein_level: 'med' as 'low' | 'med' | 'high',
-    prep_minutes: 30,
-    servings: 4,
-    days_covered: 3,
-  })
-  const [ingredients, setIngredients] = useState<{ name: string; qty: number; unit: string; product_id: string | null }[]>([
-    { name: '', qty: 0, unit: 'g', product_id: null },
-  ])
+  const [form, setForm] = useState(emptyForm)
+  const [ingredients, setIngredients] = useState([emptyIngredient()])
+
+  const openCreate = () => {
+    setForm(emptyForm)
+    setIngredients([emptyIngredient()])
+    setEditingId(null)
+    setShowForm(true)
+  }
+
+  const openEdit = (recipe: Recipe) => {
+    setForm({
+      name: recipe.name, meal_type: recipe.meal_type, cooking_level: recipe.cooking_level,
+      instructions: recipe.instructions, est_calories: recipe.est_calories, protein_level: recipe.protein_level,
+      prep_minutes: recipe.prep_minutes, servings: recipe.servings, days_covered: recipe.days_covered,
+    })
+    setIngredients(recipe.ingredients.map(i => ({ name: i.ingredient_name, qty: i.qty, unit: i.unit, product_id: i.product_id })))
+    setEditingId(recipe.id)
+    setShowForm(true)
+  }
 
   const handleSave = () => {
     if (!form.name) return
     const recipeIngredients: RecipeIngredient[] = ingredients
       .filter(i => i.name && i.qty > 0)
       .map(i => ({
-        id: generateId(),
-        recipe_id: '',
-        product_id: i.product_id,
+        id: generateId(), recipe_id: '', product_id: i.product_id,
         ingredient_name: i.name,
         qty: i.unit === 'kg' ? i.qty * 1000 : i.unit === 'L' ? i.qty * 1000 : i.qty,
         unit: i.unit === 'kg' ? 'g' : i.unit === 'L' ? 'ml' : i.unit,
       }))
 
-    const recipe = store.addRecipe({
-      ...form,
-      ai_generated: false,
-      ingredients: recipeIngredients,
-    })
+    if (editingId) {
+      const all = store.getRecipes()
+      const idx = all.findIndex(r => r.id === editingId)
+      if (idx !== -1) {
+        all[idx] = { ...all[idx], ...form, ingredients: recipeIngredients }
+        store.saveRecipes(all)
+      }
+    } else {
+      store.addRecipe({ ...form, ai_generated: false, ingredients: recipeIngredients })
+    }
 
-    setRecipes(prev => [...prev, recipe])
     setShowForm(false)
-    setForm({ name: '', meal_type: 'lunch', cooking_level: 'basic', instructions: '', est_calories: 0, protein_level: 'med', prep_minutes: 30, servings: 4, days_covered: 3 })
-    setIngredients([{ name: '', qty: 0, unit: 'g', product_id: null }])
+    setEditingId(null)
+    reload()
+  }
+
+  const handleDelete = (id: string) => {
+    const all = store.getRecipes().filter(r => r.id !== id)
+    store.saveRecipes(all)
+    setConfirmDelete(null)
+    reload()
   }
 
   const markCooked = (recipe: Recipe) => {
@@ -148,29 +132,23 @@ export function Recipes() {
     for (const ing of recipe.ingredients) {
       if (!ing.product_id) continue
       const item = inv.find(i => i.product_id === ing.product_id)
-      if (item) {
-        item.qty_remaining = Math.max(0, item.qty_remaining - ing.qty)
-      }
+      if (item) item.qty_remaining = Math.max(0, item.qty_remaining - ing.qty)
     }
     store.saveInventory(inv)
     reload()
   }
 
-  const canCook = (recipe: Recipe) => {
-    return recipe.ingredients.every(ing => {
-      if (!ing.product_id) return true
-      const item = inventory.find(i => i.product_id === ing.product_id)
-      return item && item.qty_remaining >= ing.qty
-    })
-  }
+  const canCook = (recipe: Recipe) => recipe.ingredients.every(ing => {
+    if (!ing.product_id) return true
+    const item = inventory.find(i => i.product_id === ing.product_id)
+    return item && item.qty_remaining >= ing.qty
+  })
 
-  const getMissingIngredients = (recipe: Recipe) => {
-    return recipe.ingredients.filter(ing => {
-      if (!ing.product_id) return false
-      const item = inventory.find(i => i.product_id === ing.product_id)
-      return !item || item.qty_remaining < ing.qty
-    })
-  }
+  const getMissing = (recipe: Recipe) => recipe.ingredients.filter(ing => {
+    if (!ing.product_id) return false
+    const item = inventory.find(i => i.product_id === ing.product_id)
+    return !item || item.qty_remaining < ing.qty
+  })
 
   const mealLabel: Record<string, string> = { lunch: 'Almuerzo', dinner: 'Cena', snack: 'Snack' }
   const proteinLabel: Record<string, string> = { low: 'Baja', med: 'Media', high: 'Alta' }
@@ -181,203 +159,201 @@ export function Recipes() {
         <div className="flex items-center gap-2">
           <ChefHat className="text-primary" size={24} />
           <h1 className="text-2xl font-bold">Recetas</h1>
+          <Badge className="ml-1">{recipes.length}</Badge>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} variant={showForm ? 'outline' : 'primary'}>
-          <Plus size={16} className="mr-1" /> {showForm ? 'Cancelar' : 'Nueva receta'}
+        <Button onClick={() => showForm ? setShowForm(false) : openCreate()} variant={showForm ? 'outline' : 'primary'}>
+          {showForm ? <><X size={16} className="mr-1" /> Cancelar</> : <><Plus size={16} className="mr-1" /> Nueva</>}
         </Button>
       </div>
 
-      {/* AI Suggestion Banner */}
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+      {/* AI Banner */}
+      <Card className="bg-gradient-to-r from-violet-50 to-sky-50 border-violet-100">
         <div className="flex items-start gap-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Sparkles className="text-purple-600" size={20} />
-          </div>
+          <div className="p-2 bg-violet-100 rounded-xl"><Sparkles className="text-violet-600" size={18} /></div>
           <div className="flex-1">
-            <h3 className="font-semibold text-purple-800">Recetas sugeridas por IA</h3>
-            <p className="text-sm text-purple-600 mt-1">
+            <h3 className="font-semibold text-violet-800 text-sm">Recetas con IA</h3>
+            <p className="text-xs text-violet-600 mt-0.5">
               {inventory.filter(i => i.qty_remaining > 0).length > 0
-                ? `Tienes ${inventory.filter(i => i.qty_remaining > 0).length} productos en inventario. Cuando conectes la API de Claude, la IA generará recetas personalizadas con lo que tienes en casa, según tu nivel de cocina y meta nutricional.`
-                : 'Registra productos en tu inventario para que la IA pueda sugerirte recetas con lo que tienes.'}
+                ? `${inventory.filter(i => i.qty_remaining > 0).length} productos disponibles. La IA (Grok) generará recetas con lo que tienes.`
+                : 'Agrega productos al inventario para que la IA sugiera recetas.'}
             </p>
-            <Button size="sm" variant="outline" className="mt-3 border-purple-300 text-purple-700" disabled>
-              <Sparkles size={14} className="mr-1" /> Generar recetas con IA (próximamente)
+            <Button size="sm" variant="outline" className="mt-2 border-violet-200 text-violet-700 text-xs" disabled>
+              <Sparkles size={12} className="mr-1" /> Generar recetas (próximamente)
             </Button>
           </div>
         </div>
       </Card>
 
+      {/* Form */}
       {showForm && (
         <Card>
-          <CardHeader><CardTitle>Nueva receta</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{editingId ? 'Editar receta' : 'Nueva receta'}</CardTitle></CardHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Nombre</label>
+                <label className="text-xs font-medium text-muted-foreground">Nombre</label>
                 <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Comida</label>
+                <label className="text-xs font-medium text-muted-foreground">Comida</label>
                 <Select value={form.meal_type} onChange={e => setForm(f => ({ ...f, meal_type: e.target.value as MealType }))} className="mt-1">
-                  <option value="lunch">Almuerzo</option>
-                  <option value="dinner">Cena</option>
-                  <option value="snack">Snack</option>
+                  <option value="lunch">Almuerzo</option><option value="dinner">Cena</option><option value="snack">Snack</option>
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Nivel</label>
+                <label className="text-xs font-medium text-muted-foreground">Nivel</label>
                 <Select value={form.cooking_level} onChange={e => setForm(f => ({ ...f, cooking_level: e.target.value as CookingLevel }))} className="mt-1">
-                  <option value="basic">Básico</option>
-                  <option value="medium">Medio</option>
-                  <option value="experienced">Experimentado</option>
+                  <option value="basic">Básico</option><option value="medium">Medio</option><option value="experienced">Experimentado</option>
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Proteína</label>
+                <label className="text-xs font-medium text-muted-foreground">Proteína</label>
                 <Select value={form.protein_level} onChange={e => setForm(f => ({ ...f, protein_level: e.target.value as 'low' | 'med' | 'high' }))} className="mt-1">
-                  <option value="low">Baja</option>
-                  <option value="med">Media</option>
-                  <option value="high">Alta</option>
+                  <option value="low">Baja</option><option value="med">Media</option><option value="high">Alta</option>
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Minutos</label>
+                <label className="text-xs font-medium text-muted-foreground">Minutos</label>
                 <Input type="number" value={form.prep_minutes} onChange={e => setForm(f => ({ ...f, prep_minutes: +e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Porciones</label>
+                <label className="text-xs font-medium text-muted-foreground">Porciones</label>
                 <Input type="number" value={form.servings} onChange={e => setForm(f => ({ ...f, servings: +e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Días que cubre</label>
+                <label className="text-xs font-medium text-muted-foreground">Días que cubre</label>
                 <Input type="number" value={form.days_covered} onChange={e => setForm(f => ({ ...f, days_covered: +e.target.value }))} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Calorías est.</label>
+                <label className="text-xs font-medium text-muted-foreground">Calorías est.</label>
                 <Input type="number" value={form.est_calories || ''} onChange={e => setForm(f => ({ ...f, est_calories: +e.target.value }))} className="mt-1" />
               </div>
             </div>
 
             <div>
-              <label className="text-sm font-medium text-muted-foreground">Instrucciones</label>
-              <textarea
-                className="flex w-full rounded-md border border-border bg-white px-3 py-2 text-sm text-foreground min-h-[80px] mt-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                value={form.instructions}
-                onChange={e => setForm(f => ({ ...f, instructions: e.target.value }))}
-              />
+              <label className="text-xs font-medium text-muted-foreground">Instrucciones</label>
+              <textarea className="flex w-full rounded-xl border border-border bg-white px-3 py-2 text-sm min-h-[80px] mt-1 focus-visible:ring-2 focus-visible:ring-primary/30" value={form.instructions} onChange={e => setForm(f => ({ ...f, instructions: e.target.value }))} />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Ingredientes
-                  <span className="text-xs ml-2 text-primary">(escribe para buscar del inventario)</span>
-                </label>
-                <Button size="sm" variant="ghost" onClick={() => setIngredients(prev => [...prev, { name: '', qty: 0, unit: 'g', product_id: null }])}>
-                  <Plus size={14} className="mr-1" /> Agregar
-                </Button>
+                <label className="text-xs font-medium text-muted-foreground">Ingredientes <span className="text-primary">(busca del inventario)</span></label>
+                <Button size="sm" variant="ghost" onClick={() => setIngredients(prev => [...prev, emptyIngredient()])}><Plus size={14} /></Button>
               </div>
               {ingredients.map((ing, i) => (
                 <div key={i} className="grid grid-cols-12 gap-2 mb-2 items-end">
                   <div className="col-span-5">
-                    <IngredientAutocomplete
-                      value={ing.name}
-                      products={products}
-                      inventory={inventory}
-                      onChange={(name, productId) => {
-                        const copy = [...ingredients]
-                        copy[i] = { ...copy[i], name, product_id: productId ?? copy[i].product_id }
-                        setIngredients(copy)
-                      }}
-                    />
+                    <IngredientAutocomplete value={ing.name} products={products} inventory={inventory} onChange={(name, pid) => {
+                      const copy = [...ingredients]; copy[i] = { ...copy[i], name, product_id: pid ?? copy[i].product_id }; setIngredients(copy)
+                    }} />
                   </div>
                   <div className="col-span-3">
-                    <Input type="number" placeholder="Cant." value={ing.qty || ''} onChange={e => { const copy = [...ingredients]; copy[i].qty = +e.target.value; setIngredients(copy) }} />
+                    <Input type="number" placeholder="Cant." value={ing.qty || ''} onChange={e => { const c = [...ingredients]; c[i].qty = +e.target.value; setIngredients(c) }} />
                   </div>
                   <div className="col-span-3">
-                    <Select value={ing.unit} onChange={e => { const copy = [...ingredients]; copy[i].unit = e.target.value; setIngredients(copy) }}>
-                      <option value="g">g</option>
-                      <option value="kg">kg</option>
-                      <option value="ml">ml</option>
-                      <option value="L">L</option>
-                      <option value="unit">unidad</option>
+                    <Select value={ing.unit} onChange={e => { const c = [...ingredients]; c[i].unit = e.target.value; setIngredients(c) }}>
+                      <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="L">L</option><option value="unit">und</option>
                     </Select>
                   </div>
                   <div className="col-span-1">
                     {ingredients.length > 1 && (
-                      <button
-                        onClick={() => setIngredients(prev => prev.filter((_, idx) => idx !== i))}
-                        className="text-muted-foreground hover:text-destructive p-1 cursor-pointer"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <button onClick={() => setIngredients(prev => prev.filter((_, idx) => idx !== i))} className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"><Trash2 size={14} /></button>
                     )}
                   </div>
-                  {ing.product_id && (
-                    <div className="col-span-12">
-                      <span className="text-xs text-green-600 flex items-center gap-1">
-                        <CheckCircle size={12} /> Vinculado al inventario — se descontará al cocinar
-                      </span>
-                    </div>
-                  )}
+                  {ing.product_id && <div className="col-span-12"><span className="text-xs text-emerald-600 flex items-center gap-1"><CheckCircle size={11} /> Vinculado — se descuenta al cocinar</span></div>}
                 </div>
               ))}
             </div>
 
-            <Button onClick={handleSave} className="w-full">Guardar receta</Button>
+            <Button onClick={handleSave} className="w-full">{editingId ? 'Guardar cambios' : 'Crear receta'}</Button>
           </div>
         </Card>
       )}
 
+      {/* Recipe Cards */}
       {recipes.length === 0 && !showForm ? (
         <Card className="text-center py-12 border-dashed border-2">
           <ChefHat className="mx-auto text-muted-foreground mb-3" size={40} />
-          <p className="text-muted-foreground">No hay recetas aún. Crea una manualmente o espera la integración con IA.</p>
+          <p className="text-muted-foreground">No hay recetas. Crea una o espera la IA.</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {recipes.map(recipe => {
             const cookable = canCook(recipe)
-            const missing = getMissingIngredients(recipe)
+            const missing = getMissing(recipe)
+            const isExpanded = expandedId === recipe.id
+            const isDeleting = confirmDelete === recipe.id
 
             return (
               <Card key={recipe.id} className="flex flex-col">
+                {/* Header */}
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-semibold">{recipe.name}</h3>
-                  <Badge>{mealLabel[recipe.meal_type]}</Badge>
-                </div>
-                <div className="flex gap-3 text-sm text-muted-foreground mb-3">
-                  <span className="flex items-center gap-1"><Clock size={14} />{recipe.prep_minutes}min</span>
-                  <span className="flex items-center gap-1"><Flame size={14} />{proteinLabel[recipe.protein_level]} prot.</span>
-                  <span className="flex items-center gap-1"><Users size={14} />{recipe.servings} porc.</span>
+                  <div className="flex items-center gap-1">
+                    <Badge>{mealLabel[recipe.meal_type]}</Badge>
+                    <button onClick={() => openEdit(recipe)} className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"><Pencil size={13} /></button>
+                    <button onClick={() => setConfirmDelete(recipe.id)} className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 cursor-pointer"><Trash2 size={13} /></button>
+                  </div>
                 </div>
 
-                {recipe.instructions && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {recipe.instructions.slice(0, 80)}{recipe.instructions.length > 80 ? '...' : ''}
-                  </p>
+                {/* Meta */}
+                <div className="flex gap-3 text-xs text-muted-foreground mb-2">
+                  <span className="flex items-center gap-1"><Clock size={12} />{recipe.prep_minutes}min</span>
+                  <span className="flex items-center gap-1"><Flame size={12} />{proteinLabel[recipe.protein_level]}</span>
+                  <span className="flex items-center gap-1"><Users size={12} />{recipe.servings}</span>
+                </div>
+
+                {/* Expandable details */}
+                <button onClick={() => setExpandedId(isExpanded ? null : recipe.id)} className="text-xs text-primary flex items-center gap-1 mb-2 cursor-pointer hover:underline">
+                  {isExpanded ? <EyeOff size={12} /> : <Eye size={12} />}
+                  {isExpanded ? 'Ocultar detalles' : `Ver ${recipe.ingredients.length} ingredientes`}
+                </button>
+
+                {isExpanded && (
+                  <div className="mb-3 space-y-2">
+                    {recipe.instructions && (
+                      <p className="text-xs text-muted-foreground bg-muted p-2 rounded-lg">{recipe.instructions}</p>
+                    )}
+                    <div className="space-y-1">
+                      {recipe.ingredients.map((ing, idx) => {
+                        const invItem = ing.product_id ? inventory.find(i => i.product_id === ing.product_id) : null
+                        const hasEnough = !ing.product_id || (invItem && invItem.qty_remaining >= ing.qty)
+                        return (
+                          <div key={idx} className={`flex justify-between text-xs px-2 py-1 rounded-lg ${hasEnough ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                            <span>{ing.ingredient_name}</span>
+                            <span className="font-medium">{ing.qty}{ing.unit}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
                 )}
 
-                <div className="mt-auto pt-3 border-t border-border space-y-2">
-                  <div className="text-xs text-muted-foreground">
-                    {recipe.ingredients.length} ingredientes · Cubre {recipe.days_covered} días
+                {/* Delete confirm */}
+                {isDeleting && (
+                  <div className="mb-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                    <p className="text-sm text-destructive mb-2">¿Eliminar esta receta?</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="destructive" onClick={() => handleDelete(recipe.id)} className="flex-1">Eliminar</Button>
+                      <Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)}>No</Button>
+                    </div>
                   </div>
+                )}
 
+                {/* Actions */}
+                <div className="mt-auto pt-3 border-t border-border space-y-2">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Cubre {recipe.days_covered} días</span>
+                    {recipe.est_calories > 0 && <span>~{recipe.est_calories} cal/porción</span>}
+                  </div>
                   {missing.length > 0 && (
-                    <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                    <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-100">
                       Falta: {missing.map(m => m.ingredient_name).join(', ')}
                     </div>
                   )}
-
-                  <Button
-                    size="sm"
-                    className="w-full"
-                    variant={cookable ? 'primary' : 'outline'}
-                    onClick={() => { if (cookable) markCooked(recipe) }}
-                    disabled={!cookable}
-                  >
+                  <Button size="sm" className="w-full" variant={cookable ? 'primary' : 'outline'} onClick={() => { if (cookable) markCooked(recipe) }} disabled={!cookable}>
                     <CheckCircle size={14} className="mr-1" />
-                    {cookable ? 'Marcar cocinado (descuenta inventario)' : 'Ingredientes insuficientes'}
+                    {cookable ? 'Cocinado (descontar)' : 'Faltan ingredientes'}
                   </Button>
                 </div>
               </Card>
