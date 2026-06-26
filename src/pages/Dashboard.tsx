@@ -58,8 +58,9 @@ export function Dashboard() {
             </div>
           </div>
           <div className="mt-3 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${budgetPct}%` }} />
+            <div className={`h-full rounded-full transition-all ${budgetPct >= 90 ? 'bg-red-400' : budgetPct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`} style={{ width: `${budgetPct}%` }} />
           </div>
+          <p className="text-[10px] text-muted-foreground mt-1.5">Gastado {formatCurrency(totalSpent)} de {formatCurrency(budget)}</p>
         </Card>
 
         <Card className="bg-gradient-to-br from-sky-50 to-white border-sky-100">

@@ -6,8 +6,9 @@ import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { store } from '@/store'
 import { generateId, formatCurrency, formatDate } from '@/lib/utils'
+import { analyzeReceipt, hasGrokKey } from '@/services/grok'
 import type { PurchaseItem, Purchase } from '@/types'
-import { Plus, Trash2, ShoppingBag, Camera, Image, X, History, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, ShoppingBag, Camera, Image, X, History, ChevronDown, ChevronUp, Sparkles, Loader2 } from 'lucide-react'
 
 interface LineItem {
   tempId: string
@@ -46,6 +47,9 @@ export function Capture() {
   const [purchases, setPurchases] = useState<Purchase[]>([])
   const [expandedPurchase, setExpandedPurchase] = useState<string | null>(null)
   const [confirmDeletePurchase, setConfirmDeletePurchase] = useState<string | null>(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analyzeError, setAnalyzeError] = useState('')
+  const [analyzeOk, setAnalyzeOk] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
 
@@ -81,6 +85,33 @@ export function Capture() {
   }
 
   const removeSessionPhoto = (id: string) => setSessionPhotos(prev => prev.filter(p => p.id !== id))
+
+  const analyzeWithAI = async (dataUrl: string) => {
+    setAnalyzeError('')
+    setAnalyzeOk('')
+    setAnalyzing(true)
+    try {
+      const result = await analyzeReceipt(dataUrl)
+      if (result.items.length === 0) {
+        setAnalyzeError('No se detectaron productos en la foto. Verifica que sea una factura legible.')
+        return
+      }
+      if (result.store && STORES.includes(result.store)) setSelectedStore(result.store)
+      setLines(result.items.map(it => ({
+        tempId: generateId(),
+        product_name: it.product_name,
+        qty: it.qty,
+        unit: it.unit,
+        price_paid: it.price_paid,
+        category: it.category,
+      })))
+      setAnalyzeOk(`✓ ${result.items.length} productos detectados. Revisa y confirma la compra.`)
+    } catch (err: any) {
+      setAnalyzeError(err.message ?? 'Error al analizar la factura')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
 
   const handleSubmit = () => {
     const validLines = lines.filter(l => l.product_name && l.qty > 0 && l.price_paid > 0)
@@ -177,8 +208,33 @@ export function Capture() {
         <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} className="hidden" />
         <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhoto} className="hidden" />
 
+        {/* Analizar con IA */}
+        {sessionPhotos.length > 0 && (
+          <div className="mt-4 p-3 bg-gradient-to-r from-violet-50 to-sky-50 rounded-xl border border-violet-100">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Sparkles className="text-violet-600" size={16} />
+                <span className="text-sm font-medium text-violet-800">Leer factura con IA</span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => analyzeWithAI(sessionPhotos[sessionPhotos.length - 1].dataUrl)}
+                disabled={analyzing || !hasGrokKey()}
+                className="bg-violet-600 hover:bg-violet-700 text-white"
+              >
+                {analyzing
+                  ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analizando...</>
+                  : <><Sparkles size={14} className="mr-1" /> Analizar y llenar</>}
+              </Button>
+            </div>
+            {!hasGrokKey() && <p className="text-[11px] text-violet-600 mt-2">La IA no está configurada. Contacta al administrador.</p>}
+            {analyzeError && <p className="text-xs text-red-600 mt-2 bg-red-50 px-2 py-1 rounded-lg">{analyzeError}</p>}
+            {analyzeOk && <p className="text-xs text-emerald-700 mt-2 bg-emerald-50 px-2 py-1 rounded-lg">{analyzeOk}</p>}
+          </div>
+        )}
+
         <p className="text-[11px] text-muted-foreground mt-3">
-          Las fotos se guardan localmente. Con IA se leerán automáticamente.
+          Toma una foto de tu factura y la IA llenará los productos automáticamente. Las fotos se guardan localmente.
         </p>
       </Card>
 

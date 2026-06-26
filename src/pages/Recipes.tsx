@@ -71,6 +71,7 @@ export function Recipes() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
+  const [aiRequest, setAiRequest] = useState('')
 
   const reload = () => { setRecipes(store.getRecipes()); setProducts(store.getProducts()); setInventory(store.getInventory()) }
   useEffect(reload, [])
@@ -158,7 +159,7 @@ export function Recipes() {
     setAiLoading(true)
     try {
       const profile = store.getProfile()
-      const aiRecipes = await generateRecipesAI({ inventory, products, profile })
+      const aiRecipes = await generateRecipesAI({ inventory, products, profile, customRequest: aiRequest })
       for (const recipe of aiRecipes) {
         store.addRecipe(recipe)
       }
@@ -202,6 +203,20 @@ export function Recipes() {
                   : 'Agrega productos al inventario para que la IA sugiera recetas.'}
             </p>
             {aiError && <p className="text-xs text-red-600 mt-1 bg-red-50 px-2 py-1 rounded-lg">{aiError}</p>}
+
+            {hasGrokKey() && inventory.filter(i => i.qty_remaining > 0).length > 0 && (
+              <div className="mt-3">
+                <Input
+                  value={aiRequest}
+                  onChange={e => setAiRequest(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !aiLoading) handleGenerateAI() }}
+                  placeholder='Ej: "algo con el pollo" o "antojo tailandés"'
+                  className="bg-white/70 border-violet-200 text-sm"
+                />
+                <p className="text-[10px] text-violet-500 mt-1">Opcional — déjalo vacío para recetas según tu meta, o pide algo específico.</p>
+              </div>
+            )}
+
             <Button
               size="sm"
               variant="outline"
@@ -211,7 +226,7 @@ export function Recipes() {
             >
               {aiLoading
                 ? <><Loader2 size={12} className="mr-1 animate-spin" /> Generando...</>
-                : <><Sparkles size={12} className="mr-1" /> Generar recetas con IA</>}
+                : <><Sparkles size={12} className="mr-1" /> {aiRequest.trim() ? 'Generar con mi pedido' : 'Generar recetas con IA'}</>}
             </Button>
           </div>
         </div>

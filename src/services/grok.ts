@@ -2,6 +2,8 @@ import type { InventoryItem, Product, UserProfile, Recipe, RecipeIngredient } fr
 import { generateId } from '@/lib/utils'
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+const TEXT_MODEL = 'llama-3.3-70b-versatile'
+const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 
 function getGroqKey(): string {
   return import.meta.env.VITE_GROQ_API_KEY ?? ''
@@ -11,16 +13,125 @@ export function hasGrokKey(): boolean {
   return getGroqKey().length > 0
 }
 
+function cleanJson(content: string): string {
+  return content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+}
+
+async function callGroq(body: object): Promise<string> {
+  const apiKey = getGroqKey()
+  if (!apiKey) throw new Error('No hay API key de Groq configurada. Contacta al administrador.')
+
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const err = await response.text()
+    if (response.status === 401) throw new Error('API key de Groq inválida.')
+    if (response.status === 429) throw new Error('Límite de uso alcanzado. Intenta en unos minutos.')
+    throw new Error(`Error de Groq API: ${response.status} ${err}`)
+  }
+
+  const data = await response.json()
+  return data.choices?.[0]?.message?.content ?? ''
+}
+
+// ─────────────────────────────────────────────────────────
+//  ANÁLISIS DE FACTURA (visión)
+// ─────────────────────────────────────────────────────────
+
+export interface ReceiptItem {
+  product_name: string
+  qty: number
+  unit: string
+  price_paid: number
+  category: string
+}
+
+export interface ReceiptResult {
+  store: string | null
+  total: number | null
+  items: ReceiptItem[]
+}
+
+export async function analyzeReceipt(imageDataUrl: string): Promise<ReceiptResult> {
+  const prompt = `Eres un asistente que lee facturas de supermercado (Panamá). Analiza la imagen y extrae cada producto comprado.
+
+Para cada producto identifica:
+- product_name: nombre limpio del producto (en español, sin códigos)
+- qty: cantidad numérica (si dice "2 lb" pon 2, si dice "500g" pon 500, si es 1 unidad pon 1)
+- unit: una de estas: "g", "kg", "ml", "L", "unit" (lb conviértelo a kg aproximado, oz a g)
+- price_paid: precio total pagado por ese producto en dólares (número)
+- category: una de: "proteina", "grano", "lacteo", "fruta", "verdura", "otro"
+
+También identifica:
+- store: nombre de la tienda (Super99, El Rey, PriceSmart, Riba Smith, u otro)
+- total: total de la factura en dólares
+
+Responde SOLO con JSON válido (sin markdown, sin backticks) con este formato exacto:
+{
+  "store": "Super99",
+  "total": 45.30,
+  "items": [
+    { "product_name": "Pechuga de pollo", "qty": 2, "unit": "kg", "price_paid": 12.50, "category": "proteina" }
+  ]
+}
+
+Si no puedes leer algún dato, usa null para store/total y omite los items que no entiendas. Nunca inventes productos.`
+
+  const content = await callGroq({
+    model: VISION_MODEL,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+        ],
+      },
+    ],
+    temperature: 0.2,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudo leer la factura. Intenta con una foto más clara.')
+  }
+
+  const items: ReceiptItem[] = (parsed.items ?? []).map((it: any) => ({
+    product_name: it.product_name ?? '',
+    qty: Number(it.qty) || 0,
+    unit: ['g', 'kg', 'ml', 'L', 'unit'].includes(it.unit) ? it.unit : 'unit',
+    price_paid: Number(it.price_paid) || 0,
+    category: ['proteina', 'grano', 'lacteo', 'fruta', 'verdura', 'otro'].includes(it.category) ? it.category : 'otro',
+  })).filter((it: ReceiptItem) => it.product_name)
+
+  return {
+    store: parsed.store ?? null,
+    total: parsed.total != null ? Number(parsed.total) : null,
+    items,
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+//  GENERACIÓN DE RECETAS (texto)
+// ─────────────────────────────────────────────────────────
+
 interface GenerateRecipesInput {
   inventory: InventoryItem[]
   products: Product[]
   profile: UserProfile
+  customRequest?: string
 }
 
 export async function generateRecipes(input: GenerateRecipesInput): Promise<Recipe[]> {
-  const apiKey = getGroqKey()
-  if (!apiKey) throw new Error('No hay API key de Groq configurada. Contacta al administrador.')
-
   const availableProducts = input.inventory
     .filter(i => i.qty_remaining > 0)
     .map(i => {
@@ -38,6 +149,10 @@ export async function generateRecipes(input: GenerateRecipesInput): Promise<Reci
   const levelDesc = { basic: 'básico (recetas simples, pocos pasos)', medium: 'medio (puede seguir recetas con algo de técnica)', experienced: 'experimentado (técnicas avanzadas y combinaciones creativas)' }
   const goalDesc = { muscle_gain: 'ganar masa muscular (priorizar proteína)', fat_loss: 'perder grasa (control calórico, más fibra)', maintenance: 'mantenimiento (balance equilibrado)' }
 
+  const customBlock = input.customRequest?.trim()
+    ? `\nPETICIÓN ESPECIAL DEL USUARIO (priorízala): "${input.customRequest.trim()}"\n`
+    : ''
+
   const prompt = `Eres un chef nutricionista. Genera 3 recetas usando SOLO los ingredientes disponibles del usuario.
 
 INGREDIENTES DISPONIBLES:
@@ -50,13 +165,13 @@ PERFIL DEL USUARIO:
 - Comidas: almuerzo, cena y snacks (sin desayuno)
 - Restricciones: ${input.profile.restrictions.length > 0 ? input.profile.restrictions.join(', ') : 'ninguna'}
 ${input.profile.habits ? `- Hábitos: ${input.profile.habits}` : ''}
-
+${customBlock}
 REGLAS:
 1. SOLO usa ingredientes de la lista. Puedes asumir que hay básicos (sal, aceite, especias).
 2. Cada receta debe ser para meal prep (varias porciones).
 3. Las cantidades de ingredientes NO deben exceder lo disponible.
 4. Ajusta complejidad al nivel de cocina.
-5. Prioriza la meta corporal del usuario.
+5. Prioriza la meta corporal del usuario${input.customRequest?.trim() ? ' y especialmente la petición especial' : ''}.
 
 Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este formato exacto:
 [
@@ -76,36 +191,18 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
   }
 ]`
 
-  const response = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages: [
-        { role: 'system', content: 'Eres un asistente de cocina. Responde SOLO con JSON válido, sin markdown.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-    }),
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un asistente de cocina. Responde SOLO con JSON válido, sin markdown.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.7,
   })
-
-  if (!response.ok) {
-    const err = await response.text()
-    if (response.status === 401) throw new Error('API key de Groq inválida.')
-    if (response.status === 429) throw new Error('Límite de uso alcanzado. Intenta en unos minutos.')
-    throw new Error(`Error de Groq API: ${response.status} ${err}`)
-  }
-
-  const data = await response.json()
-  const content = data.choices?.[0]?.message?.content ?? ''
 
   let parsed: any[]
   try {
-    const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-    parsed = JSON.parse(cleaned)
+    parsed = JSON.parse(cleanJson(content))
   } catch {
     throw new Error('La IA no devolvió un formato válido. Intenta de nuevo.')
   }
