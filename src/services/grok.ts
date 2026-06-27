@@ -66,12 +66,12 @@ Para cada producto identifica:
 - product_name: nombre limpio del producto (en español, sin códigos)
 - qty: cantidad numérica (si dice "2 lb" pon 2, si dice "500g" pon 500, si es 1 unidad pon 1)
 - unit: una de estas: "g", "kg", "ml", "L", "unit" (lb conviértelo a kg aproximado, oz a g)
-- price_paid: precio total pagado por ese producto en dólares (número)
+- price_paid: precio total pagado por ese producto (solo el número, sin símbolo de moneda)
 - category: una de: "proteina", "grano", "lacteo", "fruta", "verdura", "otro"
 
 También identifica:
 - store: nombre de la tienda (Super99, El Rey, PriceSmart, Riba Smith, u otro)
-- total: total de la factura en dólares
+- total: total de la factura (solo el número)
 
 Responde SOLO con JSON válido (sin markdown, sin backticks) con este formato exacto:
 {
@@ -161,10 +161,13 @@ ${availableProducts.map(p => `- ${p!.name}: ${p!.quantity} (${p!.category})`).jo
 PERFIL DEL USUARIO:
 - Nivel de cocina: ${levelDesc[input.profile.cooking_level]}
 - Meta corporal: ${goalDesc[input.profile.goal_type]}
+${input.profile.weight_kg > 0 ? `- Peso actual: ${input.profile.weight_kg} kg` : ''}
+${input.profile.height_cm > 0 ? `- Altura: ${input.profile.height_cm} cm` : ''}
 - Estilo: meal prep en lote (cocinar una vez, comer varios días)
 - Comidas: almuerzo, cena y snacks (sin desayuno)
 - Restricciones: ${input.profile.restrictions.length > 0 ? input.profile.restrictions.join(', ') : 'ninguna'}
 ${input.profile.habits ? `- Hábitos: ${input.profile.habits}` : ''}
+${input.profile.weight_kg > 0 && input.profile.height_cm > 0 ? '- Usa el peso y la altura para estimar porciones y calorías adecuadas a su meta (más proteína por kg si busca masa muscular, déficit moderado si busca perder grasa).' : ''}
 ${customBlock}
 REGLAS:
 1. SOLO usa ingredientes de la lista. Puedes asumir que hay básicos (sal, aceite, especias).

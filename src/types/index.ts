@@ -1,3 +1,4 @@
+export type Currency = 'USD' | 'COP'
 export type ShoppingFrequency = 'weekly' | 'biweekly' | 'monthly'
 export type GoalType = 'muscle_gain' | 'fat_loss' | 'maintenance'
 export type CookingLevel = 'basic' | 'medium' | 'experienced'
@@ -10,10 +11,13 @@ export type MealStatus = 'planned' | 'cooked' | 'skipped'
 export interface UserProfile {
   id: string
   name: string
+  currency: Currency
   monthly_budget: number
   budget_carryover: number
   shopping_frequency: ShoppingFrequency
   goal_type: GoalType
+  weight_kg: number
+  height_cm: number
   nutrition_guidance: Record<string, string>
   cooking_level: CookingLevel
   cooking_style: string

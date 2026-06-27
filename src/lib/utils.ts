@@ -9,7 +9,24 @@ export function generateId(): string {
   return crypto.randomUUID()
 }
 
+export function getCurrency(): 'USD' | 'COP' {
+  try {
+    const raw = localStorage.getItem('profile')
+    if (raw) return JSON.parse(raw).currency ?? 'USD'
+  } catch { /* ignore */ }
+  return 'USD'
+}
+
+export function currencySymbol(currency?: 'USD' | 'COP'): string {
+  const c = currency ?? getCurrency()
+  return c === 'COP' ? 'COP$' : 'US$'
+}
+
 export function formatCurrency(amount: number): string {
+  const currency = getCurrency()
+  if (currency === 'COP') {
+    return `$${Math.round(amount).toLocaleString('es-CO')}`
+  }
   return `$${amount.toFixed(2)}`
 }
 

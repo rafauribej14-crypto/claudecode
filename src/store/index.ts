@@ -28,10 +28,13 @@ const USER_ID = 'default-user'
 const defaultProfile: UserProfile = {
   id: USER_ID,
   name: '',
+  currency: 'USD',
   monthly_budget: 300,
   budget_carryover: 0,
   shopping_frequency: 'weekly',
   goal_type: 'maintenance',
+  weight_kg: 0,
+  height_cm: 0,
   nutrition_guidance: {},
   cooking_level: 'basic',
   cooking_style: 'meal_prep',

@@ -13,10 +13,13 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
   const [profile, setProfile] = useState<UserProfile>({
     id: userId,
     name: '',
+    currency: 'USD',
     monthly_budget: 300,
     budget_carryover: 0,
     shopping_frequency: 'weekly',
     goal_type: 'maintenance',
+    weight_kg: 0,
+    height_cm: 0,
     nutrition_guidance: {},
     cooking_level: 'basic',
     cooking_style: 'meal_prep',
@@ -65,11 +68,32 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
       content: (
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual (USD)</label>
+            <label className="text-sm font-medium text-muted-foreground">Moneda</label>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {([
+                { value: 'USD', label: 'Dólar (USD)', flag: '🇺🇸' },
+                { value: 'COP', label: 'Peso (COP)', flag: '🇨🇴' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => update({ currency: opt.value })}
+                  className={`flex items-center justify-center gap-2 h-12 rounded-lg border-2 transition-all cursor-pointer text-sm font-medium ${
+                    profile.currency === opt.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-lg">{opt.flag}</span> {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual ({profile.currency})</label>
             <Input
               type="number"
-              value={profile.monthly_budget}
+              value={profile.monthly_budget || ''}
               onChange={e => update({ monthly_budget: +e.target.value })}
+              placeholder="0"
               className="text-lg h-12 mt-1"
             />
           </div>
@@ -117,6 +141,29 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
               </div>
             </button>
           ))}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Peso actual (kg)</label>
+              <Input
+                type="number"
+                value={profile.weight_kg || ''}
+                onChange={e => update({ weight_kg: +e.target.value })}
+                placeholder="Ej: 70"
+                className="h-12 mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Altura (cm)</label>
+              <Input
+                type="number"
+                value={profile.height_cm || ''}
+                onChange={e => update({ height_cm: +e.target.value })}
+                placeholder="Ej: 175"
+                className="h-12 mt-1"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">La IA usa estos datos para ajustar porciones y calorías a tu objetivo.</p>
         </div>
       ),
       valid: true,

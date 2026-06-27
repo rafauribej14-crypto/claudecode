@@ -53,12 +53,19 @@ export function Settings() {
         <CardHeader><CardTitle>Presupuesto y frecuencia</CardTitle></CardHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual (USD)</label>
-            <Input type="number" value={profile.monthly_budget} onChange={e => update({ monthly_budget: +e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-muted-foreground">Moneda</label>
+            <Select value={profile.currency} onChange={e => update({ currency: e.target.value as UserProfile['currency'] })} className="mt-1">
+              <option value="USD">Dólar (USD)</option>
+              <option value="COP">Peso colombiano (COP)</option>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual ({profile.currency})</label>
+            <Input type="number" value={profile.monthly_budget || ''} onChange={e => update({ monthly_budget: +e.target.value })} placeholder="0" className="mt-1" />
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">Acumulado anterior</label>
-            <Input type="number" value={profile.budget_carryover} onChange={e => update({ budget_carryover: +e.target.value })} className="mt-1" />
+            <Input type="number" value={profile.budget_carryover || ''} onChange={e => update({ budget_carryover: +e.target.value })} placeholder="0" className="mt-1" />
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">Frecuencia de mercado</label>
@@ -89,6 +96,14 @@ export function Settings() {
               <option value="medium">Medio</option>
               <option value="experienced">Experimentado</option>
             </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Peso actual (kg)</label>
+            <Input type="number" value={profile.weight_kg || ''} onChange={e => update({ weight_kg: +e.target.value })} placeholder="Ej: 70" className="mt-1" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Altura (cm)</label>
+            <Input type="number" value={profile.height_cm || ''} onChange={e => update({ height_cm: +e.target.value })} placeholder="Ej: 175" className="mt-1" />
           </div>
         </div>
       </Card>
