@@ -124,6 +124,9 @@ export interface EatingOutEntry {
   meal_type: MealType
   rating: EatingOutRating
   notes: string
+  est_calories: number
+  est_protein: string
+  shared: boolean
 }
 
 export interface BasicPantryItem {

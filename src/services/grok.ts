@@ -174,6 +174,66 @@ Si no puedes leer algún dato, usa null para place/total y array vacío para ite
   }
 }
 
+export interface MealNutritionResult {
+  est_calories: number
+  protein_level: 'low' | 'med' | 'high'
+  rating: 'good' | 'neutral' | 'bad'
+  verdict: string
+}
+
+export async function analyzeMealNutrition(
+  description: string,
+  goalType: string,
+): Promise<MealNutritionResult> {
+  const goalDesc: Record<string, string> = {
+    muscle_gain: 'ganar masa muscular (necesita alta proteína, calorías moderadas-altas)',
+    fat_loss: 'perder grasa (necesita déficit calórico, alta proteína, evitar fritos y excesos)',
+    maintenance: 'mantenimiento (balance equilibrado de macros)',
+  }
+
+  const prompt = `Eres un nutricionista. Analiza esta comida de restaurante y evalúa si se alinea con la meta del usuario.
+
+COMIDA: "${description}"
+META DEL USUARIO: ${goalDesc[goalType] ?? 'mantenimiento'}
+
+Estima:
+- est_calories: calorías aproximadas del plato (número entero)
+- protein_level: "low" (menos de 15g), "med" (15-30g), "high" (más de 30g)
+- rating: "good" si se alinea con la meta, "neutral" si es aceptable, "bad" si va en contra
+- verdict: una frase corta y directa (máx 15 palabras) evaluando la comida vs la meta. Sé honesto pero no regañes. Ejemplos: "Buena elección, alta en proteína y baja en grasa", "Demasiados carbohidratos simples para tu meta", "Aceptable, pero podrías pedir sin la salsa cremosa"
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "est_calories": 450,
+  "protein_level": "high",
+  "rating": "good",
+  "verdict": "Buena elección, alta en proteína"
+}`
+
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un nutricionista. Responde SOLO con JSON válido.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.3,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    return { est_calories: 0, protein_level: 'med', rating: 'neutral', verdict: 'No se pudo analizar' }
+  }
+
+  return {
+    est_calories: Number(parsed.est_calories) || 0,
+    protein_level: ['low', 'med', 'high'].includes(parsed.protein_level) ? parsed.protein_level : 'med',
+    rating: ['good', 'neutral', 'bad'].includes(parsed.rating) ? parsed.rating : 'neutral',
+    verdict: parsed.verdict ?? '',
+  }
+}
+
 // ─────────────────────────────────────────────────────────
 //  GENERACIÓN DE RECETAS (texto)
 // ─────────────────────────────────────────────────────────
