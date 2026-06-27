@@ -131,6 +131,46 @@ interface GenerateRecipesInput {
   customRequest?: string
 }
 
+function buildNutritionBlock(profile: UserProfile): string {
+  const { weight_kg, height_cm, goal_type } = profile
+  if (weight_kg <= 0 || height_cm <= 0) return ''
+
+  const bmi = weight_kg / ((height_cm / 100) ** 2)
+  const bmiCategory = bmi < 18.5 ? 'bajo peso' : bmi < 25 ? 'peso normal' : bmi < 30 ? 'sobrepeso' : 'obesidad'
+
+  const bmr = 10 * weight_kg + 6.25 * height_cm - 5 * 30 + 5
+  let tdee: number
+  let macroGuide: string
+
+  if (goal_type === 'muscle_gain') {
+    tdee = Math.round(bmr * 1.55 + 300)
+    const proteinG = Math.round(weight_kg * 2)
+    const fatG = Math.round(weight_kg * 0.9)
+    const carbG = Math.round((tdee - proteinG * 4 - fatG * 9) / 4)
+    macroGuide = `Superávit calórico moderado (+300 kcal). Macros objetivo: ~${proteinG}g proteína (2g/kg), ~${fatG}g grasa, ~${carbG}g carbohidratos.`
+  } else if (goal_type === 'fat_loss') {
+    tdee = Math.round(bmr * 1.4 - 400)
+    const proteinG = Math.round(weight_kg * 1.8)
+    const fatG = Math.round(weight_kg * 0.7)
+    const carbG = Math.round((tdee - proteinG * 4 - fatG * 9) / 4)
+    macroGuide = `Déficit calórico moderado (-400 kcal). Macros objetivo: ~${proteinG}g proteína (1.8g/kg para preservar masa), ~${fatG}g grasa, ~${carbG}g carbohidratos. Priorizar fibra y volumen.`
+  } else {
+    tdee = Math.round(bmr * 1.5)
+    const proteinG = Math.round(weight_kg * 1.5)
+    const fatG = Math.round(weight_kg * 0.8)
+    const carbG = Math.round((tdee - proteinG * 4 - fatG * 9) / 4)
+    macroGuide = `Mantenimiento calórico. Macros objetivo: ~${proteinG}g proteína, ~${fatG}g grasa, ~${carbG}g carbohidratos.`
+  }
+
+  return `
+ANÁLISIS NUTRICIONAL AUTOMÁTICO:
+- IMC: ${bmi.toFixed(1)} (${bmiCategory})
+- Calorías diarias estimadas: ~${tdee} kcal/día
+- ${macroGuide}
+- Distribuye las calorías entre las comidas del día (almuerzo ~40%, cena ~35%, snacks ~25%).
+- Ajusta las porciones de cada receta para que la suma diaria se acerque a las ${tdee} kcal.`
+}
+
 export async function generateRecipes(input: GenerateRecipesInput): Promise<Recipe[]> {
   const availableProducts = input.inventory
     .filter(i => i.qty_remaining > 0)
@@ -149,32 +189,50 @@ export async function generateRecipes(input: GenerateRecipesInput): Promise<Reci
   const levelDesc = { basic: 'básico (recetas simples, pocos pasos)', medium: 'medio (puede seguir recetas con algo de técnica)', experienced: 'experimentado (técnicas avanzadas y combinaciones creativas)' }
   const goalDesc = { muscle_gain: 'ganar masa muscular (priorizar proteína)', fat_loss: 'perder grasa (control calórico, más fibra)', maintenance: 'mantenimiento (balance equilibrado)' }
 
+  const nutritionBlock = buildNutritionBlock(input.profile)
+
   const customBlock = input.customRequest?.trim()
     ? `\nPETICIÓN ESPECIAL DEL USUARIO (priorízala): "${input.customRequest.trim()}"\n`
     : ''
 
-  const prompt = `Eres un chef nutricionista. Genera 3 recetas usando SOLO los ingredientes disponibles del usuario.
+  const systemPrompt = `Eres un chef nutricionista profesional especializado en meal prep. Tu trabajo es crear planes de comida personalizados y deliciosos usando EXCLUSIVAMENTE lo que el usuario tiene en su despensa.
 
-INGREDIENTES DISPONIBLES:
+PRINCIPIOS CLAVE:
+- Maximizar la variedad y sabor con los ingredientes disponibles.
+- Cada receta debe ser práctica para meal prep (cocinar una vez, comer varios días).
+- Adaptar la complejidad al nivel de cocina del usuario.
+- Calcular porciones y calorías basándote en los datos físicos y la meta del usuario.
+- Balancear los macronutrientes según el objetivo corporal.
+- Si el usuario tiene restricciones, respetarlas de forma estricta.
+- Generar 3 recetas variadas: idealmente 1 almuerzo, 1 cena, 1 snack (o según convenga).
+- Dar instrucciones claras paso a paso, aptas para el nivel del usuario.
+- Incluir tips de almacenamiento si aplica.
+
+Responde SOLO con JSON válido, sin markdown.`
+
+  const prompt = `INGREDIENTES DISPONIBLES EN LA DESPENSA:
 ${availableProducts.map(p => `- ${p!.name}: ${p!.quantity} (${p!.category})`).join('\n')}
 
-PERFIL DEL USUARIO:
+PERFIL COMPLETO DEL USUARIO:
+- Nombre: ${input.profile.name || 'Usuario'}
 - Nivel de cocina: ${levelDesc[input.profile.cooking_level]}
 - Meta corporal: ${goalDesc[input.profile.goal_type]}
 ${input.profile.weight_kg > 0 ? `- Peso actual: ${input.profile.weight_kg} kg` : ''}
 ${input.profile.height_cm > 0 ? `- Altura: ${input.profile.height_cm} cm` : ''}
 - Estilo: meal prep en lote (cocinar una vez, comer varios días)
-- Comidas: almuerzo, cena y snacks (sin desayuno)
+- Comidas planificadas: almuerzo, cena y snacks (sin desayuno)
 - Restricciones: ${input.profile.restrictions.length > 0 ? input.profile.restrictions.join(', ') : 'ninguna'}
-${input.profile.habits ? `- Hábitos: ${input.profile.habits}` : ''}
-${input.profile.weight_kg > 0 && input.profile.height_cm > 0 ? '- Usa el peso y la altura para estimar porciones y calorías adecuadas a su meta (más proteína por kg si busca masa muscular, déficit moderado si busca perder grasa).' : ''}
+${input.profile.habits ? `- Hábitos alimenticios: ${input.profile.habits}` : ''}
+${nutritionBlock}
 ${customBlock}
-REGLAS:
-1. SOLO usa ingredientes de la lista. Puedes asumir que hay básicos (sal, aceite, especias).
-2. Cada receta debe ser para meal prep (varias porciones).
-3. Las cantidades de ingredientes NO deben exceder lo disponible.
-4. Ajusta complejidad al nivel de cocina.
-5. Prioriza la meta corporal del usuario${input.customRequest?.trim() ? ' y especialmente la petición especial' : ''}.
+REGLAS ESTRICTAS:
+1. SOLO usa ingredientes de la lista. Puedes asumir básicos de cocina (sal, pimienta, aceite, especias comunes).
+2. Cada receta debe ser para meal prep (mínimo 3-4 porciones).
+3. Las cantidades NO deben exceder lo disponible en la despensa.
+4. Ajusta la complejidad de la receta al nivel de cocina del usuario.
+5. Las calorías estimadas deben ser coherentes con los ingredientes y porciones.
+6. Prioriza la meta corporal del usuario en la selección de recetas y porciones.
+7. Varía los tipos de comida (no 3 almuerzos iguales).
 
 Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este formato exacto:
 [
@@ -197,7 +255,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
   const content = await callGroq({
     model: TEXT_MODEL,
     messages: [
-      { role: 'system', content: 'Eres un asistente de cocina. Responde SOLO con JSON válido, sin markdown.' },
+      { role: 'system', content: systemPrompt },
       { role: 'user', content: prompt },
     ],
     temperature: 0.7,

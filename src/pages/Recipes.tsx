@@ -72,6 +72,7 @@ export function Recipes() {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
   const [aiRequest, setAiRequest] = useState('')
+  const [showCustomField, setShowCustomField] = useState(false)
 
   const reload = () => { setRecipes(store.getRecipes()); setProducts(store.getProducts()); setInventory(store.getInventory()) }
   useEffect(reload, [])
@@ -205,29 +206,37 @@ export function Recipes() {
             {aiError && <p className="text-xs text-red-600 mt-1 bg-red-50 px-2 py-1 rounded-lg">{aiError}</p>}
 
             {hasGrokKey() && inventory.filter(i => i.qty_remaining > 0).length > 0 && (
-              <div className="mt-3">
-                <Input
-                  value={aiRequest}
-                  onChange={e => setAiRequest(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !aiLoading) handleGenerateAI() }}
-                  placeholder='Ej: "algo con el pollo" o "antojo tailandés"'
-                  className="bg-white/70 border-violet-200 text-sm"
-                />
-                <p className="text-[10px] text-violet-500 mt-1">Opcional — déjalo vacío para recetas según tu meta, o pide algo específico.</p>
+              <div className="mt-3 space-y-2">
+                <Button
+                  variant="primary"
+                  className="w-full"
+                  disabled={aiLoading}
+                  onClick={handleGenerateAI}
+                >
+                  {aiLoading
+                    ? <><Loader2 size={14} className="mr-2 animate-spin" /> Generando recetas personalizadas...</>
+                    : <><Sparkles size={14} className="mr-2" /> {aiRequest.trim() ? 'Generar con mi pedido' : 'Generar recetas personalizadas'}</>}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => { setShowCustomField(!showCustomField); if (showCustomField) setAiRequest('') }}
+                  className="text-[11px] text-violet-500 hover:text-violet-700 cursor-pointer flex items-center gap-1"
+                >
+                  <Sparkles size={10} />
+                  {showCustomField ? 'Cerrar personalización' : '¿Quieres pedir algo específico? (opcional)'}
+                </button>
+                {showCustomField && (
+                  <Input
+                    value={aiRequest}
+                    onChange={e => setAiRequest(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && !aiLoading) handleGenerateAI() }}
+                    placeholder='Ej: "algo con el pollo", "antojo tailandés", "bajo en carbohidratos"'
+                    className="bg-white/70 border-violet-200 text-sm"
+                    autoFocus
+                  />
+                )}
               </div>
             )}
-
-            <Button
-              size="sm"
-              variant="outline"
-              className="mt-2 border-violet-200 text-violet-700 text-xs"
-              disabled={!hasGrokKey() || inventory.filter(i => i.qty_remaining > 0).length === 0 || aiLoading}
-              onClick={handleGenerateAI}
-            >
-              {aiLoading
-                ? <><Loader2 size={12} className="mr-1 animate-spin" /> Generando...</>
-                : <><Sparkles size={12} className="mr-1" /> {aiRequest.trim() ? 'Generar con mi pedido' : 'Generar recetas con IA'}</>}
-            </Button>
           </div>
         </div>
       </Card>
