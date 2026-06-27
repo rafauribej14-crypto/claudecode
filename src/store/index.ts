@@ -7,6 +7,7 @@ import type {
   Recipe,
   MealPlan,
   BasicPantryItem,
+  EatingOutEntry,
 } from '@/types'
 import { generateId } from '@/lib/utils'
 
@@ -160,4 +161,14 @@ export const store = {
 
   getPantry: (): BasicPantryItem[] => load('pantry', []),
   savePantry: (p: BasicPantryItem[]) => save('pantry', p),
+
+  getEatingOut: (): EatingOutEntry[] => load('eating_out', []),
+  saveEatingOut: (e: EatingOutEntry[]) => save('eating_out', e),
+  addEatingOut: (e: Omit<EatingOutEntry, 'id'>): EatingOutEntry => {
+    const entries = store.getEatingOut()
+    const entry = { ...e, id: generateId() }
+    entries.push(entry)
+    store.saveEatingOut(entries)
+    return entry
+  },
 }

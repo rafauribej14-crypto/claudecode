@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Camera, Package, ChefHat, ShoppingCart, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Camera, Package, ChefHat, UtensilsCrossed, ShoppingCart, Settings, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AuthUser } from '@/store/auth'
 
@@ -8,6 +8,7 @@ const links = [
   { to: '/capture', icon: Camera, label: 'Captura' },
   { to: '/inventory', icon: Package, label: 'Inventario' },
   { to: '/recipes', icon: ChefHat, label: 'Recetas' },
+  { to: '/eating-out', icon: UtensilsCrossed, label: 'Afuera' },
   { to: '/recommender', icon: ShoppingCart, label: 'Compras' },
 ]
 

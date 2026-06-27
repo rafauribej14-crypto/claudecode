@@ -6,6 +6,7 @@ import { Capture } from '@/pages/Capture'
 import { Inventory } from '@/pages/Inventory'
 import { Recipes } from '@/pages/Recipes'
 import { Recommender } from '@/pages/Recommender'
+import { EatingOut } from '@/pages/EatingOut'
 import { Settings } from '@/pages/Settings'
 import { Login } from '@/pages/Login'
 import { Onboarding } from '@/pages/Onboarding'
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/capture" element={<Capture />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/recipes" element={<Recipes />} />
+          <Route path="/eating-out" element={<EatingOut />} />
           <Route path="/recommender" element={<Recommender />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

@@ -112,6 +112,20 @@ export interface MealPlan {
   recipe?: Recipe
 }
 
+export type EatingOutRating = 'good' | 'neutral' | 'bad'
+
+export interface EatingOutEntry {
+  id: string
+  user_id: string
+  date: string
+  place: string
+  description: string
+  amount: number
+  meal_type: MealType
+  rating: EatingOutRating
+  notes: string
+}
+
 export interface BasicPantryItem {
   id: string
   user_id: string
