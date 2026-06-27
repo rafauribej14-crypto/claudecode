@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { analyzeRestaurantReceipt, hasGrokKey } from '@/services/grok'
 import type { EatingOutEntry, EatingOutRating, MealType, UserProfile } from '@/types'
-import { UtensilsCrossed, Plus, Trash2, X, TrendingUp, Target, ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
+import { UtensilsCrossed, Plus, Trash2, X, Target, ThumbsUp, ThumbsDown, Minus, Camera, Image, Sparkles, Loader2 } from 'lucide-react'
 
-const ratingConfig: Record<EatingOutRating, { label: string; emoji: string; color: string; badgeVariant: 'success' | 'warning' | 'destructive' }> = {
-  good: { label: 'Alineado con mi meta', emoji: '✅', color: 'text-emerald-700', badgeVariant: 'success' },
-  neutral: { label: 'Más o menos', emoji: '😐', color: 'text-amber-700', badgeVariant: 'warning' },
-  bad: { label: 'Fuera de mi meta', emoji: '🍔', color: 'text-red-700', badgeVariant: 'destructive' },
+const ratingConfig: Record<EatingOutRating, { label: string; emoji: string; badgeVariant: 'success' | 'warning' | 'destructive' }> = {
+  good: { label: 'Alineado', emoji: '✅', badgeVariant: 'success' },
+  neutral: { label: 'Más o menos', emoji: '😐', badgeVariant: 'warning' },
+  bad: { label: 'Fuera de meta', emoji: '🍔', badgeVariant: 'destructive' },
 }
 
 const goalTips: Record<string, string> = {
@@ -28,6 +29,12 @@ export function EatingOut() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [analyzeMsg, setAnalyzeMsg] = useState('')
+  const [analyzeError, setAnalyzeError] = useState('')
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     place: '',
     description: '',
@@ -43,6 +50,33 @@ export function EatingOut() {
   }
   useEffect(reload, [])
 
+  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const handleAnalyze = async () => {
+    if (!photoPreview) return
+    setAnalyzeError('')
+    setAnalyzeMsg('')
+    setAnalyzing(true)
+    try {
+      const result = await analyzeRestaurantReceipt(photoPreview)
+      if (result.place) setForm(f => ({ ...f, place: result.place! }))
+      if (result.total) setForm(f => ({ ...f, amount: result.total! }))
+      if (result.items.length > 0) setForm(f => ({ ...f, description: result.items.join(', ') }))
+      setAnalyzeMsg(`✓ ${result.items.length} platos detectados${result.place ? ` en ${result.place}` : ''}. Revisa y confirma.`)
+    } catch (err: any) {
+      setAnalyzeError(err.message ?? 'Error al analizar la factura')
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
   const handleSave = () => {
     if (!form.place.trim() || form.amount <= 0) return
     store.addEatingOut({
@@ -51,6 +85,8 @@ export function EatingOut() {
       ...form,
     })
     setForm({ place: '', description: '', amount: 0, meal_type: 'lunch', rating: 'neutral', notes: '' })
+    setPhotoPreview(null)
+    setAnalyzeMsg('')
     setShowForm(false)
     reload()
   }
@@ -83,10 +119,12 @@ export function EatingOut() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UtensilsCrossed className="text-primary" size={24} />
-          <h1 className="text-2xl font-bold">Comida afuera</h1>
-          <Badge className="ml-1">{entries.length}</Badge>
+          <div>
+            <h1 className="text-2xl font-bold">Mis antojos</h1>
+            <p className="text-xs text-muted-foreground -mt-0.5">Restaurantes, delivery y comida preparada</p>
+          </div>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} variant={showForm ? 'outline' : 'primary'}>
+        <Button onClick={() => { setShowForm(!showForm); setPhotoPreview(null); setAnalyzeMsg(''); setAnalyzeError('') }} variant={showForm ? 'outline' : 'primary'}>
           {showForm ? <><X size={16} className="mr-1" /> Cancelar</> : <><Plus size={16} className="mr-1" /> Registrar</>}
         </Button>
       </div>
@@ -109,7 +147,7 @@ export function EatingOut() {
           <p className="text-[10px] text-muted-foreground mt-0.5">{goodCount} buenas / {badCount} malas</p>
         </Card>
         <Card className="bg-gradient-to-br from-sky-50 to-white border-sky-100">
-          <p className="text-[11px] text-muted-foreground mb-1">Mercado vs. afuera</p>
+          <p className="text-[11px] text-muted-foreground mb-1">Mercado vs. antojos</p>
           <p className="text-lg font-bold text-sky-700">{formatCurrency(grocerySpent)}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">en mercado este mes</p>
         </Card>
@@ -131,12 +169,61 @@ export function EatingOut() {
       {/* Form */}
       {showForm && (
         <Card>
-          <CardHeader><CardTitle className="text-sm">Registrar comida afuera</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm">Registrar antojo</CardTitle></CardHeader>
           <div className="space-y-4">
+            {/* Photo capture */}
+            <div className="border-2 border-dashed border-primary/20 rounded-xl p-4 bg-primary/[0.02]">
+              <p className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                <Camera className="text-primary" size={14} /> Foto de la factura (opcional)
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" onClick={() => cameraInputRef.current?.click()} className="flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed border-primary/30 rounded-xl hover:bg-primary/5 transition-all cursor-pointer gap-1">
+                  <Camera className="text-primary" size={18} />
+                  <span className="text-[9px] text-primary font-medium">Cámara</span>
+                </button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center w-20 h-20 border-2 border-dashed border-accent/30 rounded-xl hover:bg-accent/5 transition-all cursor-pointer gap-1">
+                  <Image className="text-accent" size={18} />
+                  <span className="text-[9px] text-accent font-medium">Galería</span>
+                </button>
+                {photoPreview && (
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-border shadow-sm">
+                    <img src={photoPreview} alt="Factura" className="w-full h-full object-cover" />
+                    <button onClick={() => { setPhotoPreview(null); setAnalyzeMsg(''); setAnalyzeError('') }} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-destructive cursor-pointer"><X size={10} /></button>
+                  </div>
+                )}
+              </div>
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handlePhoto} className="hidden" />
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+
+              {photoPreview && (
+                <div className="mt-3 p-3 bg-gradient-to-r from-violet-50 to-sky-50 rounded-xl border border-violet-100">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="text-violet-600" size={14} />
+                      <span className="text-sm font-medium text-violet-800">Leer factura con IA</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleAnalyze}
+                      disabled={analyzing || !hasGrokKey()}
+                      className="bg-violet-600 hover:bg-violet-700 text-white"
+                    >
+                      {analyzing
+                        ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analizando...</>
+                        : <><Sparkles size={14} className="mr-1" /> Analizar</>}
+                    </Button>
+                  </div>
+                  {analyzeError && <p className="text-xs text-red-600 mt-2 bg-red-50 px-2 py-1 rounded-lg">{analyzeError}</p>}
+                  {analyzeMsg && <p className="text-xs text-emerald-700 mt-2 bg-emerald-50 px-2 py-1 rounded-lg">{analyzeMsg}</p>}
+                </div>
+              )}
+            </div>
+
+            {/* Form fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Restaurante / lugar</label>
-                <Input value={form.place} onChange={e => setForm(f => ({ ...f, place: e.target.value }))} placeholder="Ej: McDonald's, restaurante italiano" className="mt-1" autoFocus />
+                <Input value={form.place} onChange={e => setForm(f => ({ ...f, place: e.target.value }))} placeholder="Ej: McDonald's, restaurante italiano" className="mt-1" />
               </div>
               <div>
                 <label className="text-xs font-medium text-muted-foreground">Monto ({profile?.currency ?? 'USD'})</label>
@@ -181,7 +268,7 @@ export function EatingOut() {
             </div>
 
             <Button onClick={handleSave} className="w-full" disabled={!form.place.trim() || form.amount <= 0}>
-              Registrar comida
+              Registrar antojo
             </Button>
           </div>
         </Card>
@@ -191,7 +278,7 @@ export function EatingOut() {
       {entries.length === 0 && !showForm ? (
         <Card className="text-center py-12 border-dashed border-2">
           <UtensilsCrossed className="mx-auto text-muted-foreground mb-3" size={40} />
-          <p className="text-muted-foreground">No hay registros. Agrega tu primera comida afuera.</p>
+          <p className="text-muted-foreground">No hay registros. Agrega tu primer antojo.</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -202,18 +289,18 @@ export function EatingOut() {
               <Card key={entry.id} className="relative">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-sm">{entry.place}</h3>
                       <Badge variant={cfg.badgeVariant}>{cfg.emoji} {cfg.label}</Badge>
                     </div>
                     <p className="text-sm text-foreground">{entry.description || 'Sin descripción'}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                       <span>{formatDate(entry.date)}</span>
                       <span>{mealLabel[entry.meal_type]}</span>
                       {entry.notes && <span className="italic">"{entry.notes}"</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className="font-bold text-base">{formatCurrency(entry.amount)}</span>
                     <button onClick={() => setConfirmDelete(entry.id)} className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"><Trash2 size={14} /></button>
                   </div>

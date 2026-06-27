@@ -8,7 +8,7 @@ const links = [
   { to: '/capture', icon: Camera, label: 'Captura' },
   { to: '/inventory', icon: Package, label: 'Inventario' },
   { to: '/recipes', icon: ChefHat, label: 'Recetas' },
-  { to: '/eating-out', icon: UtensilsCrossed, label: 'Afuera' },
+  { to: '/eating-out', icon: UtensilsCrossed, label: 'Antojos' },
   { to: '/recommender', icon: ShoppingCart, label: 'Compras' },
 ]
 

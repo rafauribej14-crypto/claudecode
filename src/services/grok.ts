@@ -121,6 +121,60 @@ Si no puedes leer algún dato, usa null para store/total y omite los items que n
 }
 
 // ─────────────────────────────────────────────────────────
+//  ANÁLISIS DE FACTURA DE RESTAURANTE (visión)
+// ─────────────────────────────────────────────────────────
+
+export interface RestaurantReceiptResult {
+  place: string | null
+  total: number | null
+  items: string[]
+}
+
+export async function analyzeRestaurantReceipt(imageDataUrl: string): Promise<RestaurantReceiptResult> {
+  const prompt = `Eres un asistente que lee facturas de restaurantes. Analiza la imagen y extrae:
+
+- place: nombre del restaurante o establecimiento
+- total: monto total pagado (solo el número, sin símbolo de moneda)
+- items: lista de los platos/bebidas ordenados (nombres limpios en español)
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "place": "Nombre del restaurante",
+  "total": 25.50,
+  "items": ["Pollo a la plancha", "Coca Cola", "Ensalada César"]
+}
+
+Si no puedes leer algún dato, usa null para place/total y array vacío para items. Nunca inventes.`
+
+  const content = await callGroq({
+    model: VISION_MODEL,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+        ],
+      },
+    ],
+    temperature: 0.2,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudo leer la factura. Intenta con una foto más clara.')
+  }
+
+  return {
+    place: parsed.place ?? null,
+    total: parsed.total != null ? Number(parsed.total) : null,
+    items: Array.isArray(parsed.items) ? parsed.items.filter((i: any) => typeof i === 'string' && i.trim()) : [],
+  }
+}
+
+// ─────────────────────────────────────────────────────────
 //  GENERACIÓN DE RECETAS (texto)
 // ─────────────────────────────────────────────────────────
 
