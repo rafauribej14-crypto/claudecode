@@ -91,6 +91,7 @@ export interface Recipe {
   servings: number
   days_covered: number
   ai_generated: boolean
+  saved: boolean
   ingredients: RecipeIngredient[]
 }
 

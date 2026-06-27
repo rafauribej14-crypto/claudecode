@@ -8,7 +8,7 @@ import { store } from '@/store'
 import { generateId } from '@/lib/utils'
 import { generateRecipes as generateRecipesAI, hasGrokKey } from '@/services/grok'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
-import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2, Heart } from 'lucide-react'
 
 function IngredientAutocomplete({ value, onChange, products, inventory }: {
   value: string
@@ -117,7 +117,7 @@ export function Recipes() {
         store.saveRecipes(all)
       }
     } else {
-      store.addRecipe({ ...form, ai_generated: false, ingredients: recipeIngredients })
+      store.addRecipe({ ...form, ai_generated: false, saved: false, ingredients: recipeIngredients })
     }
 
     setShowForm(false)
@@ -169,6 +169,16 @@ export function Recipes() {
       setAiError(err.message ?? 'Error al generar recetas')
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  const toggleSaved = (id: string) => {
+    const all = store.getRecipes()
+    const recipe = all.find(r => r.id === id)
+    if (recipe) {
+      recipe.saved = !recipe.saved
+      store.saveRecipes(all)
+      reload()
     }
   }
 
@@ -348,6 +358,9 @@ export function Recipes() {
                   <h3 className="font-semibold">{recipe.name}</h3>
                   <div className="flex items-center gap-1">
                     <Badge>{mealLabel[recipe.meal_type]}</Badge>
+                    <button onClick={() => toggleSaved(recipe.id)} className={`p-1 rounded-lg cursor-pointer transition-colors ${recipe.saved ? 'text-red-500 bg-red-50' : 'text-muted-foreground hover:text-red-400 hover:bg-red-50'}`}>
+                      <Heart size={13} fill={recipe.saved ? 'currentColor' : 'none'} />
+                    </button>
                     <button onClick={() => openEdit(recipe)} className="p-1 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"><Pencil size={13} /></button>
                     <button onClick={() => setConfirmDelete(recipe.id)} className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 cursor-pointer"><Trash2 size={13} /></button>
                   </div>

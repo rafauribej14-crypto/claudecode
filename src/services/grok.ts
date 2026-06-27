@@ -410,6 +410,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
       servings: r.servings ?? 4,
       days_covered: r.days_covered ?? 3,
       ai_generated: true,
+      saved: false,
       ingredients,
     }
   })

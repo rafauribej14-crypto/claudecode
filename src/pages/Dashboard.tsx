@@ -9,6 +9,7 @@ import { formatCurrency, daysBetween } from '@/lib/utils'
 import { checkMonthlyCarryover, dismissCarryover } from '@/services/budget'
 import type { UserProfile, InventoryItem, Product } from '@/types'
 import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus } from 'lucide-react'
+import { Select } from '@/components/ui/select'
 
 export function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -18,6 +19,8 @@ export function Dashboard() {
   const [carryover, setCarryover] = useState(checkMonthlyCarryover())
   const [editingInv, setEditingInv] = useState<string | null>(null)
   const [editQty, setEditQty] = useState(0)
+  const [editingBudget, setEditingBudget] = useState(false)
+  const [budgetEdit, setBudgetEdit] = useState(0)
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [quickName, setQuickName] = useState('')
   const [quickQty, setQuickQty] = useState(0)
@@ -80,6 +83,13 @@ export function Dashboard() {
     item.qty_remaining = Math.max(0, editQty)
     store.saveInventory(inv)
     setEditingInv(null)
+    reload()
+  }
+
+  const handleBudgetSave = () => {
+    if (!profile) return
+    store.saveProfile({ ...profile, monthly_budget: Math.max(0, budgetEdit) })
+    setEditingBudget(false)
     reload()
   }
 
@@ -156,19 +166,41 @@ export function Dashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-100"><DollarSign className="text-emerald-600" size={18} /></div>
-            <div>
-              <p className="text-[11px] text-muted-foreground leading-none mb-1">Restante</p>
-              <p className="text-lg font-bold text-emerald-700 leading-none">{formatCurrency(remaining)}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-emerald-100"><DollarSign className="text-emerald-600" size={18} /></div>
+              <div>
+                <p className="text-[11px] text-muted-foreground leading-none mb-1">Restante</p>
+                <p className="text-lg font-bold text-emerald-700 leading-none">{formatCurrency(remaining)}</p>
+              </div>
             </div>
+            {!editingBudget && (
+              <button onClick={() => { setEditingBudget(true); setBudgetEdit(budget) }} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer">
+                <Pencil size={12} />
+              </button>
+            )}
           </div>
-          <div className="mt-3 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
-            <div className={`h-full rounded-full transition-all ${budgetPct >= 90 ? 'bg-red-400' : budgetPct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`} style={{ width: `${budgetPct}%` }} />
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1.5">Gastado {formatCurrency(totalSpent)} de {formatCurrency(budget)}</p>
-          {dailyBudget !== null && dailyBudget > 0 && (
-            <p className="text-[10px] text-emerald-600 mt-0.5">~{formatCurrency(dailyBudget)}/día disponible</p>
+          {editingBudget ? (
+            <div className="mt-3 space-y-2">
+              <div>
+                <label className="text-[10px] text-muted-foreground font-medium">Presupuesto mensual ({profile?.currency ?? 'USD'})</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input type="number" value={budgetEdit || ''} onChange={e => setBudgetEdit(+e.target.value)} className="flex-1 h-8 text-sm" autoFocus />
+                  <button onClick={handleBudgetSave} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"><Check size={14} /></button>
+                  <button onClick={() => setEditingBudget(false)} className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:bg-muted/80 cursor-pointer"><X size={14} /></button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mt-3 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${budgetPct >= 90 ? 'bg-red-400' : budgetPct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`} style={{ width: `${budgetPct}%` }} />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5">Gastado {formatCurrency(totalSpent)} de {formatCurrency(budget)}</p>
+              {dailyBudget !== null && dailyBudget > 0 && (
+                <p className="text-[10px] text-emerald-600 mt-0.5">~{formatCurrency(dailyBudget)}/día disponible</p>
+              )}
+            </>
           )}
         </Card>
 
