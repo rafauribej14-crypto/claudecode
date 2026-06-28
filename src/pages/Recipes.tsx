@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { generateId } from '@/lib/utils'
-import { generateRecipes as generateRecipesAI, hasGrokKey } from '@/services/grok'
+import { generateRecipes as generateRecipesAI, hasGrokKey, analyzeDishNeeds } from '@/services/grok'
+import type { DishAnalysisResult } from '@/services/grok'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
-import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2, Heart } from 'lucide-react'
+import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2, Heart, Search, ShoppingCart, PackageCheck } from 'lucide-react'
 
 function IngredientAutocomplete({ value, onChange, products, inventory }: {
   value: string
@@ -73,6 +74,10 @@ export function Recipes() {
   const [aiError, setAiError] = useState('')
   const [aiRequest, setAiRequest] = useState('')
   const [showCustomField, setShowCustomField] = useState(false)
+  const [dishQuery, setDishQuery] = useState('')
+  const [dishLoading, setDishLoading] = useState(false)
+  const [dishResult, setDishResult] = useState<DishAnalysisResult | null>(null)
+  const [dishError, setDishError] = useState('')
 
   const reload = () => { setRecipes(store.getRecipes()); setProducts(store.getProducts()); setInventory(store.getInventory()) }
   useEffect(reload, [])
@@ -182,6 +187,68 @@ export function Recipes() {
     }
   }
 
+  const handleDishSearch = async () => {
+    if (!dishQuery.trim()) return
+    setDishError('')
+    setDishLoading(true)
+    setDishResult(null)
+    try {
+      const profile = store.getProfile()
+      const result = await analyzeDishNeeds(dishQuery, profile.cooking_level)
+      setDishResult(result)
+    } catch (err: any) {
+      setDishError(err.message ?? 'Error al analizar el plato')
+    } finally {
+      setDishLoading(false)
+    }
+  }
+
+  const matchInventory = (ingredientName: string) => {
+    const lower = ingredientName.toLowerCase()
+    for (const inv of inventory) {
+      if (inv.qty_remaining <= 0) continue
+      const product = products.find(p => p.id === inv.product_id)
+      if (!product) continue
+      const pName = product.name.toLowerCase()
+      if (pName.includes(lower) || lower.includes(pName)) {
+        return { product, inv }
+      }
+    }
+    return null
+  }
+
+  const saveDishAsRecipe = () => {
+    if (!dishResult) return
+    const recipeIngredients: RecipeIngredient[] = dishResult.ingredients.map(ing => {
+      const match = matchInventory(ing.name)
+      return {
+        id: generateId(),
+        recipe_id: '',
+        product_id: match?.product.id ?? null,
+        ingredient_name: ing.name,
+        qty: ing.qty,
+        unit: ing.unit,
+      }
+    })
+    store.addRecipe({
+      name: dishResult.dish_name,
+      meal_type: 'lunch',
+      cooking_level: store.getProfile().cooking_level,
+      instructions: dishResult.instructions,
+      est_calories: dishResult.est_calories,
+      protein_level: 'med',
+      prep_minutes: dishResult.prep_minutes,
+      servings: dishResult.servings,
+      days_covered: 1,
+      ai_generated: true,
+      saved: false,
+      ingredients: recipeIngredients,
+    })
+    reload()
+    setDishResult(null)
+    setDishQuery('')
+  }
+
   const mealLabel: Record<string, string> = { lunch: 'Almuerzo', dinner: 'Cena', snack: 'Snack' }
   const proteinLabel: Record<string, string> = { low: 'Baja', med: 'Media', high: 'Alta' }
 
@@ -250,6 +317,96 @@ export function Recipes() {
           </div>
         </div>
       </Card>
+
+      {/* Quiero hacer... */}
+      {hasGrokKey() && (
+        <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-100">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-amber-100 rounded-xl">
+              {dishLoading ? <Loader2 className="text-amber-600 animate-spin" size={18} /> : <Search className="text-amber-600" size={18} />}
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-800 text-sm">¿Quieres hacer un plato?</h3>
+              <p className="text-xs text-amber-600 mt-0.5">Dime qué quieres cocinar y te digo qué necesitas. Te mostraré qué ya tienes y qué te falta.</p>
+              <div className="mt-3 flex gap-2">
+                <Input
+                  value={dishQuery}
+                  onChange={e => setDishQuery(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !dishLoading) handleDishSearch() }}
+                  placeholder='Ej: "risotto", "tacos al pastor", "pasta carbonara"'
+                  className="bg-white/70 border-amber-200 text-sm flex-1"
+                />
+                <Button variant="primary" disabled={dishLoading || !dishQuery.trim()} onClick={handleDishSearch} className="shrink-0">
+                  {dishLoading ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
+                </Button>
+              </div>
+              {dishError && <p className="text-xs text-red-600 mt-2 bg-red-50 px-2 py-1 rounded-lg">{dishError}</p>}
+            </div>
+          </div>
+
+          {dishResult && (
+            <div className="mt-4 pt-4 border-t border-amber-200 space-y-3">
+              <div className="flex justify-between items-center">
+                <h4 className="font-bold text-amber-900">{dishResult.dish_name}</h4>
+                <div className="flex gap-2 text-xs text-amber-700">
+                  <span className="flex items-center gap-1"><Clock size={12} />{dishResult.prep_minutes}min</span>
+                  <span className="flex items-center gap-1"><Users size={12} />{dishResult.servings} porc.</span>
+                  {dishResult.est_calories > 0 && <span className="flex items-center gap-1"><Flame size={12} />~{dishResult.est_calories} cal</span>}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {dishResult.ingredients.map((ing, i) => {
+                  const match = matchInventory(ing.name)
+                  const hasEnough = match ? match.inv.qty_remaining >= ing.qty : false
+                  const hasPartial = match && !hasEnough ? match.inv.qty_remaining > 0 : false
+
+                  return (
+                    <div key={i} className={`flex justify-between items-center text-sm px-3 py-2 rounded-lg ${hasEnough ? 'bg-emerald-50 border border-emerald-100' : hasPartial ? 'bg-yellow-50 border border-yellow-100' : 'bg-red-50 border border-red-100'}`}>
+                      <div className="flex items-center gap-2">
+                        {hasEnough ? <PackageCheck size={14} className="text-emerald-600" /> : <ShoppingCart size={14} className={hasPartial ? 'text-yellow-600' : 'text-red-500'} />}
+                        <span className={hasEnough ? 'text-emerald-800' : hasPartial ? 'text-yellow-800' : 'text-red-800'}>{ing.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-medium text-xs">{ing.qty} {ing.unit}</span>
+                        {match && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            (tienes {match.inv.qty_remaining}{match.product.base_unit})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {(() => {
+                const needToBuy = dishResult.ingredients.filter(ing => !matchInventory(ing.name) || matchInventory(ing.name)!.inv.qty_remaining < ing.qty)
+                const alreadyHave = dishResult.ingredients.filter(ing => { const m = matchInventory(ing.name); return m && m.inv.qty_remaining >= ing.qty })
+                return (
+                  <div className="flex gap-3 text-xs">
+                    <span className="text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full">Ya tienes {alreadyHave.length} ingredientes</span>
+                    {needToBuy.length > 0 && <span className="text-red-700 bg-red-50 px-2 py-1 rounded-full">Te faltan {needToBuy.length}</span>}
+                  </div>
+                )
+              })()}
+
+              {dishResult.tips && (
+                <p className="text-xs text-amber-700 bg-amber-100/50 px-3 py-2 rounded-lg">💡 {dishResult.tips}</p>
+              )}
+
+              <div className="flex gap-2">
+                <Button variant="primary" className="flex-1" onClick={saveDishAsRecipe}>
+                  <Heart size={14} className="mr-1" /> Guardar como receta
+                </Button>
+                <Button variant="outline" onClick={() => { setDishResult(null); setDishQuery('') }}>
+                  <X size={14} />
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Form */}
       {showForm && (

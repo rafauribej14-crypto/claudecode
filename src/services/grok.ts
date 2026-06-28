@@ -304,6 +304,84 @@ Si no entiendes algo, ignóralo. No inventes productos que el usuario no mencion
 }
 
 // ─────────────────────────────────────────────────────────
+//  "QUIERO HACER X" — análisis de ingredientes necesarios
+// ─────────────────────────────────────────────────────────
+
+export interface DishIngredient {
+  name: string
+  qty: number
+  unit: string
+}
+
+export interface DishAnalysisResult {
+  dish_name: string
+  ingredients: DishIngredient[]
+  instructions: string
+  est_calories: number
+  prep_minutes: number
+  servings: number
+  tips: string
+}
+
+export async function analyzeDishNeeds(dishName: string, cookingLevel: string): Promise<DishAnalysisResult> {
+  const levelDesc: Record<string, string> = {
+    basic: 'básico (recetas simples)',
+    medium: 'medio (algo de técnica)',
+    experienced: 'experimentado (técnicas avanzadas)',
+  }
+
+  const prompt = `El usuario quiere preparar: "${dishName}"
+Nivel de cocina: ${levelDesc[cookingLevel] ?? 'medio'}
+
+Lista TODOS los ingredientes necesarios para preparar este plato (4 porciones).
+Incluye cantidades exactas. No incluyas básicos de cocina (sal, pimienta, aceite).
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "dish_name": "Nombre correcto del plato",
+  "ingredients": [
+    { "name": "Arroz arborio", "qty": 400, "unit": "g" },
+    { "name": "Caldo de pollo", "qty": 1000, "unit": "ml" }
+  ],
+  "instructions": "Paso 1... Paso 2...",
+  "est_calories": 450,
+  "prep_minutes": 35,
+  "servings": 4,
+  "tips": "Un consejo útil corto para este plato"
+}`
+
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un chef profesional. Responde SOLO con JSON válido.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.4,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudo analizar el plato. Intenta con otro nombre.')
+  }
+
+  return {
+    dish_name: parsed.dish_name ?? dishName,
+    ingredients: (parsed.ingredients ?? []).map((i: any) => ({
+      name: i.name ?? '',
+      qty: Number(i.qty) || 0,
+      unit: i.unit ?? 'g',
+    })).filter((i: DishIngredient) => i.name),
+    instructions: parsed.instructions ?? '',
+    est_calories: Number(parsed.est_calories) || 0,
+    prep_minutes: Number(parsed.prep_minutes) || 30,
+    servings: Number(parsed.servings) || 4,
+    tips: parsed.tips ?? '',
+  }
+}
+
+// ─────────────────────────────────────────────────────────
 //  GENERACIÓN DE RECETAS (texto)
 // ─────────────────────────────────────────────────────────
 
