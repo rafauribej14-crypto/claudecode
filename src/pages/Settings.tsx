@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
-import { updateUserName } from '@/store/auth'
+import { updateUserName, logout } from '@/store/auth'
 import type { UserProfile } from '@/types'
-import { Settings as SettingsIcon, Save } from 'lucide-react'
+import { Settings as SettingsIcon, Save, LogOut, Trash2 } from 'lucide-react'
 
 export function Settings() {
   const [profile, setProfile] = useState<UserProfile>(store.getProfile())
   const [saved, setSaved] = useState(false)
   const [newRestriction, setNewRestriction] = useState('')
-
+  const [confirmReset, setConfirmReset] = useState(false)
 
   useEffect(() => { setProfile(store.getProfile()) }, [])
 
@@ -144,6 +144,49 @@ export function Settings() {
         <Save size={16} className="mr-2" />
         {saved ? '✓ Guardado' : 'Guardar cambios'}
       </Button>
+
+      {/* Session & Account */}
+      <Card className="border-red-100">
+        <CardHeader><CardTitle className="text-red-700">Sesión y cuenta</CardTitle></CardHeader>
+        <div className="space-y-3">
+          <Button
+            variant="outline"
+            className="w-full border-red-200 text-red-700 hover:bg-red-50"
+            onClick={() => { logout(); window.location.reload() }}
+          >
+            <LogOut size={16} className="mr-2" />
+            Cerrar sesión
+          </Button>
+
+          {!confirmReset ? (
+            <Button
+              variant="outline"
+              className="w-full border-red-300 text-red-700 hover:bg-red-50"
+              onClick={() => setConfirmReset(true)}
+            >
+              <Trash2 size={16} className="mr-2" />
+              Reiniciar cuenta (borrar todo)
+            </Button>
+          ) : (
+            <div className="p-3 bg-red-50 rounded-xl border border-red-200 space-y-2">
+              <p className="text-sm text-red-800 font-medium">¿Seguro? Esto borra todo: perfil, inventario, recetas, compras y antojos.</p>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    localStorage.clear()
+                    window.location.reload()
+                  }}
+                >
+                  Sí, borrar todo
+                </Button>
+                <Button variant="outline" onClick={() => setConfirmReset(false)}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   )
 }
