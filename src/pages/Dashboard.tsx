@@ -430,6 +430,7 @@ export function Dashboard() {
             </div>
           </div>
         </Card>
+      )}
 
       {/* Dictation: Ya tengo cosas */}
       <Card className="border-sky-200 bg-gradient-to-r from-sky-50/50 to-violet-50/30">
@@ -475,7 +476,7 @@ export function Dashboard() {
             </Button>
           </div>
         )}
-      )}
+      </Card>
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
