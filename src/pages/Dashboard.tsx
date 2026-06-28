@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -7,9 +7,9 @@ import { Input } from '@/components/ui/input'
 import { store } from '@/store'
 import { formatCurrency, daysBetween } from '@/lib/utils'
 import { checkMonthlyCarryover, dismissCarryover } from '@/services/budget'
+import { parseInventoryFromText, hasGrokKey } from '@/services/grok'
 import type { UserProfile, InventoryItem, Product } from '@/types'
-import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus } from 'lucide-react'
-import { Select } from '@/components/ui/select'
+import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare } from 'lucide-react'
 
 export function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -21,10 +21,21 @@ export function Dashboard() {
   const [editQty, setEditQty] = useState(0)
   const [editingBudget, setEditingBudget] = useState(false)
   const [budgetEdit, setBudgetEdit] = useState(0)
+  const [editingSpent, setEditingSpent] = useState(false)
+  const [spentEdit, setSpentEdit] = useState(0)
+  const [editingRemaining, setEditingRemaining] = useState(false)
+  const [remainingEdit, setRemainingEdit] = useState(0)
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [quickName, setQuickName] = useState('')
   const [quickQty, setQuickQty] = useState(0)
   const [quickUnit, setQuickUnit] = useState('g')
+  const [showDictation, setShowDictation] = useState(false)
+  const [dictText, setDictText] = useState('')
+  const [dictLoading, setDictLoading] = useState(false)
+  const [dictResult, setDictResult] = useState('')
+  const [dictError, setDictError] = useState('')
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
 
   const reload = () => {
     setProfile(store.getProfile())
@@ -91,6 +102,84 @@ export function Dashboard() {
     store.saveProfile({ ...profile, monthly_budget: Math.max(0, budgetEdit) })
     setEditingBudget(false)
     reload()
+  }
+
+  const handleSpentSave = () => {
+    if (!profile) return
+    const adjustment = spentEdit - totalSpent
+    store.saveProfile({ ...profile, budget_carryover: (profile.budget_carryover ?? 0) - adjustment })
+    setEditingSpent(false)
+    reload()
+  }
+
+  const handleRemainingSave = () => {
+    if (!profile) return
+    const newCarryover = remainingEdit - (budget - totalSpent)
+    store.saveProfile({ ...profile, budget_carryover: newCarryover })
+    setEditingRemaining(false)
+    reload()
+  }
+
+  const toggleVoice = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setDictError('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Safari.')
+      return
+    }
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop()
+      setIsListening(false)
+      return
+    }
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-ES'
+    recognition.continuous = true
+    recognition.interimResults = true
+    recognitionRef.current = recognition
+
+    recognition.onresult = (event: any) => {
+      let transcript = ''
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript
+      }
+      setDictText(transcript)
+    }
+    recognition.onerror = () => { setIsListening(false) }
+    recognition.onend = () => { setIsListening(false) }
+    recognition.start()
+    setIsListening(true)
+  }
+
+  const handleDictSubmit = async () => {
+    if (!dictText.trim()) return
+    setDictLoading(true)
+    setDictError('')
+    setDictResult('')
+    try {
+      const items = await parseInventoryFromText(dictText)
+      if (items.length === 0) {
+        setDictError('No se detectaron productos. Intenta ser más específico.')
+        return
+      }
+      for (const item of items) {
+        const unitType = item.unit === 'ml' ? 'volume' as const : item.unit === 'unit' ? 'count' as const : 'mass' as const
+        const product = store.findOrCreateProduct(item.name, item.category, unitType, item.unit)
+        store.addInventoryItem({
+          user_id: 'default-user',
+          product_id: product.id,
+          qty_remaining: item.qty,
+          acquired_at: new Date().toISOString(),
+          expiry_estimate: null,
+        })
+      }
+      setDictResult(`✓ ${items.length} productos agregados: ${items.map(i => i.name).join(', ')}`)
+      setDictText('')
+      reload()
+    } catch (err: any) {
+      setDictError(err.message ?? 'Error al procesar')
+    } finally {
+      setDictLoading(false)
+    }
   }
 
   const handleQuickAdd = () => {
@@ -171,11 +260,21 @@ export function Dashboard() {
               <div className="p-2 rounded-xl bg-emerald-100"><DollarSign className="text-emerald-600" size={18} /></div>
               <div>
                 <p className="text-[11px] text-muted-foreground leading-none mb-1">Restante</p>
-                <p className="text-lg font-bold text-emerald-700 leading-none">{formatCurrency(remaining)}</p>
+                {editingRemaining ? (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Input type="number" value={remainingEdit || ''} onChange={e => setRemainingEdit(+e.target.value)} className="w-24 h-7 text-sm" autoFocus />
+                    <button onClick={handleRemainingSave} className="p-1 text-primary hover:bg-primary/10 rounded cursor-pointer"><Check size={12} /></button>
+                    <button onClick={() => setEditingRemaining(false)} className="p-1 text-muted-foreground hover:bg-muted rounded cursor-pointer"><X size={12} /></button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setEditingRemaining(true); setRemainingEdit(remaining); setEditingSpent(false); setEditingBudget(false) }} className="text-lg font-bold text-emerald-700 leading-none hover:underline decoration-dashed cursor-pointer">
+                    {formatCurrency(remaining)}
+                  </button>
+                )}
               </div>
             </div>
-            {!editingBudget && (
-              <button onClick={() => { setEditingBudget(true); setBudgetEdit(budget) }} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer">
+            {!editingBudget && !editingRemaining && !editingSpent && (
+              <button onClick={() => { setEditingBudget(true); setBudgetEdit(budget) }} className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer" title="Editar presupuesto mensual">
                 <Pencil size={12} />
               </button>
             )}
@@ -196,7 +295,20 @@ export function Dashboard() {
               <div className="mt-3 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
                 <div className={`h-full rounded-full transition-all ${budgetPct >= 90 ? 'bg-red-400' : budgetPct >= 70 ? 'bg-amber-400' : 'bg-emerald-400'}`} style={{ width: `${budgetPct}%` }} />
               </div>
-              <p className="text-[10px] text-muted-foreground mt-1.5">Gastado {formatCurrency(totalSpent)} de {formatCurrency(budget)}</p>
+              <div className="flex items-center justify-between mt-1.5">
+                {editingSpent ? (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Gastado</span>
+                    <Input type="number" value={spentEdit || ''} onChange={e => setSpentEdit(+e.target.value)} className="w-20 h-6 text-[10px]" autoFocus />
+                    <button onClick={handleSpentSave} className="p-0.5 text-primary hover:bg-primary/10 rounded cursor-pointer"><Check size={10} /></button>
+                    <button onClick={() => setEditingSpent(false)} className="p-0.5 text-muted-foreground hover:bg-muted rounded cursor-pointer"><X size={10} /></button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setEditingSpent(true); setSpentEdit(totalSpent); setEditingRemaining(false); setEditingBudget(false) }} className="text-[10px] text-muted-foreground hover:text-primary cursor-pointer hover:underline decoration-dashed">
+                    Gastado {formatCurrency(totalSpent)} de {formatCurrency(budget)}
+                  </button>
+                )}
+              </div>
               {dailyBudget !== null && dailyBudget > 0 && (
                 <p className="text-[10px] text-emerald-600 mt-0.5">~{formatCurrency(dailyBudget)}/día disponible</p>
               )}
@@ -318,6 +430,51 @@ export function Dashboard() {
             </div>
           </div>
         </Card>
+
+      {/* Dictation: Ya tengo cosas */}
+      <Card className="border-sky-200 bg-gradient-to-r from-sky-50/50 to-violet-50/30">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <MessageSquare className="text-sky-600" size={16} />
+            ¿Ya tienes cosas en casa?
+          </h3>
+          <button onClick={() => setShowDictation(!showDictation)} className="text-xs text-sky-600 hover:text-sky-800 cursor-pointer hover:underline">
+            {showDictation ? 'Cerrar' : 'Cuéntanos'}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">Escribe o dicta lo que tienes en la despensa y la IA lo agrega al inventario automáticamente.</p>
+
+        {showDictation && (
+          <div className="mt-3 space-y-3">
+            <div className="relative">
+              <textarea
+                value={dictText}
+                onChange={e => setDictText(e.target.value)}
+                placeholder='Ej: "Tengo 2 kilos de arroz, un pollo entero, medio litro de aceite, 500 gramos de pasta, 3 latas de atún y una bolsa de lentejas"'
+                className="flex w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm min-h-[80px] focus-visible:ring-2 focus-visible:ring-sky-300 pr-12"
+              />
+              <button
+                onClick={toggleVoice}
+                className={`absolute bottom-2 right-2 p-2 rounded-xl transition-colors cursor-pointer ${isListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-sky-100 text-sky-600 hover:bg-sky-200'}`}
+                title={isListening ? 'Detener' : 'Dictar por voz'}
+              >
+                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+              </button>
+            </div>
+            {isListening && <p className="text-xs text-red-600 flex items-center gap-1"><Mic size={10} className="animate-pulse" /> Escuchando... habla y describe lo que tienes</p>}
+            {dictError && <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg">{dictError}</p>}
+            {dictResult && <p className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">{dictResult}</p>}
+            <Button
+              onClick={handleDictSubmit}
+              className="w-full"
+              disabled={!dictText.trim() || dictLoading || !hasGrokKey()}
+            >
+              {dictLoading
+                ? <><Loader2 size={14} className="mr-2 animate-spin" /> La IA está procesando...</>
+                : <><Sparkles size={14} className="mr-2" /> Agregar todo al inventario</>}
+            </Button>
+          </div>
+        )}
       )}
 
       {/* Low Stock Alert */}

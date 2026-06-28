@@ -245,6 +245,68 @@ interface GenerateRecipesInput {
   customRequest?: string
 }
 
+// ─────────────────────────────────────────────────────────
+//  PARSEO DE INVENTARIO EN LENGUAJE NATURAL (texto/voz)
+// ─────────────────────────────────────────────────────────
+
+export interface ParsedInventoryItem {
+  name: string
+  qty: number
+  unit: string
+  category: string
+}
+
+export async function parseInventoryFromText(text: string): Promise<ParsedInventoryItem[]> {
+  const prompt = `El usuario describe lo que tiene en su despensa o nevera. Extrae cada producto con su cantidad y unidad.
+
+TEXTO DEL USUARIO: "${text}"
+
+Para cada producto identifica:
+- name: nombre limpio del producto en español
+- qty: cantidad numérica (si dice "medio litro" pon 500, si dice "2 kilos" pon 2000, si dice "un paquete" pon 1, si no dice cantidad pon 1)
+- unit: unidad base. Convierte a: "g" (gramos), "ml" (mililitros), o "unit" (unidades). Si dice kg conviértelo a g (1kg=1000g), si dice litros conviértelo a ml (1L=1000ml), si dice lb conviértelo a g (1lb=454g).
+- category: una de: "proteina", "grano", "lacteo", "fruta", "verdura", "otro"
+
+Responde SOLO con un JSON array válido (sin markdown, sin backticks):
+[
+  { "name": "Arroz blanco", "qty": 2000, "unit": "g", "category": "grano" },
+  { "name": "Pechuga de pollo", "qty": 1000, "unit": "g", "category": "proteina" }
+]
+
+Si no entiendes algo, ignóralo. No inventes productos que el usuario no mencionó.`
+
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un asistente de inventario de cocina. Responde SOLO con JSON válido.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.2,
+  })
+
+  let parsed: any[]
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudieron interpretar los productos. Intenta ser más específico.')
+  }
+
+  if (!Array.isArray(parsed)) throw new Error('Respuesta inesperada.')
+
+  return parsed
+    .filter((it: any) => it.name?.trim())
+    .map((it: any) => ({
+      name: it.name.trim(),
+      qty: Number(it.qty) || 1,
+      unit: ['g', 'ml', 'unit'].includes(it.unit) ? it.unit : 'g',
+      category: ['proteina', 'grano', 'lacteo', 'fruta', 'verdura', 'otro'].includes(it.category) ? it.category : 'otro',
+    }))
+}
+
+// ─────────────────────────────────────────────────────────
+//  GENERACIÓN DE RECETAS (texto)
+// ─────────────────────────────────────────────────────────
+
 function buildNutritionBlock(profile: UserProfile): string {
   const { weight_kg, height_cm, goal_type } = profile
   if (weight_kg <= 0 || height_cm <= 0) return ''
