@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { login, signup, loginWithGoogle, type AuthUser } from '@/store/auth'
 import { ArrowRight } from 'lucide-react'
 
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '910402518107-bfd5hv4t75q2i7d75t7hdkn891qrgntn.apps.googleusercontent.com'
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '910402518107-mu83apdl4il5vvco26n8ugopj1pmsqmc.apps.googleusercontent.com'
 
 export function Login({ onAuth }: { onAuth: (user: AuthUser) => void }) {
   const [isSignup, setIsSignup] = useState(false)
