@@ -9,7 +9,7 @@ import { formatCurrency, daysBetween } from '@/lib/utils'
 import { checkMonthlyCarryover, dismissCarryover } from '@/services/budget'
 import { parseInventoryFromText, hasGrokKey } from '@/services/grok'
 import type { UserProfile, InventoryItem, Product } from '@/types'
-import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare } from 'lucide-react'
+import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare, Cookie } from 'lucide-react'
 
 export function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -72,6 +72,47 @@ export function Dashboard() {
     if (product.base_unit === 'ml') return i.qty_remaining < 200
     return i.qty_remaining < 150
   })
+
+  const SNACK_CATEGORIES = ['fruta', 'otro']
+  const SNACK_KEYWORDS = ['galleta', 'banana', 'banano', 'manzana', 'pera', 'uva', 'fresa', 'naranja', 'mandarina', 'durazno', 'snack', 'cereal', 'yogurt', 'yogur', 'granola', 'barra', 'chocolate', 'pan', 'queso', 'jamón', 'jamon', 'huevo', 'nuez', 'nueces', 'almendra', 'maní', 'mani', 'frutos secos', 'chips', 'tostada']
+
+  const snackableItems = activeItems.filter(i => {
+    const product = getProduct(i.product_id)
+    if (!product) return false
+    const name = product.name.toLowerCase()
+    const isCat = SNACK_CATEGORIES.includes(product.category)
+    const isKeyword = SNACK_KEYWORDS.some(k => name.includes(k))
+    const isUnit = product.base_unit === 'unit'
+    return isCat || isKeyword || isUnit
+  })
+
+  const lastSnackCheck = localStorage.getItem('snack_check_date')
+  const daysSinceCheck = lastSnackCheck ? daysBetween(lastSnackCheck, today) : 999
+  const showSnackCheck = snackableItems.length > 0 && daysSinceCheck >= 7
+  const [snackUpdates, setSnackUpdates] = useState<Record<string, number>>({})
+  const [snackCheckVisible, setSnackCheckVisible] = useState(showSnackCheck)
+
+  const handleSnackUpdate = (itemId: string, newQty: number) => {
+    setSnackUpdates(prev => ({ ...prev, [itemId]: Math.max(0, newQty) }))
+  }
+
+  const handleSnackSave = () => {
+    const inv = store.getInventory()
+    for (const [itemId, qty] of Object.entries(snackUpdates)) {
+      const item = inv.find(i => i.id === itemId)
+      if (item) item.qty_remaining = qty
+    }
+    store.saveInventory(inv)
+    localStorage.setItem('snack_check_date', today)
+    setSnackCheckVisible(false)
+    setSnackUpdates({})
+    reload()
+  }
+
+  const handleSnackDismiss = () => {
+    localStorage.setItem('snack_check_date', today)
+    setSnackCheckVisible(false)
+  }
 
   const formatQty = (qty: number, productId: string) => {
     const product = getProduct(productId)
@@ -515,6 +556,50 @@ export function Dashboard() {
                 </div>
               )
             })}
+          </div>
+        </Card>
+      )}
+
+      {/* Snack Check */}
+      {snackCheckVisible && (
+        <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-orange-50">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Cookie className="text-pink-500" size={16} />
+              Chequeo semanal de snacks
+            </h3>
+            <button onClick={handleSnackDismiss} className="text-xs text-muted-foreground hover:text-pink-600 cursor-pointer">
+              <X size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">¿Ya te comiste algo de esto durante la semana? Actualiza las cantidades para mantener tu inventario al día.</p>
+          <div className="space-y-2">
+            {snackableItems.map(item => {
+              const currentQty = snackUpdates[item.id] ?? item.qty_remaining
+              const product = getProduct(item.product_id)
+              const unit = product?.base_unit ?? 'g'
+              return (
+                <div key={item.id} className="flex justify-between items-center p-2.5 rounded-xl bg-white border border-pink-100">
+                  <div className="flex-1">
+                    <span className="text-sm font-medium">{getProductName(item.product_id)}</span>
+                    <p className="text-[10px] text-muted-foreground">Tenías: {formatQty(item.qty_remaining, item.product_id)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => handleSnackUpdate(item.id, currentQty - (unit === 'unit' ? 1 : unit === 'ml' ? 250 : 100))} className="w-7 h-7 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-pink-200">−</button>
+                    <span className="text-xs font-medium w-16 text-center">
+                      {unit === 'g' && currentQty >= 1000 ? `${(currentQty / 1000).toFixed(1)} kg` : unit === 'ml' && currentQty >= 1000 ? `${(currentQty / 1000).toFixed(1)} L` : `${currentQty.toFixed(0)} ${unit}`}
+                    </span>
+                    <button onClick={() => handleSnackUpdate(item.id, currentQty + (unit === 'unit' ? 1 : unit === 'ml' ? 250 : 100))} className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm font-bold cursor-pointer hover:bg-emerald-200">+</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex gap-2 mt-3">
+            <Button onClick={handleSnackSave} className="flex-1">
+              <Check size={14} className="mr-1" /> Actualizar inventario
+            </Button>
+            <Button variant="outline" onClick={handleSnackDismiss}>Todo igual</Button>
           </div>
         </Card>
       )}

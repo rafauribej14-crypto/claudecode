@@ -166,9 +166,9 @@ export function Recipes() {
     try {
       const profile = store.getProfile()
       const aiRecipes = await generateRecipesAI({ inventory, products, profile, customRequest: aiRequest })
-      for (const recipe of aiRecipes) {
-        store.addRecipe(recipe)
-      }
+      const current = store.getRecipes()
+      const kept = current.filter(r => !r.ai_generated || r.saved)
+      store.saveRecipes([...kept, ...aiRecipes])
       reload()
     } catch (err: any) {
       setAiError(err.message ?? 'Error al generar recetas')
