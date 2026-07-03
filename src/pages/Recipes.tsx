@@ -137,14 +137,41 @@ export function Recipes() {
     reload()
   }
 
+  const [cookedMsg, setCookedMsg] = useState<Record<string, string>>({})
+
   const markCooked = (recipe: Recipe) => {
     const inv = store.getInventory()
+    const prods = store.getProducts()
+    const deducted: string[] = []
+    const skipped: string[] = []
+
     for (const ing of recipe.ingredients) {
-      if (!ing.product_id) continue
-      const item = inv.find(i => i.product_id === ing.product_id)
-      if (item) item.qty_remaining = Math.max(0, item.qty_remaining - ing.qty)
+      // Match by linked product_id, or fall back to name matching
+      let item = ing.product_id ? inv.find(i => i.product_id === ing.product_id && i.qty_remaining > 0) : undefined
+      if (!item) {
+        const lower = ing.ingredient_name.toLowerCase()
+        item = inv.find(i => {
+          if (i.qty_remaining <= 0) return false
+          const p = prods.find(pr => pr.id === i.product_id)
+          if (!p) return false
+          const pName = p.name.toLowerCase()
+          return pName.includes(lower) || lower.includes(pName)
+        })
+      }
+      if (item) {
+        item.qty_remaining = Math.max(0, item.qty_remaining - ing.qty)
+        deducted.push(ing.ingredient_name)
+      } else {
+        skipped.push(ing.ingredient_name)
+      }
     }
+
     store.saveInventory(inv)
+    const parts: string[] = []
+    if (deducted.length > 0) parts.push(`✓ Descontado: ${deducted.join(', ')}`)
+    if (skipped.length > 0) parts.push(`No estaban (quizá los sustituiste): ${skipped.join(', ')}`)
+    setCookedMsg(prev => ({ ...prev, [recipe.id]: parts.join(' · ') || 'Nada que descontar' }))
+    setTimeout(() => setCookedMsg(prev => { const { [recipe.id]: _, ...rest } = prev; return rest }), 6000)
     reload()
   }
 
@@ -575,12 +602,17 @@ export function Recipes() {
                   </div>
                   {missing.length > 0 && (
                     <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-100">
-                      Falta: {missing.map(m => m.ingredient_name).join(', ')}
+                      Falta: {missing.map(m => m.ingredient_name).join(', ')} — puedes cocinarla igual si los sustituiste
                     </div>
                   )}
-                  <Button size="sm" className="w-full" variant={cookable ? 'primary' : 'outline'} onClick={() => { if (cookable) markCooked(recipe) }} disabled={!cookable}>
+                  {cookedMsg[recipe.id] && (
+                    <div className="text-xs text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                      {cookedMsg[recipe.id]}
+                    </div>
+                  )}
+                  <Button size="sm" className="w-full" variant={cookable ? 'primary' : 'outline'} onClick={() => markCooked(recipe)}>
                     <CheckCircle size={14} className="mr-1" />
-                    {cookable ? 'Cocinado (descontar)' : 'Faltan ingredientes'}
+                    {cookable ? 'Cocinado (descontar)' : 'Cociné igual (descontar lo que tengo)'}
                   </Button>
                 </div>
               </Card>
