@@ -446,6 +446,7 @@ export interface DishAnalysisResult {
   ingredients: DishIngredient[]
   instructions: string
   est_calories: number
+  est_protein_g: number
   prep_minutes: number
   servings: number
   tips: string
@@ -464,6 +465,8 @@ Nivel de cocina: ${levelDesc[cookingLevel] ?? 'medio'}
 Lista TODOS los ingredientes necesarios para preparar este plato (4 porciones).
 Incluye cantidades exactas. No incluyas básicos de cocina (sal, pimienta, aceite).
 
+Calcula est_calories y est_protein_g POR PORCIÓN sumando el aporte real de cada ingrediente según su cantidad y datos nutricionales reales conocidos (ej: pechuga de pollo cocida ≈ 31g proteína/100g, arroz cocido ≈ 2.7g/100g, plátano ≈ 1.3g/100g, huevo ≈ 13g/100g, frijoles cocidos ≈ 9g/100g, queso ≈ 25g/100g), luego divide entre las porciones. NUNCA inventes un número genérico — un plato sin proteína animal/vegetal significativa debe reflejar proteína baja real (1-5g), no un valor promedio arbitrario.
+
 Responde SOLO con JSON válido (sin markdown, sin backticks):
 {
   "dish_name": "Nombre correcto del plato",
@@ -473,6 +476,7 @@ Responde SOLO con JSON válido (sin markdown, sin backticks):
   ],
   "instructions": "Paso 1... Paso 2...",
   "est_calories": 450,
+  "est_protein_g": 12,
   "prep_minutes": 35,
   "servings": 4,
   "tips": "Un consejo útil corto para este plato"
@@ -503,6 +507,7 @@ Responde SOLO con JSON válido (sin markdown, sin backticks):
     })).filter((i: DishIngredient) => i.name),
     instructions: parsed.instructions ?? '',
     est_calories: Number(parsed.est_calories) || 0,
+    est_protein_g: Number(parsed.est_protein_g) || 0,
     prep_minutes: Number(parsed.prep_minutes) || 30,
     servings: Number(parsed.servings) || 4,
     tips: parsed.tips ?? '',
@@ -612,7 +617,7 @@ REGLAS ESTRICTAS:
 2. Cada receta debe ser para meal prep (mínimo 3-4 porciones).
 3. Las cantidades NO deben exceder lo disponible en la despensa.
 4. Ajusta la complejidad de la receta al nivel de cocina del usuario.
-5. Las calorías (est_calories) y proteína (est_protein_g) son POR PORCIÓN y deben ser coherentes con los ingredientes.
+5. est_calories y est_protein_g son POR PORCIÓN. Calcúlalos sumando el aporte real de cada ingrediente según su cantidad exacta y datos nutricionales reales conocidos (ej: pechuga de pollo cocida ≈ 31g proteína/100g, arroz cocido ≈ 2.7g proteína/100g, plátano ≈ 1.3g proteína/100g, huevo ≈ 13g/100g, frijoles cocidos ≈ 9g/100g), luego divide entre el número de porciones. NUNCA uses un número genérico o redondo sin relación con los ingredientes reales — un snack de una sola fruta o vegetal frito NO puede tener más de 1-2g de proteína.
 6. Prioriza la meta corporal del usuario en la selección de recetas y porciones.
 7. Varía los tipos de comida (no 3 almuerzos iguales).
 

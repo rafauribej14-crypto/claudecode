@@ -140,8 +140,8 @@ export function Recipes() {
 
   const [cookedMsg, setCookedMsg] = useState<Record<string, string>>({})
 
-  const PROTEIN_BY_LEVEL: Record<string, number> = { low: 12, med: 25, high: 40 }
-  const proteinOf = (recipe: Recipe) => recipe.est_protein_g ?? PROTEIN_BY_LEVEL[recipe.protein_level] ?? 25
+  // Only use a real AI/user-provided gram value. Never fabricate a number from protein_level.
+  const proteinOf = (recipe: Recipe): number | null => recipe.est_protein_g ?? null
 
   const markCooked = (recipe: Recipe) => {
     const inv = store.getInventory()
@@ -173,16 +173,21 @@ export function Recipes() {
     store.saveInventory(inv)
 
     // Log one serving to today's meal log (fuels the dashboard progress)
+    const protein = proteinOf(recipe)
     store.addMealLog({
       user_id: 'default-user',
       date: new Date().toISOString().split('T')[0],
       recipe_id: recipe.id,
       recipe_name: recipe.name,
       calories: recipe.est_calories,
-      protein_g: proteinOf(recipe),
+      protein_g: protein ?? 0,
     })
 
-    const parts: string[] = [`🍽 +${recipe.est_calories} kcal y +${proteinOf(recipe)}g proteína registrados hoy`]
+    const parts: string[] = [
+      protein !== null
+        ? `🍽 +${recipe.est_calories} kcal y +${protein}g proteína registrados hoy`
+        : `🍽 +${recipe.est_calories} kcal registrados hoy (sin dato de proteína)`,
+    ]
     if (deducted.length > 0) parts.push(`✓ Descontado: ${deducted.join(', ')}`)
     if (skipped.length > 0) parts.push(`No estaban (quizá los sustituiste): ${skipped.join(', ')}`)
     setCookedMsg(prev => ({ ...prev, [recipe.id]: parts.join(' · ') || 'Nada que descontar' }))
@@ -272,13 +277,15 @@ export function Recipes() {
         unit: ing.unit,
       }
     })
+    const proteinLevel = dishResult.est_protein_g >= 30 ? 'high' : dishResult.est_protein_g >= 15 ? 'med' : 'low'
     store.addRecipe({
       name: dishResult.dish_name,
       meal_type: 'lunch',
       cooking_level: store.getProfile().cooking_level,
       instructions: dishResult.instructions,
       est_calories: dishResult.est_calories,
-      protein_level: 'med',
+      est_protein_g: dishResult.est_protein_g || undefined,
+      protein_level: proteinLevel,
       prep_minutes: dishResult.prep_minutes,
       servings: dishResult.servings,
       days_covered: 1,
@@ -395,6 +402,7 @@ export function Recipes() {
                   <span className="flex items-center gap-1"><Clock size={12} />{dishResult.prep_minutes}min</span>
                   <span className="flex items-center gap-1"><Users size={12} />{dishResult.servings} porc.</span>
                   {dishResult.est_calories > 0 && <span className="flex items-center gap-1"><Flame size={12} />~{dishResult.est_calories} cal</span>}
+                  {dishResult.est_protein_g > 0 && <span className="flex items-center gap-1 font-medium text-rose-600">{dishResult.est_protein_g}g prot</span>}
                 </div>
               </div>
 
@@ -612,20 +620,24 @@ export function Recipes() {
 
                 {/* Actions */}
                 <div className="mt-auto pt-3 border-t border-border space-y-2">
-                  {recipe.est_calories > 0 && (
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-orange-50 rounded-lg px-2 py-1.5 text-center">
-                        <p className="text-sm font-bold text-orange-600 leading-none">{recipe.est_calories} kcal</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {targets ? `${Math.round((recipe.est_calories / targets.tdee) * 100)}% de tu día` : 'por porción'}
-                        </p>
-                      </div>
-                      <div className="bg-rose-50 rounded-lg px-2 py-1.5 text-center">
-                        <p className="text-sm font-bold text-rose-600 leading-none">{proteinOf(recipe)}g prot</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          {targets ? `${Math.round((proteinOf(recipe) / targets.proteinG) * 100)}% de tu meta` : 'por porción'}
-                        </p>
-                      </div>
+                  {(recipe.est_calories > 0 || proteinOf(recipe) !== null) && (
+                    <div className={`grid gap-2 ${proteinOf(recipe) !== null ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      {recipe.est_calories > 0 && (
+                        <div className="bg-orange-50 rounded-lg px-2 py-1.5 text-center">
+                          <p className="text-sm font-bold text-orange-600 leading-none">{recipe.est_calories} kcal</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {targets ? `${Math.round((recipe.est_calories / targets.tdee) * 100)}% de tu día` : 'por porción'}
+                          </p>
+                        </div>
+                      )}
+                      {proteinOf(recipe) !== null && (
+                        <div className="bg-rose-50 rounded-lg px-2 py-1.5 text-center">
+                          <p className="text-sm font-bold text-rose-600 leading-none">{proteinOf(recipe)}g prot</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {targets ? `${Math.round((proteinOf(recipe)! / targets.proteinG) * 100)}% de tu meta` : 'por porción'}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="flex justify-between text-xs text-muted-foreground">
