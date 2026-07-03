@@ -163,7 +163,15 @@ export function Recipes() {
         })
       }
       if (item) {
-        item.qty_remaining = Math.max(0, item.qty_remaining - ing.qty)
+        // Normalize the ingredient qty to the product's base unit before subtracting,
+        // so "0.2 kg" correctly deducts 200 g and "0.25 L" deducts 250 ml.
+        const product = prods.find(pr => pr.id === item.product_id)
+        const base = product?.base_unit ?? 'g'
+        let qtyInBase = ing.qty
+        if ((ing.unit === 'kg' && base === 'g') || (ing.unit === 'L' && base === 'ml')) {
+          qtyInBase = ing.qty * 1000
+        }
+        item.qty_remaining = Math.max(0, item.qty_remaining - qtyInBase)
         deducted.push(ing.ingredient_name)
       } else {
         skipped.push(ing.ingredient_name)
@@ -195,16 +203,24 @@ export function Recipes() {
     reload()
   }
 
+  // Convert an ingredient qty to the product's base unit (kg->g, L->ml) for correct comparison.
+  const qtyInBaseUnit = (ing: { qty: number; unit: string }, productId: string | null) => {
+    const product = products.find(p => p.id === productId)
+    const base = product?.base_unit ?? 'g'
+    if ((ing.unit === 'kg' && base === 'g') || (ing.unit === 'L' && base === 'ml')) return ing.qty * 1000
+    return ing.qty
+  }
+
   const canCook = (recipe: Recipe) => recipe.ingredients.every(ing => {
     if (!ing.product_id) return true
     const item = inventory.find(i => i.product_id === ing.product_id)
-    return item && item.qty_remaining >= ing.qty
+    return item && item.qty_remaining >= qtyInBaseUnit(ing, ing.product_id)
   })
 
   const getMissing = (recipe: Recipe) => recipe.ingredients.filter(ing => {
     if (!ing.product_id) return false
     const item = inventory.find(i => i.product_id === ing.product_id)
-    return !item || item.qty_remaining < ing.qty
+    return !item || item.qty_remaining < qtyInBaseUnit(ing, ing.product_id)
   })
 
   const handleGenerateAI = async () => {
