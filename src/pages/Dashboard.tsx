@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { store } from '@/store'
 import { formatCurrency, daysBetween } from '@/lib/utils'
 import { checkMonthlyCarryover, dismissCarryover } from '@/services/budget'
+import { getNutritionTargets } from '@/services/nutrition'
 import { parseInventoryFromText, hasGrokKey } from '@/services/grok'
 import type { UserProfile, InventoryItem, Product } from '@/types'
 import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare, Cookie } from 'lucide-react'
@@ -258,6 +259,7 @@ export function Dashboard() {
   }
 
   const shoppingDays = daysUntilNextShopping()
+  const nutrition = profile ? getNutritionTargets(profile) : null
 
   const budgetPerDay = () => {
     if (remaining <= 0) return null
@@ -290,6 +292,38 @@ export function Dashboard() {
               </Button>
             </div>
           </div>
+        </Card>
+      )}
+
+      {/* Nutrition targets — MyFitnessPal style */}
+      {nutrition && (
+        <Card className="bg-gradient-to-r from-orange-50 to-rose-50 border-orange-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <ChefHat className="text-orange-500" size={16} />
+              Tu meta de hoy
+            </h3>
+            <Badge variant="warning">{nutrition.goalLabel}</Badge>
+          </div>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <div className="bg-white/70 rounded-xl py-2">
+              <p className="text-base font-bold text-orange-600 leading-none">{nutrition.tdee}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">kcal/día</p>
+            </div>
+            <div className="bg-white/70 rounded-xl py-2">
+              <p className="text-base font-bold text-rose-600 leading-none">{nutrition.proteinG}g</p>
+              <p className="text-[10px] text-muted-foreground mt-1">proteína</p>
+            </div>
+            <div className="bg-white/70 rounded-xl py-2">
+              <p className="text-base font-bold text-amber-600 leading-none">{nutrition.carbG}g</p>
+              <p className="text-[10px] text-muted-foreground mt-1">carbos</p>
+            </div>
+            <div className="bg-white/70 rounded-xl py-2">
+              <p className="text-base font-bold text-sky-600 leading-none">{nutrition.fatG}g</p>
+              <p className="text-[10px] text-muted-foreground mt-1">grasa</p>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">La IA usa estas metas para calcular las porciones de tus recetas.</p>
         </Card>
       )}
 
