@@ -95,7 +95,18 @@ export interface Recipe {
   days_covered: number
   ai_generated: boolean
   saved: boolean
+  est_protein_g?: number
   ingredients: RecipeIngredient[]
+}
+
+export interface MealLogEntry {
+  id: string
+  user_id: string
+  date: string
+  recipe_id: string | null
+  recipe_name: string
+  calories: number
+  protein_g: number
 }
 
 export interface RecipeIngredient {

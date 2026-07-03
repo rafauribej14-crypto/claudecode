@@ -261,6 +261,17 @@ export function Dashboard() {
   const shoppingDays = daysUntilNextShopping()
   const nutrition = profile ? getNutritionTargets(profile) : null
 
+  // Today's consumption: cooked recipes + restaurant meals
+  const PROTEIN_BY_LEVEL: Record<string, number> = { low: 12, med: 25, high: 40 }
+  const todayMeals = store.getMealLog().filter(m => m.date === today)
+  const todayEatingOut = store.getEatingOut().filter(e => e.date === today)
+  const consumedKcal = todayMeals.reduce((s, m) => s + m.calories, 0)
+    + todayEatingOut.reduce((s, e) => s + e.est_calories, 0)
+  const consumedProtein = todayMeals.reduce((s, m) => s + m.protein_g, 0)
+    + todayEatingOut.reduce((s, e) => s + (PROTEIN_BY_LEVEL[e.est_protein] ?? 0), 0)
+  const kcalPct = nutrition ? Math.min((consumedKcal / nutrition.tdee) * 100, 100) : 0
+  const proteinPct = nutrition ? Math.min((consumedProtein / nutrition.proteinG) * 100, 100) : 0
+
   const budgetPerDay = () => {
     if (remaining <= 0) return null
     const now = new Date()
@@ -323,7 +334,34 @@ export function Dashboard() {
               <p className="text-[10px] text-muted-foreground mt-1">grasa</p>
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">La IA usa estas metas para calcular las porciones de tus recetas.</p>
+          {/* Today's progress */}
+          <div className="mt-3 space-y-2">
+            <div>
+              <div className="flex justify-between text-[11px] mb-1">
+                <span className="font-medium text-orange-700">Calorías de hoy</span>
+                <span className="text-muted-foreground">{consumedKcal} / {nutrition.tdee} kcal ({Math.round(kcalPct)}%)</span>
+              </div>
+              <div className="h-2 bg-white/70 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${kcalPct >= 100 ? 'bg-red-400' : 'bg-orange-400'}`} style={{ width: `${kcalPct}%` }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-[11px] mb-1">
+                <span className="font-medium text-rose-700">Proteína de hoy</span>
+                <span className="text-muted-foreground">{consumedProtein}g / {nutrition.proteinG}g ({Math.round(proteinPct)}%)</span>
+              </div>
+              <div className="h-2 bg-white/70 rounded-full overflow-hidden">
+                <div className="h-full rounded-full bg-rose-400 transition-all" style={{ width: `${proteinPct}%` }} />
+              </div>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            {consumedKcal === 0
+              ? 'Marca una receta como "Cocinado" o registra un antojo y tu progreso aparece aquí.'
+              : todayMeals.length > 0
+                ? `Hoy: ${todayMeals.map(m => m.recipe_name).join(', ')}${todayEatingOut.length > 0 ? ` + ${todayEatingOut.length} antojo(s)` : ''}`
+                : `Hoy: ${todayEatingOut.length} antojo(s) registrado(s)`}
+          </p>
         </Card>
       )}
 

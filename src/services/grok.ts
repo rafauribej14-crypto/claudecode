@@ -612,7 +612,7 @@ REGLAS ESTRICTAS:
 2. Cada receta debe ser para meal prep (mínimo 3-4 porciones).
 3. Las cantidades NO deben exceder lo disponible en la despensa.
 4. Ajusta la complejidad de la receta al nivel de cocina del usuario.
-5. Las calorías estimadas deben ser coherentes con los ingredientes y porciones.
+5. Las calorías (est_calories) y proteína (est_protein_g) son POR PORCIÓN y deben ser coherentes con los ingredientes.
 6. Prioriza la meta corporal del usuario en la selección de recetas y porciones.
 7. Varía los tipos de comida (no 3 almuerzos iguales).
 
@@ -624,6 +624,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
     "cooking_level": "basic|medium|experienced",
     "instructions": "Paso 1... Paso 2...",
     "est_calories": 350,
+    "est_protein_g": 32,
     "protein_level": "low|med|high",
     "prep_minutes": 30,
     "servings": 4,
@@ -673,6 +674,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
       cooking_level: r.cooking_level ?? input.profile.cooking_level,
       instructions: r.instructions ?? '',
       est_calories: r.est_calories ?? 0,
+      est_protein_g: Number(r.est_protein_g) || undefined,
       protein_level: r.protein_level ?? 'med',
       prep_minutes: r.prep_minutes ?? 30,
       servings: r.servings ?? 4,

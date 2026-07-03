@@ -8,6 +8,7 @@ import { store } from '@/store'
 import { generateId } from '@/lib/utils'
 import { generateRecipes as generateRecipesAI, hasGrokKey, analyzeDishNeeds } from '@/services/grok'
 import type { DishAnalysisResult } from '@/services/grok'
+import { getNutritionTargets } from '@/services/nutrition'
 import type { Recipe, RecipeIngredient, MealType, CookingLevel, Product, InventoryItem } from '@/types'
 import { ChefHat, Plus, Clock, Flame, Users, Sparkles, CheckCircle, Trash2, Pencil, X, Eye, EyeOff, Loader2, Heart, Search, ShoppingCart, PackageCheck } from 'lucide-react'
 
@@ -139,6 +140,9 @@ export function Recipes() {
 
   const [cookedMsg, setCookedMsg] = useState<Record<string, string>>({})
 
+  const PROTEIN_BY_LEVEL: Record<string, number> = { low: 12, med: 25, high: 40 }
+  const proteinOf = (recipe: Recipe) => recipe.est_protein_g ?? PROTEIN_BY_LEVEL[recipe.protein_level] ?? 25
+
   const markCooked = (recipe: Recipe) => {
     const inv = store.getInventory()
     const prods = store.getProducts()
@@ -167,7 +171,18 @@ export function Recipes() {
     }
 
     store.saveInventory(inv)
-    const parts: string[] = []
+
+    // Log one serving to today's meal log (fuels the dashboard progress)
+    store.addMealLog({
+      user_id: 'default-user',
+      date: new Date().toISOString().split('T')[0],
+      recipe_id: recipe.id,
+      recipe_name: recipe.name,
+      calories: recipe.est_calories,
+      protein_g: proteinOf(recipe),
+    })
+
+    const parts: string[] = [`🍽 +${recipe.est_calories} kcal y +${proteinOf(recipe)}g proteína registrados hoy`]
     if (deducted.length > 0) parts.push(`✓ Descontado: ${deducted.join(', ')}`)
     if (skipped.length > 0) parts.push(`No estaban (quizá los sustituiste): ${skipped.join(', ')}`)
     setCookedMsg(prev => ({ ...prev, [recipe.id]: parts.join(' · ') || 'Nada que descontar' }))
@@ -278,6 +293,7 @@ export function Recipes() {
 
   const mealLabel: Record<string, string> = { lunch: 'Almuerzo', dinner: 'Cena', snack: 'Snack' }
   const proteinLabel: Record<string, string> = { low: 'Baja', med: 'Media', high: 'Alta' }
+  const targets = getNutritionTargets(store.getProfile())
 
   return (
     <div className="space-y-6 pb-20 md:pb-0">
@@ -596,9 +612,25 @@ export function Recipes() {
 
                 {/* Actions */}
                 <div className="mt-auto pt-3 border-t border-border space-y-2">
+                  {recipe.est_calories > 0 && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-orange-50 rounded-lg px-2 py-1.5 text-center">
+                        <p className="text-sm font-bold text-orange-600 leading-none">{recipe.est_calories} kcal</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {targets ? `${Math.round((recipe.est_calories / targets.tdee) * 100)}% de tu día` : 'por porción'}
+                        </p>
+                      </div>
+                      <div className="bg-rose-50 rounded-lg px-2 py-1.5 text-center">
+                        <p className="text-sm font-bold text-rose-600 leading-none">{proteinOf(recipe)}g prot</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {targets ? `${Math.round((proteinOf(recipe) / targets.proteinG) * 100)}% de tu meta` : 'por porción'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Cubre {recipe.days_covered} días</span>
-                    {recipe.est_calories > 0 && <span>~{recipe.est_calories} cal/porción</span>}
+                    {recipe.est_calories > 0 && <span>por porción</span>}
                   </div>
                   {missing.length > 0 && (
                     <div className="text-xs text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-100">
