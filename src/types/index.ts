@@ -8,10 +8,13 @@ export type PriceConfidence = 'confirmed' | 'estimated'
 export type PurchaseSource = 'receipt_scan' | 'manual'
 export type MealStatus = 'planned' | 'cooked' | 'skipped'
 
+export type Country = 'PA' | 'CO'
+
 export interface UserProfile {
   id: string
   name: string
   currency: Currency
+  country?: Country
   monthly_budget: number
   budget_carryover: number
   shopping_frequency: ShoppingFrequency

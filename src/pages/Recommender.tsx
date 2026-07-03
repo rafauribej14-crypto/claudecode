@@ -4,8 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { store } from '@/store'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { Product, PriceObservation } from '@/types'
-import { ShoppingCart, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react'
+import { recommendWhereToBuy, hasGrokKey } from '@/services/grok'
+import type { ShoppingNeedItem, ShoppingPlanResult } from '@/services/grok'
+import type { Product, PriceObservation, Recipe, InventoryItem } from '@/types'
+import { ShoppingCart, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, MapPin, Store as StoreIcon } from 'lucide-react'
 
 interface Recommendation {
   product: Product
@@ -22,6 +24,12 @@ export function Recommender() {
   const [prices, setPrices] = useState<PriceObservation[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null)
+  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [inventory, setInventory] = useState<InventoryItem[]>([])
+  const [selectedRecipes, setSelectedRecipes] = useState<string[]>([])
+  const [planLoading, setPlanLoading] = useState(false)
+  const [planError, setPlanError] = useState('')
+  const [plan, setPlan] = useState<ShoppingPlanResult | null>(null)
 
   const reload = () => {
     const profile = store.getProfile()
@@ -30,6 +38,8 @@ export function Recommender() {
     const allProducts = store.getProducts()
     setPrices(allPrices)
     setProducts(allProducts)
+    setRecipes(store.getRecipes())
+    setInventory(inventory)
 
     const freqDivisor = profile.shopping_frequency === 'weekly' ? 4 : profile.shopping_frequency === 'biweekly' ? 2 : 1
     const tripBudget = (profile.monthly_budget + profile.budget_carryover) / freqDivisor
@@ -72,6 +82,85 @@ export function Recommender() {
 
   const totalEstimated = recommendations.reduce((s, r) => s + r.estimated_price, 0)
 
+  const toggleRecipe = (id: string) => {
+    setSelectedRecipes(prev => prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id])
+    setPlan(null)
+  }
+
+  const findInventoryFor = (ingredientName: string) => {
+    const lower = ingredientName.toLowerCase()
+    return inventory.find(i => {
+      if (i.qty_remaining <= 0) return false
+      const p = products.find(pr => pr.id === i.product_id)
+      if (!p) return false
+      const pName = p.name.toLowerCase()
+      return pName.includes(lower) || lower.includes(pName)
+    })
+  }
+
+  const handleGeneratePlan = async () => {
+    setPlanError('')
+    setPlanLoading(true)
+    setPlan(null)
+    try {
+      const profile = store.getProfile()
+      const chosen = recipes.filter(r => selectedRecipes.includes(r.id))
+
+      // Aggregate missing ingredients across selected recipes
+      const needed = new Map<string, { name: string; qty: number; unit: string }>()
+      for (const recipe of chosen) {
+        for (const ing of recipe.ingredients) {
+          const inv = ing.product_id
+            ? inventory.find(i => i.product_id === ing.product_id)
+            : findInventoryFor(ing.ingredient_name)
+          const have = inv?.qty_remaining ?? 0
+          const missing = ing.qty - have
+          if (missing <= 0) continue
+          const key = ing.ingredient_name.toLowerCase()
+          const prev = needed.get(key)
+          if (prev) prev.qty += missing
+          else needed.set(key, { name: ing.ingredient_name, qty: missing, unit: ing.unit })
+        }
+      }
+
+      if (needed.size === 0) {
+        setPlanError('¡Ya tienes todo para esas recetas! No necesitas comprar nada.')
+        return
+      }
+
+      // Attach user's price history: best unit price per store per ingredient
+      const items: ShoppingNeedItem[] = [...needed.values()].map(n => {
+        const lower = n.name.toLowerCase()
+        const matchedProducts = products.filter(p => {
+          const pName = p.name.toLowerCase()
+          return pName.includes(lower) || lower.includes(pName)
+        })
+        const byStore = new Map<string, { store: string; unit_price: number; last_seen: string }>()
+        for (const p of matchedProducts) {
+          for (const obs of prices.filter(pr => pr.product_id === p.id)) {
+            const existing = byStore.get(obs.store)
+            if (!existing || obs.unit_price < existing.unit_price) {
+              byStore.set(obs.store, { store: obs.store, unit_price: obs.unit_price, last_seen: obs.observed_at })
+            }
+          }
+        }
+        return { name: n.name, qty: Math.round(n.qty), unit: n.unit, history: [...byStore.values()] }
+      })
+
+      const result = await recommendWhereToBuy({
+        items,
+        country: profile.country ?? (profile.currency === 'COP' ? 'CO' : 'PA'),
+        budget,
+        currency: profile.currency,
+      })
+      setPlan(result)
+    } catch (err: any) {
+      setPlanError(err.message ?? 'Error al generar el plan')
+    } finally {
+      setPlanLoading(false)
+    }
+  }
+
   const productPriceGroups = products
     .map(p => ({ product: p, prices: prices.filter(pr => pr.product_id === p.id).sort((a, b) => b.observed_at.localeCompare(a.observed_at)) }))
     .filter(g => g.prices.length > 0)
@@ -101,6 +190,91 @@ export function Recommender() {
           </p>
         </Card>
       </div>
+
+      {/* ¿Dónde compro? — AI shopping plan */}
+      {hasGrokKey() && recipes.length > 0 && (
+        <Card className="bg-gradient-to-r from-teal-50 to-emerald-50 border-teal-100">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-teal-100 rounded-xl">
+              {planLoading ? <Loader2 className="text-teal-600 animate-spin" size={18} /> : <MapPin className="text-teal-600" size={18} />}
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-teal-800 text-sm">¿Dónde compro más barato?</h3>
+              <p className="text-xs text-teal-600 mt-0.5">Elige las recetas que quieres hacer y la IA arma tu plan de compra usando tus precios históricos y los supermercados de tu país.</p>
+
+              <div className="flex flex-wrap gap-2 mt-3">
+                {recipes.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => toggleRecipe(r.id)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors cursor-pointer ${
+                      selectedRecipes.includes(r.id)
+                        ? 'bg-teal-600 text-white border-teal-600'
+                        : 'bg-white text-teal-700 border-teal-200 hover:border-teal-400'
+                    }`}
+                  >
+                    {r.name}
+                  </button>
+                ))}
+              </div>
+
+              {planError && <p className="text-xs text-amber-700 mt-2 bg-amber-50 px-2 py-1 rounded-lg">{planError}</p>}
+
+              <Button
+                variant="primary"
+                className="w-full mt-3"
+                disabled={planLoading || selectedRecipes.length === 0}
+                onClick={handleGeneratePlan}
+              >
+                {planLoading
+                  ? <><Loader2 size={14} className="mr-2 animate-spin" /> Comparando precios...</>
+                  : <><Sparkles size={14} className="mr-2" /> Armar plan de compra ({selectedRecipes.length} receta{selectedRecipes.length !== 1 ? 's' : ''})</>}
+              </Button>
+            </div>
+          </div>
+
+          {plan && (
+            <div className="mt-4 pt-4 border-t border-teal-200 space-y-3">
+              {plan.plan.map((storePlan, i) => (
+                <div key={i} className="bg-white rounded-xl border border-teal-100 overflow-hidden">
+                  <div className="flex justify-between items-center px-3 py-2 bg-teal-50/50">
+                    <span className="font-semibold text-sm text-teal-800 flex items-center gap-1.5">
+                      <StoreIcon size={14} /> {storePlan.store}
+                    </span>
+                    <span className="font-bold text-sm text-teal-700">{formatCurrency(storePlan.subtotal)}</span>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    {storePlan.items.map((item, j) => (
+                      <div key={j} className="flex justify-between items-center text-xs px-2 py-1.5 rounded-lg hover:bg-muted/40">
+                        <div className="flex-1">
+                          <span className="font-medium">{item.name}</span>
+                          <span className="text-muted-foreground ml-1.5">{item.qty}</span>
+                          {item.note && <p className="text-[10px] text-muted-foreground mt-0.5">{item.note}</p>}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={item.source === 'historial' ? 'success' : 'warning'}>
+                            {item.source === 'historial' ? 'Tu precio' : 'Estimado'}
+                          </Badge>
+                          <span className="font-semibold">{formatCurrency(item.est_price)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              <div className={`flex justify-between items-center px-3 py-2.5 rounded-xl ${plan.fits_budget ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
+                <span className="text-sm font-medium">{plan.fits_budget ? '✓ Dentro de tu presupuesto' : '⚠ Excede tu presupuesto'}</span>
+                <span className={`font-bold ${plan.fits_budget ? 'text-emerald-700' : 'text-red-700'}`}>{formatCurrency(plan.total)}</span>
+              </div>
+
+              {plan.advice && (
+                <p className="text-xs text-teal-700 bg-teal-50 px-3 py-2 rounded-lg">💡 {plan.advice}</p>
+              )}
+            </div>
+          )}
+        </Card>
+      )}
 
       {recommendations.length === 0 ? (
         <Card className="text-center py-10 border-dashed border-2">

@@ -59,8 +59,19 @@ export interface ReceiptResult {
   items: ReceiptItem[]
 }
 
-export async function analyzeReceipt(imageDataUrl: string): Promise<ReceiptResult> {
-  const prompt = `Eres un asistente que lee facturas de supermercado (Panamá). Analiza la imagen y extrae cada producto comprado.
+export const STORES_BY_COUNTRY: Record<string, string[]> = {
+  PA: ['Super99', 'El Rey', 'PriceSmart', 'Riba Smith', 'Xtra', 'Machetazo'],
+  CO: ['Éxito', 'Carulla', 'D1', 'Ara'],
+}
+
+export function getCountryStores(country?: string): string[] {
+  return STORES_BY_COUNTRY[country ?? 'PA'] ?? STORES_BY_COUNTRY.PA
+}
+
+export async function analyzeReceipt(imageDataUrl: string, country?: string): Promise<ReceiptResult> {
+  const stores = getCountryStores(country)
+  const countryName = country === 'CO' ? 'Colombia' : 'Panamá'
+  const prompt = `Eres un asistente que lee facturas de supermercado (${countryName}). Analiza la imagen y extrae cada producto comprado.
 
 Para cada producto identifica:
 - product_name: nombre limpio del producto (en español, sin códigos)
@@ -70,7 +81,7 @@ Para cada producto identifica:
 - category: una de: "proteina", "grano", "lacteo", "fruta", "verdura", "otro"
 
 También identifica:
-- store: nombre de la tienda (Super99, El Rey, PriceSmart, Riba Smith, u otro)
+- store: nombre de la tienda (${stores.join(', ')}, u otro)
 - total: total de la factura (solo el número)
 
 Responde SOLO con JSON válido (sin markdown, sin backticks) con este formato exacto:
@@ -301,6 +312,123 @@ Si no entiendes algo, ignóralo. No inventes productos que el usuario no mencion
       unit: ['g', 'ml', 'unit'].includes(it.unit) ? it.unit : 'g',
       category: ['proteina', 'grano', 'lacteo', 'fruta', 'verdura', 'otro'].includes(it.category) ? it.category : 'otro',
     }))
+}
+
+// ─────────────────────────────────────────────────────────
+//  PLAN DE COMPRA — dónde comprar más barato
+// ─────────────────────────────────────────────────────────
+
+export interface ShoppingNeedItem {
+  name: string
+  qty: number
+  unit: string
+  /** Historial del usuario: mejor precio unitario visto por tienda */
+  history: { store: string; unit_price: number; last_seen: string }[]
+}
+
+export interface ShoppingPlanItem {
+  name: string
+  qty: string
+  est_price: number
+  source: 'historial' | 'estimado'
+  note: string
+}
+
+export interface ShoppingPlanStore {
+  store: string
+  items: ShoppingPlanItem[]
+  subtotal: number
+}
+
+export interface ShoppingPlanResult {
+  plan: ShoppingPlanStore[]
+  total: number
+  fits_budget: boolean
+  advice: string
+}
+
+export async function recommendWhereToBuy(input: {
+  items: ShoppingNeedItem[]
+  country?: string
+  budget: number
+  currency: string
+}): Promise<ShoppingPlanResult> {
+  const stores = getCountryStores(input.country)
+  const countryName = input.country === 'CO' ? 'Colombia' : 'Panamá'
+
+  const itemLines = input.items.map(it => {
+    const hist = it.history.length > 0
+      ? ` | HISTORIAL DEL USUARIO: ${it.history.map(h => `${h.store}: ${h.unit_price.toFixed(2)}/${it.unit} (visto ${h.last_seen.split('T')[0]})`).join('; ')}`
+      : ' | Sin historial — estima según precios típicos del país'
+    return `- ${it.name}: necesita ${it.qty} ${it.unit}${hist}`
+  }).join('\n')
+
+  const prompt = `Eres un experto en compras de supermercado en ${countryName}. El usuario necesita comprar estos productos y quiere saber DÓNDE comprarlos más barato sin sacrificar calidad.
+
+SUPERMERCADOS DISPONIBLES: ${stores.join(', ')}
+PRESUPUESTO DISPONIBLE: ${input.budget.toFixed(2)} ${input.currency}
+
+PRODUCTOS NECESARIOS:
+${itemLines}
+
+REGLAS:
+1. PRIORIZA el historial de precios del usuario cuando exista — son precios REALES que él pagó (source: "historial").
+2. Sin historial, usa tu conocimiento de precios típicos en ${countryName} (source: "estimado"). Ej: en Colombia D1 y Ara son económicos, Carulla es premium; en Panamá Xtra y Machetazo son económicos, Riba Smith es premium.
+3. Agrupa por tienda para minimizar el número de tiendas a visitar (máximo 2-3 tiendas). Si la diferencia de precio es pequeña, consolida en una sola tienda.
+4. Los precios en ${input.currency}. Sé realista con los precios de ${countryName}.
+5. Si el total excede el presupuesto, sugiere en advice qué ajustar (marcas económicas, menos cantidad).
+6. En note escribe algo corto y útil (máx 10 palabras). Ej: "Tu mejor precio histórico", "D1 suele tenerlo más barato".
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "plan": [
+    {
+      "store": "D1",
+      "items": [
+        { "name": "Arroz blanco", "qty": "1000 g", "est_price": 4500, "source": "historial", "note": "Tu mejor precio histórico" }
+      ],
+      "subtotal": 4500
+    }
+  ],
+  "total": 4500,
+  "fits_budget": true,
+  "advice": "Consejo corto sobre esta compra"
+}`
+
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un experto en compras y precios de supermercados. Responde SOLO con JSON válido.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.3,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudo generar el plan de compra. Intenta de nuevo.')
+  }
+
+  const plan: ShoppingPlanStore[] = (parsed.plan ?? []).map((s: any) => ({
+    store: s.store ?? 'Tienda',
+    items: (s.items ?? []).map((it: any) => ({
+      name: it.name ?? '',
+      qty: String(it.qty ?? ''),
+      est_price: Number(it.est_price) || 0,
+      source: it.source === 'historial' ? 'historial' : 'estimado',
+      note: it.note ?? '',
+    })).filter((it: ShoppingPlanItem) => it.name),
+    subtotal: Number(s.subtotal) || 0,
+  }))
+
+  return {
+    plan,
+    total: Number(parsed.total) || plan.reduce((s, p) => s + p.subtotal, 0),
+    fits_budget: Boolean(parsed.fits_budget),
+    advice: parsed.advice ?? '',
+  }
 }
 
 // ─────────────────────────────────────────────────────────

@@ -53,6 +53,21 @@ export function Settings() {
         <CardHeader><CardTitle>Presupuesto y frecuencia</CardTitle></CardHeader>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
+            <label className="text-sm font-medium text-muted-foreground">País</label>
+            <Select
+              value={profile.country ?? (profile.currency === 'COP' ? 'CO' : 'PA')}
+              onChange={e => {
+                const country = e.target.value as 'PA' | 'CO'
+                update({ country, currency: country === 'CO' ? 'COP' : 'USD' })
+              }}
+              className="mt-1"
+            >
+              <option value="PA">Panamá 🇵🇦</option>
+              <option value="CO">Colombia 🇨🇴</option>
+            </Select>
+            <p className="text-[10px] text-muted-foreground mt-1">Define los supermercados y la moneda de la app</p>
+          </div>
+          <div>
             <label className="text-sm font-medium text-muted-foreground">Moneda</label>
             <Select value={profile.currency} onChange={e => update({ currency: e.target.value as UserProfile['currency'] })} className="mt-1">
               <option value="USD">Dólar (USD)</option>

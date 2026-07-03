@@ -14,6 +14,7 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
     id: userId,
     name: '',
     currency: 'USD',
+    country: 'PA',
     monthly_budget: 300,
     budget_carryover: 0,
     shopping_frequency: 'weekly',
@@ -68,24 +69,25 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
       content: (
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Moneda</label>
+            <label className="text-sm font-medium text-muted-foreground">¿Dónde vives?</label>
             <div className="grid grid-cols-2 gap-2 mt-1">
               {([
-                { value: 'USD', label: 'Dólar (USD)', flag: '🇺🇸' },
-                { value: 'COP', label: 'Peso (COP)', flag: '🇨🇴' },
+                { value: 'PA', label: 'Panamá', flag: '🇵🇦', currency: 'USD' },
+                { value: 'CO', label: 'Colombia', flag: '🇨🇴', currency: 'COP' },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => update({ currency: opt.value })}
+                  onClick={() => update({ country: opt.value, currency: opt.currency })}
                   className={`flex items-center justify-center gap-2 h-12 rounded-lg border-2 transition-all cursor-pointer text-sm font-medium ${
-                    profile.currency === opt.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'
+                    (profile.country ?? 'PA') === opt.value ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/30'
                   }`}
                 >
                   <span className="text-lg">{opt.flag}</span> {opt.label}
                 </button>
               ))}
             </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Define tu moneda y los supermercados que la IA usará para compararte precios</p>
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual ({profile.currency})</label>

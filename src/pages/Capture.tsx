@@ -6,7 +6,7 @@ import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { store } from '@/store'
 import { generateId, formatCurrency, formatDate } from '@/lib/utils'
-import { analyzeReceipt, hasGrokKey } from '@/services/grok'
+import { analyzeReceipt, hasGrokKey, getCountryStores } from '@/services/grok'
 import type { PurchaseItem, Purchase } from '@/types'
 import { Plus, Trash2, ShoppingBag, Camera, Image, X, History, ChevronDown, ChevronUp, Sparkles, Loader2 } from 'lucide-react'
 
@@ -27,7 +27,10 @@ interface StoredPhoto {
   purchaseId?: string
 }
 
-const STORES = ['Super99', 'El Rey', 'PriceSmart', 'Riba Smith', 'Otro']
+const getStoresForUser = () => {
+  const country = store.getProfile().country ?? 'PA'
+  return [...getCountryStores(country), 'Otro']
+}
 
 function loadPhotos(): StoredPhoto[] {
   try { return JSON.parse(localStorage.getItem('photos') ?? '[]') } catch { return [] }
@@ -35,6 +38,7 @@ function loadPhotos(): StoredPhoto[] {
 function savePhotos(photos: StoredPhoto[]) { localStorage.setItem('photos', JSON.stringify(photos)) }
 
 export function Capture() {
+  const STORES = getStoresForUser()
   const [selectedStore, setSelectedStore] = useState(STORES[0])
   const [lines, setLines] = useState<LineItem[]>([
     { tempId: generateId(), product_name: '', qty: 0, unit: 'g', price_paid: 0, category: 'otro' },
@@ -91,7 +95,7 @@ export function Capture() {
     setAnalyzeOk('')
     setAnalyzing(true)
     try {
-      const result = await analyzeReceipt(dataUrl)
+      const result = await analyzeReceipt(dataUrl, store.getProfile().country)
       if (result.items.length === 0) {
         setAnalyzeError('No se detectaron productos en la foto. Verifica que sea una factura legible.')
         return
