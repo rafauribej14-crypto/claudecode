@@ -96,6 +96,7 @@ export interface Recipe {
   ai_generated: boolean
   saved: boolean
   est_protein_g?: number
+  chef_note?: string
   ingredients: RecipeIngredient[]
 }
 
@@ -116,6 +117,7 @@ export interface RecipeIngredient {
   ingredient_name: string
   qty: number
   unit: string
+  have?: boolean
 }
 
 export interface MealPlan {

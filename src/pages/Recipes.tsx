@@ -211,17 +211,17 @@ export function Recipes() {
     return ing.qty
   }
 
-  const canCook = (recipe: Recipe) => recipe.ingredients.every(ing => {
-    if (!ing.product_id) return true
-    const item = inventory.find(i => i.product_id === ing.product_id)
-    return item && item.qty_remaining >= qtyInBaseUnit(ing, ing.product_id)
-  })
-
-  const getMissing = (recipe: Recipe) => recipe.ingredients.filter(ing => {
+  // An ingredient counts as "missing" if the AI flagged have:false, or if it's
+  // linked to inventory but there isn't enough. Unlinked basics (salt, oil) are assumed present.
+  const isMissing = (ing: Recipe['ingredients'][number]) => {
+    if (ing.have === false) return true
     if (!ing.product_id) return false
     const item = inventory.find(i => i.product_id === ing.product_id)
     return !item || item.qty_remaining < qtyInBaseUnit(ing, ing.product_id)
-  })
+  }
+
+  const canCook = (recipe: Recipe) => recipe.ingredients.every(ing => !isMissing(ing))
+  const getMissing = (recipe: Recipe) => recipe.ingredients.filter(isMissing)
 
   const handleGenerateAI = async () => {
     setAiError('')
@@ -605,16 +605,21 @@ export function Recipes() {
 
                 {isExpanded && (
                   <div className="mb-3 space-y-2">
+                    {recipe.chef_note && (
+                      <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 p-2 rounded-lg">👨‍🍳 {recipe.chef_note}</p>
+                    )}
                     {recipe.instructions && (
                       <p className="text-xs text-muted-foreground bg-muted p-2 rounded-lg">{recipe.instructions}</p>
                     )}
                     <div className="space-y-1">
                       {recipe.ingredients.map((ing, idx) => {
-                        const invItem = ing.product_id ? inventory.find(i => i.product_id === ing.product_id) : null
-                        const hasEnough = !ing.product_id || (invItem && invItem.qty_remaining >= ing.qty)
+                        const missing = isMissing(ing)
                         return (
-                          <div key={idx} className={`flex justify-between text-xs px-2 py-1 rounded-lg ${hasEnough ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                            <span>{ing.ingredient_name}</span>
+                          <div key={idx} className={`flex justify-between items-center text-xs px-2 py-1 rounded-lg ${missing ? 'bg-red-50' : 'bg-emerald-50'}`}>
+                            <span className="flex items-center gap-1.5">
+                              {ing.ingredient_name}
+                              {missing && <span className="text-[9px] text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">te falta</span>}
+                            </span>
                             <span className="font-medium">{ing.qty}{ing.unit}</span>
                           </div>
                         )

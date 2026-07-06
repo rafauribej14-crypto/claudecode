@@ -711,18 +711,24 @@ export async function generateRecipes(input: GenerateRecipesInput): Promise<Reci
     ? `\nPETICIÓN ESPECIAL DEL USUARIO (priorízala): "${input.customRequest.trim()}"\n`
     : ''
 
-  const systemPrompt = `Eres un chef nutricionista profesional especializado en meal prep. Tu trabajo es crear planes de comida personalizados y deliciosos usando EXCLUSIVAMENTE lo que el usuario tiene en su despensa.
+  const systemPrompt = `Eres un chef profesional con formación clásica y criterio culinario real. Recomiendas platos que un cocinero de verdad serviría, no mezclas al azar.
 
-PRINCIPIOS CLAVE:
-- Maximizar la variedad y sabor con los ingredientes disponibles.
-- Cada receta debe ser práctica para meal prep (cocinar una vez, comer varios días).
-- Adaptar la complejidad al nivel de cocina del usuario.
-- Calcular porciones y calorías basándote en los datos físicos y la meta del usuario.
-- Balancear los macronutrientes según el objetivo corporal.
-- Si el usuario tiene restricciones, respetarlas de forma estricta.
-- Generar 3 recetas variadas: idealmente 1 almuerzo, 1 cena, 1 snack (o según convenga).
-- Dar instrucciones claras paso a paso, aptas para el nivel del usuario.
-- Incluir tips de almacenamiento si aplica.
+REGLA DE ORO — EL SABOR MANDA:
+Cada receta debe ser un PLATO REAL Y RECONOCIBLE, inspirado en la cocina de verdad (tradicional latinoamericana, mediterránea, asiática, etc.) o en técnicas de chefs reales. NUNCA combines ingredientes solo porque están en la despensa. Si dos ingredientes no van bien juntos, NO los juntes. Ejemplos de lo que JAMÁS debes hacer: yogur griego con salsa de jalapeño, atún con leche, banano con pollo. Antes de proponer un plato, pregúntate: "¿un chef serviría esto? ¿yo me lo comería con gusto?". Si la respuesta es no, descártalo.
+
+CÓMO USAR LA DESPENSA:
+- La despensa es tu GUÍA de qué priorizar, NO una obligación de usar todo.
+- Prioriza platos donde la mayoría de los ingredientes principales ya los tiene el usuario.
+- Es preferible una receta rica que use 3 cosas de la despensa, que un engendro que use 6.
+- Si un buen plato necesita 1 o 2 ingredientes que el usuario NO tiene (una especia, un vegetal, una salsa base), ESTÁ PERMITIDO incluirlos: márcalos con "have": false. Mejor una receta buena a la que le falte poco, que una asquerosa con todo a la mano.
+- Puedes asumir básicos siempre disponibles: sal, pimienta, aceite, ajo, cebolla, especias comunes.
+
+PRINCIPIOS:
+- Genera 3 recetas variadas y apetitosas (idealmente 1 almuerzo, 1 cena, 1 snack).
+- Adapta la técnica al nivel de cocina del usuario.
+- Ajusta porciones y calorías a la meta corporal y los datos del usuario.
+- Respeta las restricciones de forma ESTRICTA.
+- Instrucciones claras paso a paso.
 
 Responde SOLO con JSON válido, sin markdown.`
 
@@ -741,14 +747,15 @@ ${input.profile.height_cm > 0 ? `- Altura: ${input.profile.height_cm} cm` : ''}
 ${input.profile.habits ? `- Hábitos alimenticios: ${input.profile.habits}` : ''}
 ${nutritionBlock}
 ${customBlock}
-REGLAS ESTRICTAS:
-1. SOLO usa ingredientes de la lista. Puedes asumir básicos de cocina (sal, pimienta, aceite, especias comunes).
-2. Cada receta debe ser para meal prep (mínimo 3-4 porciones).
-3. Las cantidades NO deben exceder lo disponible en la despensa.
-4. Ajusta la complejidad de la receta al nivel de cocina del usuario.
-5. est_calories y est_protein_g son POR PORCIÓN. Calcúlalos sumando el aporte real de cada ingrediente según su cantidad exacta y datos nutricionales reales conocidos (ej: pechuga de pollo cocida ≈ 31g proteína/100g, arroz cocido ≈ 2.7g proteína/100g, plátano ≈ 1.3g proteína/100g, huevo ≈ 13g/100g, frijoles cocidos ≈ 9g/100g), luego divide entre el número de porciones. NUNCA uses un número genérico o redondo sin relación con los ingredientes reales — un snack de una sola fruta o vegetal frito NO puede tener más de 1-2g de proteína.
+REGLAS:
+1. Cada receta debe ser un PLATO REAL Y APETITOSO (ver regla de oro). El sabor y la coherencia culinaria mandan sobre "usar todo el inventario".
+2. Prioriza ingredientes de la despensa, pero puedes incluir 1-2 que falten si el plato lo merece. Marca cada ingrediente con "have": true (lo tiene) o "have": false (le falta). NO abuses de "have": false — máximo 2 por receta.
+3. Las cantidades de ingredientes que SÍ tiene no deben exceder lo disponible.
+4. Recetas para meal prep (3-4 porciones), adaptadas al nivel de cocina.
+5. est_calories y est_protein_g son POR PORCIÓN. Calcúlalos sumando el aporte real de cada ingrediente según su cantidad exacta y datos nutricionales reales conocidos (ej: pechuga de pollo cocida ≈ 31g proteína/100g, arroz cocido ≈ 2.7g proteína/100g, plátano ≈ 1.3g proteína/100g, huevo ≈ 13g/100g, frijoles cocidos ≈ 9g/100g), luego divide entre el número de porciones. NUNCA uses un número genérico o redondo sin relación con los ingredientes reales.
 6. Prioriza la meta corporal del usuario en la selección de recetas y porciones.
 7. Varía los tipos de comida (no 3 almuerzos iguales).
+8. En "chef_note" escribe una frase corta explicando por qué el plato tiene sentido o de qué cocina viene (ej: "Clásico salteado asiático, el jengibre realza el pollo"). Si a la receta le falta algún ingrediente, menciónalo aquí de forma natural.
 
 Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este formato exacto:
 [
@@ -756,6 +763,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
     "name": "Nombre de la receta",
     "meal_type": "lunch|dinner|snack",
     "cooking_level": "basic|medium|experienced",
+    "chef_note": "Por qué este plato tiene sentido; menciona lo que falte si aplica",
     "instructions": "Paso 1... Paso 2...",
     "est_calories": 350,
     "est_protein_g": 32,
@@ -764,7 +772,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
     "servings": 4,
     "days_covered": 3,
     "ingredients": [
-      { "ingredient_name": "Arroz blanco", "qty": 400, "unit": "g", "product_name": "Arroz blanco" }
+      { "ingredient_name": "Arroz blanco", "qty": 400, "unit": "g", "product_name": "Arroz blanco", "have": true }
     ]
   }
 ]`
@@ -791,6 +799,8 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
     const recipeId = generateId()
     const ingredients: RecipeIngredient[] = (r.ingredients ?? []).map((ing: any) => {
       const matchedProduct = availableProducts.find(p => p!.name.toLowerCase() === (ing.product_name ?? ing.ingredient_name ?? '').toLowerCase())
+      // The AI flags whether the user has it; if not flagged, infer from an inventory match.
+      const have = ing.have === false ? false : (ing.have === true ? true : !!matchedProduct)
       return {
         id: generateId(),
         recipe_id: recipeId,
@@ -798,6 +808,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
         ingredient_name: ing.ingredient_name ?? ing.product_name ?? 'Ingrediente',
         qty: ing.qty ?? 0,
         unit: ing.unit ?? 'g',
+        have,
       }
     })
 
@@ -807,6 +818,7 @@ Responde SOLO con un JSON array válido (sin markdown, sin backticks), con este 
       meal_type: r.meal_type ?? 'lunch',
       cooking_level: r.cooking_level ?? input.profile.cooking_level,
       instructions: r.instructions ?? '',
+      chef_note: r.chef_note ?? undefined,
       est_calories: r.est_calories ?? 0,
       est_protein_g: Number(r.est_protein_g) || undefined,
       protein_level: r.protein_level ?? 'med',
