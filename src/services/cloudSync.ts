@@ -3,8 +3,14 @@
 // If VITE_SUPABASE_* are absent, every function is a no-op and the app keeps
 // working purely on localStorage (single-device), exactly as before.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+// The anon key is designed to be public (it ships in the browser bundle);
+// data protection comes from RLS policies, not from hiding this key.
+// Env vars can still override these defaults.
+const DEFAULT_SUPABASE_URL = 'https://oxkxxvxzrhksbllyhhjg.supabase.co'
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94a3h4dnh6cmhrc2JsbHloaGpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODcwOTksImV4cCI6MjA5ODg2MzA5OX0.j43cWyqesuPtFTWdWydJZW7GaMUIVDvqfP-6ihxamtQ'
+
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY
 
 export const cloudEnabled = (): boolean => SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0
 

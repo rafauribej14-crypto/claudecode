@@ -2,8 +2,7 @@
 // exist in the cloud and a few non-sensitive facts extracted from each blob.
 // Read-only. Uses the same anon key as the rest of the app.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './cloudSync'
 
 export interface CloudAccountSummary {
   user_id: string

@@ -2,10 +2,9 @@
 // Anonymous: stores only product/store/price observations, never a user id,
 // so the "where to buy cheapest" planner can learn from ALL users' receipts.
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? ''
+import { SUPABASE_URL, SUPABASE_ANON_KEY, cloudEnabled } from './cloudSync'
 
-const enabled = (): boolean => SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0
+const enabled = cloudEnabled
 
 function headers(): Record<string, string> {
   return {
