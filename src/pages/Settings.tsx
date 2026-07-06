@@ -5,17 +5,39 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { updateUserName, logout } from '@/store/auth'
-import { cloudEnabled } from '@/services/cloudSync'
+import { cloudEnabled, getLastSyncError } from '@/services/cloudSync'
+import { listCloudAccounts, deleteCloudAccount, type CloudAccountSummary } from '@/services/adminUsers'
 import type { UserProfile } from '@/types'
-import { Settings as SettingsIcon, Save, LogOut, Trash2, Cloud, CloudOff } from 'lucide-react'
+import { Settings as SettingsIcon, Save, LogOut, Trash2, Cloud, CloudOff, Users, Loader2, RefreshCw } from 'lucide-react'
 
 export function Settings() {
   const [profile, setProfile] = useState<UserProfile>(store.getProfile())
   const [saved, setSaved] = useState(false)
   const [newRestriction, setNewRestriction] = useState('')
   const [confirmReset, setConfirmReset] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [adminLoading, setAdminLoading] = useState(false)
+  const [adminError, setAdminError] = useState('')
+  const [accounts, setAccounts] = useState<CloudAccountSummary[] | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => { setProfile(store.getProfile()) }, [])
+
+  const loadAccounts = async () => {
+    setAdminLoading(true)
+    setAdminError('')
+    const result = await listCloudAccounts()
+    if (result.ok) setAccounts(result.accounts)
+    else setAdminError(result.error)
+    setAdminLoading(false)
+  }
+
+  const handleDeleteAccount = async (userId: string) => {
+    const result = await deleteCloudAccount(userId)
+    setConfirmDeleteId(null)
+    if (result.ok) setAccounts(prev => prev?.filter(a => a.user_id !== userId) ?? null)
+    else setAdminError(result.error ?? 'No se pudo eliminar')
+  }
 
   const update = (patch: Partial<UserProfile>) => {
     setProfile(prev => ({ ...prev, ...patch }))
@@ -57,9 +79,76 @@ export function Settings() {
                 ? 'Tus datos se guardan en la nube y aparecen en cualquier dispositivo con tu cuenta.'
                 : 'Tus datos solo están en este dispositivo. Faltan las variables de Supabase en el despliegue.'}
             </p>
+            {cloudEnabled() && getLastSyncError() && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1 mt-2">
+                Último error: {getLastSyncError()}
+              </p>
+            )}
           </div>
         </div>
       </Card>
+
+      {/* Admin: registered accounts (reads the cloud table directly) */}
+      {cloudEnabled() && (
+        <Card>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Users size={16} className="text-muted-foreground" /> Cuentas registradas
+            </h3>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => { setShowAdmin(!showAdmin); if (!showAdmin && accounts === null) void loadAccounts() }}
+            >
+              {showAdmin ? 'Ocultar' : 'Ver cuentas'}
+            </Button>
+          </div>
+
+          {showAdmin && (
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {accounts !== null ? `${accounts.length} cuenta(s) con datos en la nube` : 'Cargando...'}
+                </p>
+                <button onClick={() => void loadAccounts()} className="p-1 text-muted-foreground hover:text-primary cursor-pointer" title="Actualizar">
+                  {adminLoading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                </button>
+              </div>
+
+              {adminError && <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg">{adminError}</p>}
+
+              {accounts && accounts.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No hay cuentas en la nube todavía.</p>
+              )}
+
+              {accounts && accounts.map(acc => (
+                <div key={acc.user_id} className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{acc.name || '(sin nombre)'} {acc.country ? `· ${acc.country}` : ''}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {acc.user_id} · actualizado {new Date(acc.updated_at).toLocaleString('es')}
+                    </p>
+                  </div>
+                  {confirmDeleteId === acc.user_id ? (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteAccount(acc.user_id)}>Sí</Button>
+                      <Button size="sm" variant="outline" onClick={() => setConfirmDeleteId(null)}>No</Button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(acc.user_id)}
+                      className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 cursor-pointer shrink-0"
+                      title="Eliminar esta cuenta"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card>
         <CardHeader><CardTitle>Información personal</CardTitle></CardHeader>

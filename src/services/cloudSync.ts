@@ -61,6 +61,23 @@ function headers(): Record<string, string> {
 
 export type PullResult = 'found' | 'empty' | 'error'
 
+/** Last sync error, surfaced in Settings so debugging doesn't require DevTools. */
+let lastError: string | null = null
+export function getLastSyncError(): string | null { return lastError }
+function setLastError(msg: string | null) {
+  lastError = msg
+  if (msg) localStorage.setItem('sync_last_error', msg)
+  else localStorage.removeItem('sync_last_error')
+}
+// Restore across reloads
+try { lastError = localStorage.getItem('sync_last_error') } catch { /* ignore */ }
+
+async function describeError(res: Response): Promise<string> {
+  let body = ''
+  try { body = (await res.text()).slice(0, 200) } catch { /* ignore */ }
+  return `HTTP ${res.status} ${res.statusText}${body ? ` — ${body}` : ''}`
+}
+
 /**
  * Pull cloud state into localStorage.
  * - 'found': a cloud record existed and was applied
@@ -74,14 +91,19 @@ export async function pullState(userKey: string): Promise<PullResult> {
       `${SUPABASE_URL}/rest/v1/user_state?user_id=eq.${encodeURIComponent(userKey)}&select=data`,
       { headers: headers() },
     )
-    if (!res.ok) return 'error'
+    if (!res.ok) {
+      setLastError(`Al leer: ${await describeError(res)}`)
+      return 'error'
+    }
     const rows = await res.json()
+    setLastError(null)
     if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
       hydrate(rows[0].data as Record<string, string>)
       return 'found'
     }
     return 'empty'
-  } catch {
+  } catch (err: any) {
+    setLastError(`Red: ${err?.message ?? 'fetch falló'}`)
     return 'error'
   }
 }
@@ -90,7 +112,7 @@ export async function pullState(userKey: string): Promise<PullResult> {
 export async function pushState(): Promise<void> {
   if (!cloudEnabled() || !currentUserKey) return
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/user_state`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_state`, {
       method: 'POST',
       headers: { ...headers(), Prefer: 'resolution=merge-duplicates' },
       body: JSON.stringify({
@@ -99,8 +121,10 @@ export async function pushState(): Promise<void> {
         updated_at: new Date().toISOString(),
       }),
     })
-  } catch {
-    // offline or transient — next save will retry
+    if (!res.ok) setLastError(`Al guardar: ${await describeError(res)}`)
+    else setLastError(null)
+  } catch (err: any) {
+    setLastError(`Red: ${err?.message ?? 'fetch falló'}`)
   }
 }
 
