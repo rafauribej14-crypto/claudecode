@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { store } from '@/store'
 import { getNutritionTargets } from '@/services/nutrition'
 import { assistantTurn, hasGrokKey, type AssistantAction, type AssistantMessage } from '@/services/grok'
-import { Mic, MicOff, Send, X, Sparkles, Loader2, MessageCircle } from 'lucide-react'
+import { Mic, MicOff, Send, X, Sparkles, Loader2, ChefHat } from 'lucide-react'
 
 interface ChatMessage { role: 'user' | 'assistant'; content: string }
 
@@ -75,6 +75,14 @@ export function AssistantChat() {
   }, [messages, loading])
 
   if (!hasGrokKey()) return null
+
+  // When the user edits the field by hand, re-baseline the voice buffers so
+  // deleted text is NOT re-added by the next speech result.
+  const onManualEdit = (v: string) => {
+    setInput(v)
+    baseRef.current = v.trim() ? v.trim() + ' ' : ''
+    finalRef.current = ''
+  }
 
   const toggleVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -160,15 +168,27 @@ export function AssistantChat() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button — chef you can talk to */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
           className="fixed z-[60] bottom-24 right-4 md:bottom-6 md:right-6 w-14 h-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform cursor-pointer"
-          aria-label="Asistente de voz"
+          aria-label="Abrir asistente de cocina"
         >
-          <MessageCircle size={24} />
+          <ChefHat size={24} />
+          <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow">
+            <Mic size={11} className="text-primary" />
+          </span>
         </button>
+      )}
+
+      {/* Backdrop — tap to close */}
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[59] bg-black/30 md:bg-transparent"
+          aria-hidden
+        />
       )}
 
       {/* Chat panel */}
@@ -176,10 +196,16 @@ export function AssistantChat() {
         <div className="fixed z-[60] inset-x-0 bottom-0 md:inset-auto md:bottom-6 md:right-6 md:w-96 bg-white md:rounded-2xl rounded-t-2xl shadow-2xl border border-border flex flex-col max-h-[80vh] md:max-h-[600px] h-[70vh] md:h-[600px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-primary/5 md:rounded-t-2xl">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-primary/10 rounded-lg"><Sparkles className="text-primary" size={16} /></div>
+              <div className="p-1.5 bg-primary/10 rounded-lg"><ChefHat className="text-primary" size={16} /></div>
               <span className="font-semibold text-sm">Asistente freshapp</span>
             </div>
-            <button onClick={() => setOpen(false)} className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"><X size={18} /></button>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Cerrar asistente"
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/70 rounded-full pl-2 pr-2.5 py-1.5 cursor-pointer"
+            >
+              <X size={16} /> Cerrar
+            </button>
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2.5">
@@ -210,7 +236,7 @@ export function AssistantChat() {
               </button>
               <input
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => onManualEdit(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') send() }}
                 placeholder={listening ? 'Escuchando...' : 'Escribe o habla...'}
                 className="flex-1 h-11 rounded-xl border border-border bg-white px-3 text-sm focus-visible:ring-2 focus-visible:ring-primary/30 outline-none"
