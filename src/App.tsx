@@ -30,17 +30,21 @@ export default function App() {
     if (cloudEnabled() && u.sync_key) {
       setSyncing(true)
       setSyncUser(u.sync_key)
-      const hadCloud = await pullState(u.sync_key)
-      if (hadCloud) {
+      const result = await pullState(u.sync_key)
+      if (result === 'found') {
         // Existing account restored on this device — if a profile came down, they're onboarded.
         try {
           const profile = JSON.parse(localStorage.getItem('profile') ?? 'null')
           if (localStorage.getItem('onboarded_flag') === '1' || profile?.name) markOnboarded()
         } catch { /* ignore */ }
         setUser(getCurrentUser())
-      } else {
-        // First time in the cloud for this user — push whatever this device already has.
+      } else if (result === 'empty') {
+        // Confirmed no cloud record yet — safe to seed the cloud from this device.
         void pushState()
+        setUser(u)
+      } else {
+        // Network error — do NOT push (would risk clobbering good cloud data).
+        // Use whatever is local for now; the next successful save will sync.
         setUser(u)
       }
       setSyncing(false)

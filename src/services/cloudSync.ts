@@ -59,23 +59,30 @@ function headers(): Record<string, string> {
   }
 }
 
-/** Pull cloud state into localStorage. Returns true if a cloud record existed. */
-export async function pullState(userKey: string): Promise<boolean> {
-  if (!cloudEnabled() || !userKey) return false
+export type PullResult = 'found' | 'empty' | 'error'
+
+/**
+ * Pull cloud state into localStorage.
+ * - 'found': a cloud record existed and was applied
+ * - 'empty': the request succeeded but this user has no cloud record yet (safe to seed)
+ * - 'error': the request failed — DO NOT overwrite the cloud, keep local data as-is
+ */
+export async function pullState(userKey: string): Promise<PullResult> {
+  if (!cloudEnabled() || !userKey) return 'empty'
   try {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/user_state?user_id=eq.${encodeURIComponent(userKey)}&select=data`,
       { headers: headers() },
     )
-    if (!res.ok) return false
+    if (!res.ok) return 'error'
     const rows = await res.json()
     if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
       hydrate(rows[0].data as Record<string, string>)
-      return true
+      return 'found'
     }
-    return false
+    return 'empty'
   } catch {
-    return false
+    return 'error'
   }
 }
 
