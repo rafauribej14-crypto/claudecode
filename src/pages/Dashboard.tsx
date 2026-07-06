@@ -66,6 +66,13 @@ export function Dashboard() {
 
   useEffect(reload, [])
 
+  // Refresh live when the voice assistant logs a meal / changes inventory.
+  useEffect(() => {
+    const onData = () => reload()
+    window.addEventListener('freshapp:data', onData)
+    return () => window.removeEventListener('freshapp:data', onData)
+  }, [])
+
   const budget = profile?.monthly_budget ?? 0
   const remaining = budget + (profile?.budget_carryover ?? 0) - totalSpent
   const budgetPct = budget > 0 ? Math.min((totalSpent / budget) * 100, 100) : 0

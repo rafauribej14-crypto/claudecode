@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Camera, Package, ChefHat, UtensilsCrossed, ShoppingCart, Settings, LogOut, Wallet, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AuthUser } from '@/store/auth'
+import { AssistantChat } from '@/components/AssistantChat'
 
 const desktopLinks = [
   { to: '/', icon: LayoutDashboard, label: 'Inicio' },
@@ -117,6 +118,8 @@ export function Layout({ user, onLogout }: { user: AuthUser; onLogout: () => voi
         </div>
         {mobileRight.map(mobileTab)}
       </nav>
+
+      <AssistantChat />
     </div>
   )
 }

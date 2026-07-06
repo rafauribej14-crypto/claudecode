@@ -185,6 +185,85 @@ Si no puedes leer algún dato, usa null para place/total y array vacío para ite
   }
 }
 
+// ─────────────────────────────────────────────────────────
+//  ASISTENTE POR VOZ — diálogo que ejecuta acciones
+// ─────────────────────────────────────────────────────────
+
+export type AssistantAction =
+  | { type: 'log_meal'; name: string; calories: number; protein_g: number }
+  | { type: 'add_inventory'; name: string; qty: number; unit: string; category: string }
+  | { type: 'consume_inventory'; name: string; qty: number; unit: string }
+
+export interface AssistantTurnResult {
+  reply: string
+  actions: AssistantAction[]
+}
+
+export interface AssistantMessage { role: 'user' | 'assistant'; content: string }
+
+export async function assistantTurn(
+  history: AssistantMessage[],
+  userMessage: string,
+  context: { inventory: string[]; consumedKcal: number; targetKcal: number; goal: string },
+): Promise<AssistantTurnResult> {
+  const systemPrompt = `Eres el asistente de voz de freshapp, una app de cocina, nutrición e inventario. Hablas español, cálido y breve, como un amigo que ayuda. Tu trabajo es entender lo que el usuario dice y, cuando corresponda, EJECUTAR acciones.
+
+CONTEXTO ACTUAL DEL USUARIO:
+- Meta: ${context.goal}
+- Hoy lleva ${context.consumedKcal} de ${context.targetKcal} kcal
+- En su despensa tiene: ${context.inventory.length > 0 ? context.inventory.join(', ') : '(vacía)'}
+
+ACCIONES QUE PUEDES DEVOLVER (en el array "actions"):
+1. log_meal — cuando el usuario dice que comió algo. Estima calorías y proteína REALES según los alimentos y cantidades (ej: pechuga pollo ≈31g proteína/100g, arroz cocido ≈2.7g/100g, arepa ≈6g/100g y 220kcal/100g, huevo ≈13g/100g). Nunca inventes números redondos.
+   { "type": "log_meal", "name": "Nombre corto", "calories": 480, "protein_g": 18 }
+2. add_inventory — cuando dice que compró o tiene algo nuevo. unit: "g", "ml" o "unit" (convierte kg→g, L→ml).
+   { "type": "add_inventory", "name": "Arroz", "qty": 1000, "unit": "g", "category": "grano|proteina|lacteo|fruta|verdura|otro" }
+3. consume_inventory — cuando usó/gastó algo de la despensa. Usa el nombre tal como aparece en la despensa si coincide.
+   { "type": "consume_inventory", "name": "Arroz", "qty": 200, "unit": "g" }
+
+REGLAS:
+- Si el mensaje NO requiere una acción (saludo, pregunta, duda), responde con "actions": [] y una respuesta útil en "reply".
+- Un mismo mensaje puede generar VARIAS acciones (ej: "me comí pollo con arroz y saqué el arroz de la despensa").
+- En "reply" confirma en lenguaje natural lo que hiciste, corto y amable. Menciona el aporte nutricional si registraste comida.
+- NO inventes productos que el usuario no mencionó.
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{ "reply": "...", "actions": [ ... ] }`
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.slice(-6).map(m => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage },
+  ]
+
+  const content = await callGroq({ model: TEXT_MODEL, messages, temperature: 0.3 })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    return { reply: 'Perdona, no te entendí bien. ¿Puedes decirlo de otra forma?', actions: [] }
+  }
+
+  const validCat = ['proteina', 'grano', 'lacteo', 'fruta', 'verdura', 'otro']
+  const actions: AssistantAction[] = (Array.isArray(parsed.actions) ? parsed.actions : [])
+    .map((a: any): AssistantAction | null => {
+      if (a.type === 'log_meal') {
+        return { type: 'log_meal', name: String(a.name ?? 'Comida'), calories: Math.max(0, Math.round(Number(a.calories) || 0)), protein_g: Math.max(0, Math.round(Number(a.protein_g) || 0)) }
+      }
+      if (a.type === 'add_inventory') {
+        return { type: 'add_inventory', name: String(a.name ?? '').trim(), qty: Number(a.qty) || 1, unit: ['g', 'ml', 'unit'].includes(a.unit) ? a.unit : 'g', category: validCat.includes(a.category) ? a.category : 'otro' }
+      }
+      if (a.type === 'consume_inventory') {
+        return { type: 'consume_inventory', name: String(a.name ?? '').trim(), qty: Number(a.qty) || 0, unit: a.unit ?? 'g' }
+      }
+      return null
+    })
+    .filter((a: AssistantAction | null): a is AssistantAction => a !== null && (a.type !== 'add_inventory' || a.name.length > 0))
+
+  return { reply: parsed.reply ?? 'Listo.', actions }
+}
+
 export interface QuickMealResult {
   name: string
   calories: number
