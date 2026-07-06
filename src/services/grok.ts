@@ -185,6 +185,56 @@ Si no puedes leer algún dato, usa null para place/total y array vacío para ite
   }
 }
 
+export interface QuickMealResult {
+  name: string
+  calories: number
+  protein_g: number
+  note: string
+}
+
+/**
+ * Estimates calories + protein for a free-text meal the user just ate
+ * ("me comí una arepa con queso y un jugo"). Grounded in real per-100g values.
+ */
+export async function analyzeQuickMeal(description: string): Promise<QuickMealResult> {
+  const prompt = `El usuario describe algo que acaba de comer. Estima sus calorías y proteína reales.
+
+COMIDA: "${description}"
+
+Calcula sumando el aporte real de cada alimento según su cantidad y datos nutricionales conocidos (ej: pechuga pollo cocida ≈31g proteína/100g y ≈165 kcal/100g, arepa ≈6g/100g y ≈220 kcal/100g, queso ≈25g/100g, huevo ≈13g/100g y ≈155 kcal/100g, arroz cocido ≈2.7g/100g, jugo de fruta ≈0.5g/100g y ≈50 kcal/100g). NUNCA inventes números redondos sin relación con lo que se comió.
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "name": "Nombre corto y limpio de la comida",
+  "calories": 480,
+  "protein_g": 22,
+  "note": "una frase muy corta y amable, opcional"
+}`
+
+  const content = await callGroq({
+    model: TEXT_MODEL,
+    messages: [
+      { role: 'system', content: 'Eres un nutricionista. Responde SOLO con JSON válido.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.2,
+  })
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(cleanJson(content))
+  } catch {
+    throw new Error('No se pudo estimar la comida. Intenta describirla de otra forma.')
+  }
+
+  return {
+    name: parsed.name?.trim() || description.slice(0, 40),
+    calories: Math.max(0, Math.round(Number(parsed.calories) || 0)),
+    protein_g: Math.max(0, Math.round(Number(parsed.protein_g) || 0)),
+    note: parsed.note ?? '',
+  }
+}
+
 export interface MealNutritionResult {
   est_calories: number
   protein_level: 'low' | 'med' | 'high'

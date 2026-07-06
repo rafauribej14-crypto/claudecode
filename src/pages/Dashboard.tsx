@@ -8,9 +8,9 @@ import { store } from '@/store'
 import { formatCurrency, daysBetween } from '@/lib/utils'
 import { checkMonthlyCarryover, dismissCarryover } from '@/services/budget'
 import { getNutritionTargets } from '@/services/nutrition'
-import { parseInventoryFromText, hasGrokKey } from '@/services/grok'
+import { parseInventoryFromText, analyzeQuickMeal, hasGrokKey } from '@/services/grok'
 import type { UserProfile, InventoryItem, Product } from '@/types'
-import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare, Cookie } from 'lucide-react'
+import { DollarSign, Package, AlertTriangle, TrendingUp, Camera, ChefHat, ArrowRight, Sparkles, X, ShoppingCart, Pencil, Check, Plus, Mic, MicOff, Loader2, MessageSquare, Cookie, Utensils } from 'lucide-react'
 
 export function Dashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -40,6 +40,16 @@ export function Dashboard() {
   const listeningRef = useRef(false)
   const dictBaseRef = useRef('')
   const dictFinalRef = useRef('')
+  // Quick "what did you eat?" logging
+  const [mealText, setMealText] = useState('')
+  const [mealLoading, setMealLoading] = useState(false)
+  const [mealResult, setMealResult] = useState('')
+  const [mealError, setMealError] = useState('')
+  const [mealListening, setMealListening] = useState(false)
+  const mealRecogRef = useRef<any>(null)
+  const mealListeningRef = useRef(false)
+  const mealBaseRef = useRef('')
+  const mealFinalRef = useRef('')
 
   const reload = () => {
     setProfile(store.getProfile())
@@ -268,6 +278,87 @@ export function Dashboard() {
     }
   }
 
+  const toggleMealVoice = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setMealError('Tu navegador no soporta dictado por voz. Escribe lo que comiste, o usa Chrome.')
+      return
+    }
+    if (mealListeningRef.current) {
+      mealListeningRef.current = false
+      try { mealRecogRef.current?.stop() } catch { /* ignore */ }
+      setMealListening(false)
+      return
+    }
+    const recognition = new SpeechRecognition()
+    recognition.lang = 'es-ES'
+    recognition.continuous = true
+    recognition.interimResults = true
+    mealRecogRef.current = recognition
+    mealBaseRef.current = mealText.trim() ? mealText.trim() + ' ' : ''
+    mealFinalRef.current = ''
+    setMealError('')
+    recognition.onresult = (event: any) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i]
+        if (res.isFinal) mealFinalRef.current += res[0].transcript + ' '
+        else interim += res[0].transcript
+      }
+      setMealText((mealBaseRef.current + mealFinalRef.current + interim).replace(/\s+/g, ' ').trimStart())
+    }
+    recognition.onerror = (e: any) => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        mealListeningRef.current = false
+        setMealListening(false)
+        setMealError('Permite el acceso al micrófono para dictar.')
+      }
+    }
+    recognition.onend = () => {
+      if (mealListeningRef.current) { try { recognition.start() } catch { /* ignore */ } }
+      else setMealListening(false)
+    }
+    try {
+      recognition.start()
+      mealListeningRef.current = true
+      setMealListening(true)
+    } catch {
+      setMealError('No se pudo iniciar el micrófono. Intenta de nuevo.')
+    }
+  }
+
+  const handleMealSubmit = async () => {
+    if (!mealText.trim()) return
+    if (mealListeningRef.current) {
+      mealListeningRef.current = false
+      try { mealRecogRef.current?.stop() } catch { /* ignore */ }
+      setMealListening(false)
+    }
+    setMealLoading(true)
+    setMealError('')
+    setMealResult('')
+    try {
+      const meal = await analyzeQuickMeal(mealText)
+      store.addMealLog({
+        user_id: 'default-user',
+        date: new Date().toISOString().split('T')[0],
+        recipe_id: null,
+        recipe_name: meal.name,
+        calories: meal.calories,
+        protein_g: meal.protein_g,
+      })
+      setMealResult(`✓ ${meal.name}: +${meal.calories} kcal, +${meal.protein_g}g proteína${meal.note ? ` · ${meal.note}` : ''}`)
+      setMealText('')
+      mealBaseRef.current = ''
+      mealFinalRef.current = ''
+      reload()
+    } catch (err: any) {
+      setMealError(err.message ?? 'Error al procesar')
+    } finally {
+      setMealLoading(false)
+    }
+  }
+
   const handleQuickAdd = () => {
     if (!quickName.trim() || quickQty <= 0) return
     const unitType = quickUnit === 'ml' || quickUnit === 'L' ? 'volume' as const : quickUnit === 'unit' ? 'count' as const : 'mass' as const
@@ -406,6 +497,45 @@ export function Dashboard() {
                 ? `Hoy: ${todayMeals.map(m => m.recipe_name).join(', ')}${todayEatingOut.length > 0 ? ` + ${todayEatingOut.length} antojo(s)` : ''}`
                 : `Hoy: ${todayEatingOut.length} antojo(s) registrado(s)`}
           </p>
+        </Card>
+      )}
+
+      {/* Quick "what did you eat?" logging */}
+      {hasGrokKey() && (
+        <Card className="border-rose-200 bg-gradient-to-r from-rose-50/60 to-orange-50/40">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-rose-100 rounded-lg"><Utensils className="text-rose-600" size={15} /></div>
+            <h3 className="font-semibold text-sm">¿Qué comiste?</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-2">Escribe o dicta lo que comiste y la IA lo suma a tu día. Ej: "una arepa con queso y un jugo".</p>
+          <div className="relative">
+            <Input
+              value={mealText}
+              onChange={e => setMealText(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !mealLoading) handleMealSubmit() }}
+              placeholder="Ej: pechuga a la plancha con arroz y ensalada"
+              className="bg-white/80 border-rose-200 pr-11"
+            />
+            <button
+              onClick={toggleMealVoice}
+              className={`absolute top-1/2 -translate-y-1/2 right-2 p-1.5 rounded-lg transition-colors cursor-pointer ${mealListening ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-rose-100 text-rose-600 hover:bg-rose-200'}`}
+              title={mealListening ? 'Detener' : 'Dictar por voz'}
+            >
+              {mealListening ? <MicOff size={15} /> : <Mic size={15} />}
+            </button>
+          </div>
+          {mealListening && <p className="text-xs text-red-600 flex items-center gap-1 mt-1.5"><Mic size={10} className="animate-pulse" /> Escuchando...</p>}
+          {mealError && <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg mt-1.5">{mealError}</p>}
+          {mealResult && <p className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg mt-1.5">{mealResult}</p>}
+          <Button
+            onClick={handleMealSubmit}
+            className="w-full mt-2"
+            disabled={!mealText.trim() || mealLoading}
+          >
+            {mealLoading
+              ? <><Loader2 size={14} className="mr-2 animate-spin" /> Estimando...</>
+              : <><Sparkles size={14} className="mr-2" /> Registrar comida</>}
+          </Button>
         </Card>
       )}
 
