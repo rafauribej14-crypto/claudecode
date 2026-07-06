@@ -12,6 +12,7 @@ import type {
 } from '@/types'
 import { generateId } from '@/lib/utils'
 import { schedulePush } from '@/services/cloudSync'
+import { contributePrices, type PriceContribution } from '@/services/priceIntel'
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -96,21 +97,35 @@ export const store = {
     purchases.push(purchase)
     store.savePurchases(purchases)
 
+    const country = store.getProfile().country ?? (store.getProfile().currency === 'COP' ? 'CO' : 'PA')
+    const communityEntries: PriceContribution[] = []
+
     for (const item of p.items) {
       const product = store.getProducts().find(pr => pr.id === item.product_id)
       if (!product) continue
 
-      if (item.price_paid > 0) {
+      if (item.price_paid > 0 && item.qty > 0) {
+        const unitPrice = item.price_paid / item.qty
         store.addPrice({
           user_id: USER_ID,
           product_id: item.product_id,
           store: p.store,
           price: item.price_paid,
           package_size: item.qty,
-          unit_price: item.price_paid / item.qty,
+          unit_price: unitPrice,
           source: p.source,
           observed_at: p.purchased_at,
         })
+        // Contribute anonymously to community price intelligence (no user id).
+        if (p.store && p.store !== 'Otro') {
+          communityEntries.push({
+            country,
+            store: p.store,
+            product_name: product.name,
+            unit: product.base_unit,
+            unit_price: unitPrice,
+          })
+        }
       }
 
       store.addInventoryItem({
@@ -124,6 +139,7 @@ export const store = {
       })
     }
 
+    void contributePrices(communityEntries)
     return purchase
   },
 

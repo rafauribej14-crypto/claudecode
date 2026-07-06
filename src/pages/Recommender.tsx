@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { store } from '@/store'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { recommendWhereToBuy, hasGrokKey } from '@/services/grok'
+import { fetchCommunityPrices } from '@/services/priceIntel'
 import type { ShoppingNeedItem, ShoppingPlanResult } from '@/services/grok'
 import type { Product, PriceObservation, Recipe, InventoryItem } from '@/types'
 import { ShoppingCart, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, MapPin, Store as StoreIcon } from 'lucide-react'
@@ -128,7 +129,14 @@ export function Recommender() {
         return
       }
 
-      // Attach user's price history: best unit price per store per ingredient
+      const country = profile.country ?? (profile.currency === 'COP' ? 'CO' : 'PA')
+      const neededNames = [...needed.values()].map(n => n.name)
+
+      // Pull community prices (best per store) for these ingredients in the user's country.
+      const community = await fetchCommunityPrices(country, neededNames)
+
+      // Attach price history: best unit price per store, combining the user's own
+      // receipts with the anonymous community data.
       const items: ShoppingNeedItem[] = [...needed.values()].map(n => {
         const lower = n.name.toLowerCase()
         const matchedProducts = products.filter(p => {
@@ -144,12 +152,19 @@ export function Recommender() {
             }
           }
         }
+        // Merge community observations (keep the cheapest per store).
+        for (const cp of community[n.name] ?? []) {
+          const existing = byStore.get(cp.store)
+          if (!existing || cp.unit_price < existing.unit_price) {
+            byStore.set(cp.store, { store: cp.store, unit_price: cp.unit_price, last_seen: 'comunidad' })
+          }
+        }
         return { name: n.name, qty: Math.round(n.qty), unit: n.unit, history: [...byStore.values()] }
       })
 
       const result = await recommendWhereToBuy({
         items,
-        country: profile.country ?? (profile.currency === 'COP' ? 'CO' : 'PA'),
+        country,
         budget,
         currency: profile.currency,
       })
