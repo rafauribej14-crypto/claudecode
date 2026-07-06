@@ -164,7 +164,7 @@ export async function pushState(): Promise<void> {
   if (!cloudEnabled() || !currentUserKey) return
   const tsMap = getTsMap()
   const now = new Date().toISOString()
-  const rows = []
+  const rows: Array<{ user_id: string; key: string; value: string; updated_at: string }> = []
   for (const k of SYNC_KEYS) {
     const v = localStorage.getItem(k)
     if (v == null) continue
