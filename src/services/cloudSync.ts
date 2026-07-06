@@ -55,6 +55,7 @@ export function setSyncUser(key: string | null) {
 /** Clears synced user data from this device (used on logout so accounts don't bleed into each other). */
 export function clearLocalUserData() {
   for (const k of SYNC_KEYS) localStorage.removeItem(k)
+  localStorage.removeItem('sync_key_ts')
 }
 
 function headers(): Record<string, string> {
@@ -84,17 +85,37 @@ async function describeError(res: Response): Promise<string> {
   return `HTTP ${res.status} ${res.statusText}${body ? ` — ${body}` : ''}`
 }
 
+// ── Per-key timestamps: each synced section carries its own updated_at so
+//    devices merge by "newest version of each section wins" instead of one
+//    device's whole snapshot clobbering another's.
+
+const TS_KEY = 'sync_key_ts'
+
+function getTsMap(): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(TS_KEY) ?? '{}') } catch { return {} }
+}
+function setTs(key: string, ts: string) {
+  const map = getTsMap()
+  map[key] = ts
+  localStorage.setItem(TS_KEY, JSON.stringify(map))
+}
+
+/** Record that a section changed locally right now (called from store.save). */
+export function markChanged(key: string) {
+  if (SYNC_KEYS.includes(key)) setTs(key, new Date().toISOString())
+}
+
 /**
- * Pull cloud state into localStorage.
- * - 'found': a cloud record existed and was applied
- * - 'empty': the request succeeded but this user has no cloud record yet (safe to seed)
- * - 'error': the request failed — DO NOT overwrite the cloud, keep local data as-is
+ * Pull cloud state into localStorage, merging PER SECTION by newest timestamp.
+ * - 'found': cloud data existed; newer cloud sections were applied
+ * - 'empty': no cloud record yet for this user (safe to seed)
+ * - 'error': request failed — keep local data, don't push
  */
 export async function pullState(userKey: string): Promise<PullResult> {
   if (!cloudEnabled() || !userKey) return 'empty'
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_state?user_id=eq.${encodeURIComponent(userKey)}&select=data`,
+      `${SUPABASE_URL}/rest/v1/user_kv?user_id=eq.${encodeURIComponent(userKey)}&select=key,value,updated_at`,
       { headers: headers() },
     )
     if (!res.ok) {
@@ -103,9 +124,33 @@ export async function pullState(userKey: string): Promise<PullResult> {
     }
     const rows = await res.json()
     setLastError(null)
-    if (Array.isArray(rows) && rows.length > 0 && rows[0].data) {
-      hydrate(rows[0].data as Record<string, string>)
+
+    if (Array.isArray(rows) && rows.length > 0) {
+      const tsMap = getTsMap()
+      for (const row of rows) {
+        if (!SYNC_KEYS.includes(row.key) || row.value == null) continue
+        const localTs = tsMap[row.key]
+        // Apply the cloud version only if it's newer than what this device has.
+        if (!localTs || row.updated_at > localTs) {
+          localStorage.setItem(row.key, row.value)
+          setTs(row.key, row.updated_at)
+        }
+      }
       return 'found'
+    }
+
+    // Legacy migration: fall back to the old whole-blob table once, then seed user_kv.
+    const legacy = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_state?user_id=eq.${encodeURIComponent(userKey)}&select=data`,
+      { headers: headers() },
+    )
+    if (legacy.ok) {
+      const legacyRows = await legacy.json()
+      if (Array.isArray(legacyRows) && legacyRows.length > 0 && legacyRows[0].data) {
+        hydrate(legacyRows[0].data as Record<string, string>)
+        void pushState()
+        return 'found'
+      }
     }
     return 'empty'
   } catch (err: any) {
@@ -114,18 +159,23 @@ export async function pullState(userKey: string): Promise<PullResult> {
   }
 }
 
-/** Upsert the current localStorage snapshot to the cloud (last-write-wins). */
+/** Upsert every present section to the cloud, each with its own timestamp. */
 export async function pushState(): Promise<void> {
   if (!cloudEnabled() || !currentUserKey) return
+  const tsMap = getTsMap()
+  const now = new Date().toISOString()
+  const rows = []
+  for (const k of SYNC_KEYS) {
+    const v = localStorage.getItem(k)
+    if (v == null) continue
+    rows.push({ user_id: currentUserKey, key: k, value: v, updated_at: tsMap[k] ?? now })
+  }
+  if (rows.length === 0) return
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_state`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_kv`, {
       method: 'POST',
       headers: { ...headers(), Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify({
-        user_id: currentUserKey,
-        data: snapshot(),
-        updated_at: new Date().toISOString(),
-      }),
+      body: JSON.stringify(rows),
     })
     if (!res.ok) setLastError(`Al guardar: ${await describeError(res)}`)
     else setLastError(null)
@@ -137,7 +187,8 @@ export async function pushState(): Promise<void> {
 let pushTimer: ReturnType<typeof setTimeout> | null = null
 
 /** Debounced push — called after every store write. */
-export function schedulePush() {
+export function schedulePush(changedKey?: string) {
+  if (changedKey) markChanged(changedKey)
   if (!cloudEnabled() || !currentUserKey) return
   if (pushTimer) clearTimeout(pushTimer)
   pushTimer = setTimeout(() => { void pushState() }, 1500)

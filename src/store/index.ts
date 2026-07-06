@@ -25,7 +25,7 @@ function load<T>(key: string, fallback: T): T {
 
 function save<T>(key: string, data: T): void {
   localStorage.setItem(key, JSON.stringify(data))
-  schedulePush()
+  schedulePush(key)
 }
 
 const USER_ID = 'default-user'

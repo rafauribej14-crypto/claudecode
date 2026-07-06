@@ -37,6 +37,8 @@ export default function App() {
           const profile = JSON.parse(localStorage.getItem('profile') ?? 'null')
           if (localStorage.getItem('onboarded_flag') === '1' || profile?.name) markOnboarded()
         } catch { /* ignore */ }
+        // Upload the merged result so sections that were newer on THIS device reach the cloud too.
+        void pushState()
         setUser(getCurrentUser())
       } else if (result === 'empty') {
         // Confirmed no cloud record yet — safe to seed the cloud from this device.
