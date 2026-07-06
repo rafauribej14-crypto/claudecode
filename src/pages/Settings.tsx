@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { updateUserName, logout } from '@/store/auth'
+import { cloudEnabled } from '@/services/cloudSync'
 import type { UserProfile } from '@/types'
-import { Settings as SettingsIcon, Save, LogOut, Trash2 } from 'lucide-react'
+import { Settings as SettingsIcon, Save, LogOut, Trash2, Cloud, CloudOff } from 'lucide-react'
 
 export function Settings() {
   const [profile, setProfile] = useState<UserProfile>(store.getProfile())
@@ -40,6 +41,25 @@ export function Settings() {
         <SettingsIcon className="text-primary" size={24} />
         <h1 className="text-2xl font-bold">Ajustes</h1>
       </div>
+
+      {/* Cloud sync status */}
+      <Card className={cloudEnabled() ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/50'}>
+        <div className="flex items-center gap-3">
+          {cloudEnabled()
+            ? <div className="p-2 bg-emerald-100 rounded-xl"><Cloud className="text-emerald-600" size={18} /></div>
+            : <div className="p-2 bg-amber-100 rounded-xl"><CloudOff className="text-amber-600" size={18} /></div>}
+          <div>
+            <p className="font-semibold text-sm">
+              {cloudEnabled() ? 'Sincronización activa' : 'Sincronización inactiva'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {cloudEnabled()
+                ? 'Tus datos se guardan en la nube y aparecen en cualquier dispositivo con tu cuenta.'
+                : 'Tus datos solo están en este dispositivo. Faltan las variables de Supabase en el despliegue.'}
+            </p>
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>Información personal</CardTitle></CardHeader>
