@@ -37,6 +37,9 @@ export function Dashboard() {
   const [dictError, setDictError] = useState('')
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef<any>(null)
+  const listeningRef = useRef(false)
+  const dictBaseRef = useRef('')
+  const dictFinalRef = useRef('')
 
   const reload = () => {
     setProfile(store.getProfile())
@@ -165,35 +168,74 @@ export function Dashboard() {
   const toggleVoice = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
-      setDictError('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Safari.')
+      setDictError('Tu navegador no soporta dictado por voz. Escribe en el recuadro, o abre la app en Chrome.')
       return
     }
-    if (isListening && recognitionRef.current) {
-      recognitionRef.current.stop()
+
+    // Stop if already listening
+    if (listeningRef.current) {
+      listeningRef.current = false
+      try { recognitionRef.current?.stop() } catch { /* ignore */ }
       setIsListening(false)
       return
     }
+
     const recognition = new SpeechRecognition()
     recognition.lang = 'es-ES'
     recognition.continuous = true
     recognition.interimResults = true
     recognitionRef.current = recognition
 
+    // Preserve whatever the user already has; append dictation onto it.
+    dictBaseRef.current = dictText.trim() ? dictText.trim() + ' ' : ''
+    dictFinalRef.current = ''
+    setDictError('')
+
     recognition.onresult = (event: any) => {
-      let transcript = ''
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i]
+        if (res.isFinal) dictFinalRef.current += res[0].transcript + ' '
+        else interim += res[0].transcript
       }
-      setDictText(transcript)
+      setDictText((dictBaseRef.current + dictFinalRef.current + interim).replace(/\s+/g, ' ').trimStart())
     }
-    recognition.onerror = () => { setIsListening(false) }
-    recognition.onend = () => { setIsListening(false) }
-    recognition.start()
-    setIsListening(true)
+
+    recognition.onerror = (e: any) => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        listeningRef.current = false
+        setIsListening(false)
+        setDictError('Permite el acceso al micrófono en tu navegador para poder dictar.')
+      }
+      // 'no-speech' / 'aborted' are transient — onend will restart if still listening.
+    }
+
+    recognition.onend = () => {
+      // Mobile browsers stop after each phrase; restart while the user still wants to listen.
+      if (listeningRef.current) {
+        try { recognition.start() } catch { /* already starting */ }
+      } else {
+        setIsListening(false)
+      }
+    }
+
+    try {
+      recognition.start()
+      listeningRef.current = true
+      setIsListening(true)
+    } catch {
+      setDictError('No se pudo iniciar el micrófono. Intenta de nuevo.')
+    }
   }
 
   const handleDictSubmit = async () => {
     if (!dictText.trim()) return
+    // Stop any active dictation before processing.
+    if (listeningRef.current) {
+      listeningRef.current = false
+      try { recognitionRef.current?.stop() } catch { /* ignore */ }
+      setIsListening(false)
+    }
     setDictLoading(true)
     setDictError('')
     setDictResult('')
@@ -216,6 +258,8 @@ export function Dashboard() {
       }
       setDictResult(`✓ ${items.length} productos agregados: ${items.map(i => i.name).join(', ')}`)
       setDictText('')
+      dictBaseRef.current = ''
+      dictFinalRef.current = ''
       reload()
     } catch (err: any) {
       setDictError(err.message ?? 'Error al procesar')
