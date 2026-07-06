@@ -11,6 +11,7 @@ import type {
   MealLogEntry,
 } from '@/types'
 import { generateId } from '@/lib/utils'
+import { schedulePush } from '@/services/cloudSync'
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -23,6 +24,7 @@ function load<T>(key: string, fallback: T): T {
 
 function save<T>(key: string, data: T): void {
   localStorage.setItem(key, JSON.stringify(data))
+  schedulePush()
 }
 
 const USER_ID = 'default-user'

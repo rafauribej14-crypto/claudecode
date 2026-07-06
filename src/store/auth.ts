@@ -3,6 +3,7 @@ export interface AuthUser {
   username: string
   name: string
   onboarded: boolean
+  sync_key?: string
 }
 
 interface StoredUser {
@@ -11,6 +12,7 @@ interface StoredUser {
   password: string
   name: string
   onboarded: boolean
+  sync_key?: string
 }
 
 function getUsers(): StoredUser[] {
@@ -33,7 +35,7 @@ export function getCurrentUser(): AuthUser | null {
     const users = getUsers()
     const stored = users.find(u => u.id === user.id)
     if (!stored) return null
-    return { id: stored.id, username: stored.username, name: stored.name, onboarded: stored.onboarded }
+    return { id: stored.id, username: stored.username, name: stored.name, onboarded: stored.onboarded, sync_key: stored.sync_key }
   } catch {
     return null
   }
@@ -82,6 +84,7 @@ export function completeOnboarding(name: string) {
     user.name = name
     saveUsers(users)
     setCurrentUser({ ...current, name, onboarded: true })
+    localStorage.setItem('onboarded_flag', '1')
   }
 }
 
@@ -90,19 +93,38 @@ export function loginWithGoogle(credential: string): { ok: true; user: AuthUser 
     const payload = JSON.parse(atob(credential.split('.')[1]))
     const email = payload.email as string
     const googleName = (payload.name as string) ?? ''
+    // Google's stable, unguessable user id — used as the cross-device sync key.
+    const sub = (payload.sub as string) ?? ''
+    const syncKey = sub ? `g_${sub}` : `e_${email.toLowerCase()}`
     const users = getUsers()
     let found = users.find(u => u.username.toLowerCase() === email.toLowerCase())
     if (!found) {
       const id = crypto.randomUUID()
-      found = { id, username: email, password: '', name: googleName, onboarded: false }
+      found = { id, username: email, password: '', name: googleName, onboarded: false, sync_key: syncKey }
       users.push(found)
       saveUsers(users)
+    } else if (!found.sync_key) {
+      found.sync_key = syncKey
+      saveUsers(users)
     }
-    const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded }
+    const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded, sync_key: found.sync_key }
     setCurrentUser(authUser)
     return { ok: true, user: authUser }
   } catch {
     return { ok: false, error: 'Error al iniciar sesión con Google' }
+  }
+}
+
+/** Marks the current user as onboarded — used after cloud sync restores an existing profile. */
+export function markOnboarded() {
+  const users = getUsers()
+  const current = getCurrentUser()
+  if (!current) return
+  const user = users.find(u => u.id === current.id)
+  if (user && !user.onboarded) {
+    user.onboarded = true
+    saveUsers(users)
+    setCurrentUser({ ...current, onboarded: true })
   }
 }
 
