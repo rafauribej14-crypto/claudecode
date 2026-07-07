@@ -9,6 +9,7 @@ import { Recommender } from '@/pages/Recommender'
 import { EatingOut } from '@/pages/EatingOut'
 import { Money } from '@/pages/Money'
 import { Settings } from '@/pages/Settings'
+import { Profile } from '@/pages/Profile'
 import { Login } from '@/pages/Login'
 import { Onboarding } from '@/pages/Onboarding'
 import { getCurrentUser, logout, markOnboarded, type AuthUser } from '@/store/auth'
@@ -98,6 +99,7 @@ export default function App() {
           <Route path="/eating-out" element={<EatingOut />} />
           <Route path="/money" element={<Money />} />
           <Route path="/recommender" element={<Recommender />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
