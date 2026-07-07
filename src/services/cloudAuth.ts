@@ -13,6 +13,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY, cloudEnabled } from '@/services/cloudS
 export interface AccountInfo {
   sync_key: string
   name: string
+  token: string
 }
 
 function headers(): Record<string, string> {
@@ -96,4 +97,36 @@ export async function remoteChangePassword(username: string, current: string, ne
 export async function remoteSetName(username: string, name: string): Promise<void> {
   if (!cloudEnabled()) return
   try { await rpc('app_set_name', { p_username: username, p_name: name }) } catch { /* best-effort */ }
+}
+
+export type GoogleAuthResult =
+  | { status: 'ok'; account: AccountInfo & { email?: string } }
+  | { status: 'invalid' }
+  | { status: 'network' }
+
+/**
+ * Exchange a Google Sign-In credential (JWT) for a freshapp session token by
+ * calling the google-auth Edge Function, which verifies the JWT server-side.
+ */
+export async function googleAuth(credential: string): Promise<GoogleAuthResult> {
+  if (!cloudEnabled()) return { status: 'network' }
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), 10000)
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/google-auth`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ credential }),
+      signal: ctrl.signal,
+    })
+    if (res.status === 401) return { status: 'invalid' }
+    if (!res.ok) return { status: 'network' }
+    const body = await res.json()
+    if (!body?.token || !body?.sync_key) return { status: 'network' }
+    return { status: 'ok', account: { sync_key: body.sync_key, name: body.name ?? '', token: body.token, email: body.email } }
+  } catch {
+    return { status: 'network' }
+  } finally {
+    clearTimeout(t)
+  }
 }

@@ -13,7 +13,7 @@ import { Profile } from '@/pages/Profile'
 import { Login } from '@/pages/Login'
 import { Onboarding } from '@/pages/Onboarding'
 import { getCurrentUser, logout, markOnboarded, type AuthUser } from '@/store/auth'
-import { cloudEnabled, setSyncUser, pullState, pushState, clearLocalUserData } from '@/services/cloudSync'
+import { cloudEnabled, getSyncToken, setSyncSession, pullState, pushState, clearLocalUserData } from '@/services/cloudSync'
 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null)
@@ -28,10 +28,9 @@ export default function App() {
 
   // On auth: pull cloud data into this device, or seed the cloud from local data.
   const handleAuth = async (u: AuthUser) => {
-    if (cloudEnabled() && u.sync_key) {
+    if (cloudEnabled() && getSyncToken()) {
       setSyncing(true)
-      setSyncUser(u.sync_key)
-      const result = await pullState(u.sync_key)
+      const result = await pullState()
       if (result === 'found') {
         // Existing account restored on this device — if a profile came down, they're onboarded.
         try {
@@ -83,7 +82,7 @@ export default function App() {
 
   const handleLogout = () => {
     logout()
-    setSyncUser(null)
+    setSyncSession(null)
     if (cloudEnabled()) clearLocalUserData()
     setUser(null)
   }
