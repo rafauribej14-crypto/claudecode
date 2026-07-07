@@ -4,6 +4,7 @@ export interface AuthUser {
   name: string
   onboarded: boolean
   sync_key?: string
+  avatar?: string
 }
 
 interface StoredUser {
@@ -13,6 +14,7 @@ interface StoredUser {
   name: string
   onboarded: boolean
   sync_key?: string
+  avatar?: string
 }
 
 function getUsers(): StoredUser[] {
@@ -35,7 +37,7 @@ export function getCurrentUser(): AuthUser | null {
     const users = getUsers()
     const stored = users.find(u => u.id === user.id)
     if (!stored) return null
-    return { id: stored.id, username: stored.username, name: stored.name, onboarded: stored.onboarded, sync_key: stored.sync_key }
+    return { id: stored.id, username: stored.username, name: stored.name, onboarded: stored.onboarded, sync_key: stored.sync_key, avatar: stored.avatar }
   } catch {
     return null
   }
@@ -137,5 +139,42 @@ export function updateUserName(name: string) {
     user.name = name
     saveUsers(users)
     setCurrentUser({ ...current, name })
+    window.dispatchEvent(new Event('freshapp:user'))
   }
+}
+
+/** Saves a profile photo (data URL) for the current user. */
+export function updateUserAvatar(avatar: string) {
+  const users = getUsers()
+  const current = getCurrentUser()
+  if (!current) return
+  const user = users.find(u => u.id === current.id)
+  if (user) {
+    user.avatar = avatar
+    saveUsers(users)
+    setCurrentUser({ ...current, avatar })
+    window.dispatchEvent(new Event('freshapp:user'))
+  }
+}
+
+/** True when the current user signs in with a password (not Google). */
+export function hasPassword(): boolean {
+  const current = getCurrentUser()
+  if (!current) return false
+  const user = getUsers().find(u => u.id === current.id)
+  return !!user && user.password !== ''
+}
+
+export function changePassword(current: string, next: string): { ok: true } | { ok: false; error: string } {
+  const users = getUsers()
+  const authed = getCurrentUser()
+  if (!authed) return { ok: false, error: 'No hay sesión activa' }
+  const user = users.find(u => u.id === authed.id)
+  if (!user) return { ok: false, error: 'Usuario no encontrado' }
+  if (user.password === '') return { ok: false, error: 'Tu cuenta inicia sesión con Google; la contraseña se gestiona allí' }
+  if (user.password !== current) return { ok: false, error: 'La contraseña actual es incorrecta' }
+  if (next.length < 4) return { ok: false, error: 'La nueva contraseña debe tener mínimo 4 caracteres' }
+  user.password = next
+  saveUsers(users)
+  return { ok: true }
 }

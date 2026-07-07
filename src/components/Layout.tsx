@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, Camera, Package, ChefHat, UtensilsCrossed, ShoppingCart, Settings, LogOut, Wallet, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { AuthUser } from '@/store/auth'
+import { getCurrentUser, type AuthUser } from '@/store/auth'
 import { AssistantChat } from '@/components/AssistantChat'
 
 const desktopLinks = [
@@ -25,6 +26,14 @@ const mobileRight = [
 
 export function Layout({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
   const navigate = useNavigate()
+  // Reflect live name/photo changes made from the profile page without a reload.
+  const [profileUser, setProfileUser] = useState(user)
+  useEffect(() => setProfileUser(user), [user])
+  useEffect(() => {
+    const onUser = () => setProfileUser(getCurrentUser() ?? user)
+    window.addEventListener('freshapp:user', onUser)
+    return () => window.removeEventListener('freshapp:user', onUser)
+  }, [user])
 
   const mobileTab = (l: { to: string; icon: typeof LayoutDashboard; label: string }) => (
     <NavLink
@@ -53,12 +62,18 @@ export function Layout({ user, onLogout }: { user: AuthUser; onLogout: () => voi
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-full">
-            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-              {(user.name || user.username).charAt(0).toUpperCase()}
+          <button
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2 bg-secondary px-2 sm:px-3 py-1.5 rounded-full hover:bg-secondary/70 transition-colors cursor-pointer"
+            title="Ver y editar mi perfil"
+          >
+            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden">
+              {profileUser.avatar
+                ? <img src={profileUser.avatar} alt="" className="w-full h-full object-cover" />
+                : (profileUser.name || profileUser.username).charAt(0).toUpperCase()}
             </div>
-            <span className="text-sm font-medium text-secondary-foreground">{user.name || user.username}</span>
-          </div>
+            <span className="hidden sm:inline text-sm font-medium text-secondary-foreground">{profileUser.name || profileUser.username}</span>
+          </button>
           <NavLink
             to="/settings"
             className={({ isActive }) => cn(
