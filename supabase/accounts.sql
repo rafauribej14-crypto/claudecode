@@ -36,6 +36,19 @@ create table if not exists public.sessions (
 alter table public.sessions enable row level security;   -- no anon policies => sealed
 create index if not exists sessions_sync_key on public.sessions (sync_key);
 
+-- ── Drop older versions first ────────────────────────────────────────────────
+-- create-or-replace can't change a function's return type, so if a previous
+-- version exists (e.g. one without the token column) we drop it. Safe to run
+-- this whole script repeatedly.
+drop function if exists public.app_signup(text, text, text);
+drop function if exists public.app_login(text, text);
+drop function if exists public.app_change_password(text, text, text);
+drop function if exists public.app_set_name(text, text);
+drop function if exists public.kv_pull(text);
+drop function if exists public.kv_push(text, jsonb);
+drop function if exists public._new_session(text);
+drop function if exists public._sync_key_for(text);
+
 -- ── Internal helpers ─────────────────────────────────────────────────────────
 -- Issue a new session for a sync_key and return the RAW token (stored hashed).
 create or replace function public._new_session(p_sync_key text)
