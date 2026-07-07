@@ -1,4 +1,5 @@
-import { remoteSignup, remoteLogin, remoteChangePassword, remoteSetName } from '@/services/cloudAuth'
+import { remoteSignup, remoteLogin, remoteChangePassword, remoteSetName, googleAuth } from '@/services/cloudAuth'
+import { setSyncSession } from '@/services/cloudSync'
 
 export interface AuthUser {
   id: string
@@ -74,6 +75,7 @@ export async function signup(username: string, password: string): Promise<{ ok: 
   // 'ok' or 'network' (offline) both proceed: create the local mirror. An
   // offline account migrates to the cloud on the next successful login.
   const key = remote.status === 'ok' ? (remote.account.sync_key || syncKey) : syncKey
+  setSyncSession(remote.status === 'ok' ? remote.account.token : null)
 
   const id = crypto.randomUUID()
   const newUser: StoredUser = { id, username: uname, password, name: '', onboarded: false, sync_key: key }
@@ -97,6 +99,7 @@ export async function login(username: string, password: string): Promise<{ ok: t
 
   if (remote.status === 'ok') {
     const key = remote.account.sync_key || syncKey
+    setSyncSession(remote.account.token)
     const authUser = upsertLocalUser(uname, password, remote.account.name, key)
     return { ok: true, user: authUser }
   }
@@ -107,7 +110,8 @@ export async function login(username: string, password: string): Promise<{ ok: t
   if (remote.status === 'invalid') {
     // Cloud says no match. Accept a local legacy account and migrate it up.
     if (found && found.password === password) {
-      void remoteSignup(uname, password, found.name)
+      const migrated = await remoteSignup(uname, password, found.name)
+      setSyncSession(migrated.status === 'ok' ? migrated.account.token : null)
       const authUser = upsertLocalUser(uname, password, found.name, found.sync_key || syncKey)
       return { ok: true, user: authUser }
     }
@@ -117,6 +121,7 @@ export async function login(username: string, password: string): Promise<{ ok: t
   // Network error — fall back to local so the app still works offline.
   if (found) {
     if (found.password !== password) return { ok: false, error: 'Usuario o contraseña incorrectos' }
+    setSyncSession(null)
     const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded, sync_key: found.sync_key || syncKey }
     setCurrentUser(authUser)
     return { ok: true, user: authUser }
@@ -161,28 +166,48 @@ export function completeOnboarding(name: string) {
   }
 }
 
-export function loginWithGoogle(credential: string): { ok: true; user: AuthUser } | { ok: false; error: string } {
+/** Create or refresh the local mirror of a Google account (password === ''). */
+function upsertGoogleUser(email: string, googleName: string, syncKey: string): AuthUser {
+  const users = getUsers()
+  let found = users.find(u => u.username.toLowerCase() === email.toLowerCase())
+  if (!found) {
+    found = { id: crypto.randomUUID(), username: email, password: '', name: googleName, onboarded: false, sync_key: syncKey }
+    users.push(found)
+  } else {
+    found.sync_key = syncKey
+    if (googleName && !found.name) found.name = googleName
+  }
+  saveUsers(users)
+  const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded, sync_key: found.sync_key }
+  setCurrentUser(authUser)
+  return authUser
+}
+
+export async function loginWithGoogle(credential: string): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
+  const result = await googleAuth(credential)
+
+  if (result.status === 'ok') {
+    // Server verified the Google JWT and issued a session token.
+    setSyncSession(result.account.token)
+    const user = upsertGoogleUser(result.account.email ?? '', result.account.name, result.account.sync_key)
+    return { ok: true, user }
+  }
+
+  if (result.status === 'invalid') {
+    return { ok: false, error: 'No se pudo verificar tu cuenta de Google' }
+  }
+
+  // Network error (Edge Function unreachable) — decode the JWT locally so the
+  // app still opens; sync stays local until the server is reachable again.
   try {
     const payload = JSON.parse(atob(credential.split('.')[1]))
     const email = payload.email as string
     const googleName = (payload.name as string) ?? ''
-    // Google's stable, unguessable user id — used as the cross-device sync key.
     const sub = (payload.sub as string) ?? ''
     const syncKey = sub ? `g_${sub}` : `e_${email.toLowerCase()}`
-    const users = getUsers()
-    let found = users.find(u => u.username.toLowerCase() === email.toLowerCase())
-    if (!found) {
-      const id = crypto.randomUUID()
-      found = { id, username: email, password: '', name: googleName, onboarded: false, sync_key: syncKey }
-      users.push(found)
-      saveUsers(users)
-    } else if (!found.sync_key) {
-      found.sync_key = syncKey
-      saveUsers(users)
-    }
-    const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded, sync_key: found.sync_key }
-    setCurrentUser(authUser)
-    return { ok: true, user: authUser }
+    setSyncSession(null)
+    const user = upsertGoogleUser(email, googleName, syncKey)
+    return { ok: true, user }
   } catch {
     return { ok: false, error: 'Error al iniciar sesión con Google' }
   }

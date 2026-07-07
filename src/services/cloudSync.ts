@@ -1,11 +1,15 @@
-// Cross-device sync via Supabase (optional — activates when env vars are set).
-// Stores the whole app state as a single JSON blob keyed by the user's Google id.
-// If VITE_SUPABASE_* are absent, every function is a no-op and the app keeps
-// working purely on localStorage (single-device), exactly as before.
+// Cross-device data sync via Supabase.
+//
+// Security: the browser never touches the user_kv / user_state tables directly.
+// It holds a SESSION TOKEN (issued at login) and calls the SECURITY DEFINER
+// functions kv_pull / kv_push, which resolve the token to a sync_key
+// server-side. Knowing a sync_key is useless without the matching token.
+//
+// If VITE_SUPABASE_* are absent, or there's no token/connection, every function
+// is a no-op and the app keeps working purely on localStorage.
 
 // The anon key is designed to be public (it ships in the browser bundle);
-// data protection comes from RLS policies, not from hiding this key.
-// Env vars can still override these defaults.
+// it can only EXECUTE the auth/sync functions, not read the tables.
 const DEFAULT_SUPABASE_URL = 'https://oxkxxvxzrhksbllyhhjg.supabase.co'
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94a3h4dnh6cmhrc2JsbHloaGpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyODcwOTksImV4cCI6MjA5ODg2MzA5OX0.j43cWyqesuPtFTWdWydJZW7GaMUIVDvqfP-6ihxamtQ'
 
@@ -31,26 +35,18 @@ const SYNC_KEYS = [
   'budget_carryover_dismissed',
 ]
 
-function snapshot(): Record<string, string> {
-  const data: Record<string, string> = {}
-  for (const k of SYNC_KEYS) {
-    const v = localStorage.getItem(k)
-    if (v != null) data[k] = v
-  }
-  return data
-}
+const TOKEN_KEY = 'session_token'
+let currentToken: string | null = (() => { try { return localStorage.getItem(TOKEN_KEY) } catch { return null } })()
 
-function hydrate(data: Record<string, string>) {
-  for (const k of SYNC_KEYS) {
-    if (data[k] != null) localStorage.setItem(k, data[k])
-  }
+/** Set (or clear) the session token used for all sync calls. */
+export function setSyncSession(token: string | null) {
+  currentToken = token
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token)
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch { /* ignore */ }
 }
-
-let currentUserKey: string | null = null
-
-export function setSyncUser(key: string | null) {
-  currentUserKey = key
-}
+export function getSyncToken(): string | null { return currentToken }
 
 /** Clears synced user data from this device (used on logout so accounts don't bleed into each other). */
 export function clearLocalUserData() {
@@ -73,8 +69,10 @@ let lastError: string | null = null
 export function getLastSyncError(): string | null { return lastError }
 function setLastError(msg: string | null) {
   lastError = msg
-  if (msg) localStorage.setItem('sync_last_error', msg)
-  else localStorage.removeItem('sync_last_error')
+  try {
+    if (msg) localStorage.setItem('sync_last_error', msg)
+    else localStorage.removeItem('sync_last_error')
+  } catch { /* ignore */ }
 }
 // Restore across reloads
 try { lastError = localStorage.getItem('sync_last_error') } catch { /* ignore */ }
@@ -108,16 +106,17 @@ export function markChanged(key: string) {
 /**
  * Pull cloud state into localStorage, merging PER SECTION by newest timestamp.
  * - 'found': cloud data existed; newer cloud sections were applied
- * - 'empty': no cloud record yet for this user (safe to seed)
+ * - 'empty': no cloud record yet for this account (safe to seed)
  * - 'error': request failed — keep local data, don't push
  */
-export async function pullState(userKey: string): Promise<PullResult> {
-  if (!cloudEnabled() || !userKey) return 'empty'
+export async function pullState(): Promise<PullResult> {
+  if (!cloudEnabled() || !currentToken) return 'empty'
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_kv?user_id=eq.${encodeURIComponent(userKey)}&select=key,value,updated_at`,
-      { headers: headers() },
-    )
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/kv_pull`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ p_token: currentToken }),
+    })
     if (!res.ok) {
       setLastError(`Al leer: ${await describeError(res)}`)
       return 'error'
@@ -138,20 +137,6 @@ export async function pullState(userKey: string): Promise<PullResult> {
       }
       return 'found'
     }
-
-    // Legacy migration: fall back to the old whole-blob table once, then seed user_kv.
-    const legacy = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_state?user_id=eq.${encodeURIComponent(userKey)}&select=data`,
-      { headers: headers() },
-    )
-    if (legacy.ok) {
-      const legacyRows = await legacy.json()
-      if (Array.isArray(legacyRows) && legacyRows.length > 0 && legacyRows[0].data) {
-        hydrate(legacyRows[0].data as Record<string, string>)
-        void pushState()
-        return 'found'
-      }
-    }
     return 'empty'
   } catch (err: any) {
     setLastError(`Red: ${err?.message ?? 'fetch falló'}`)
@@ -161,21 +146,21 @@ export async function pullState(userKey: string): Promise<PullResult> {
 
 /** Upsert every present section to the cloud, each with its own timestamp. */
 export async function pushState(): Promise<void> {
-  if (!cloudEnabled() || !currentUserKey) return
+  if (!cloudEnabled() || !currentToken) return
   const tsMap = getTsMap()
   const now = new Date().toISOString()
-  const rows: Array<{ user_id: string; key: string; value: string; updated_at: string }> = []
+  const rows: Array<{ key: string; value: string; updated_at: string }> = []
   for (const k of SYNC_KEYS) {
     const v = localStorage.getItem(k)
     if (v == null) continue
-    rows.push({ user_id: currentUserKey, key: k, value: v, updated_at: tsMap[k] ?? now })
+    rows.push({ key: k, value: v, updated_at: tsMap[k] ?? now })
   }
   if (rows.length === 0) return
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_kv`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/kv_push`, {
       method: 'POST',
-      headers: { ...headers(), Prefer: 'resolution=merge-duplicates' },
-      body: JSON.stringify(rows),
+      headers: headers(),
+      body: JSON.stringify({ p_token: currentToken, p_rows: rows }),
     })
     if (!res.ok) setLastError(`Al guardar: ${await describeError(res)}`)
     else setLastError(null)
@@ -189,7 +174,7 @@ let pushTimer: ReturnType<typeof setTimeout> | null = null
 /** Debounced push — called after every store write. */
 export function schedulePush(changedKey?: string) {
   if (changedKey) markChanged(changedKey)
-  if (!cloudEnabled() || !currentUserKey) return
+  if (!cloudEnabled() || !currentToken) return
   if (pushTimer) clearTimeout(pushTimer)
   pushTimer = setTimeout(() => { void pushState() }, 1500)
 }

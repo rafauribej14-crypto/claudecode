@@ -21,10 +21,15 @@ export function Login({ onAuth }: { onAuth: (user: AuthUser) => void }) {
       if (typeof google === 'undefined' || !googleBtnRef.current) return
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: (response) => {
-          const result = loginWithGoogle(response.credential)
-          if (result.ok) onAuth(result.user)
-          else setError(result.error)
+        callback: async (response) => {
+          setLoading(true)
+          try {
+            const result = await loginWithGoogle(response.credential)
+            if (result.ok) onAuth(result.user)
+            else setError(result.error)
+          } finally {
+            setLoading(false)
+          }
         },
       })
       google.accounts.id.renderButton(googleBtnRef.current, {
