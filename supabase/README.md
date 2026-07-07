@@ -15,8 +15,16 @@ Es aditivo: **no toca** `user_kv`, `user_state` ni `price_intel`.
 
 ### 2. Desplegar la función Edge de Google
 Verifica el login de Google del lado del servidor (no se puede confiar en el
-navegador para eso). Desde tu máquina, con el [CLI de Supabase](https://supabase.com/docs/guides/cli):
+navegador para eso). El código está en `functions/google-auth/index.ts`.
+`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se inyectan solos.
 
+**Opción A — desde el Dashboard (más fácil, sin instalar nada):**
+Supabase → **Edge Functions** → **Deploy a new function** → nómbrala
+`google-auth` → pega el contenido de `functions/google-auth/index.ts` → Deploy.
+En la config de la función, **desactiva "Verify JWT"** (nuestro endpoint es
+público; verifica el token de Google por su cuenta).
+
+**Opción B — con el [CLI de Supabase](https://supabase.com/docs/guides/cli):**
 ```bash
 supabase login
 supabase link --project-ref oxkxxvxzrhksbllyhhjg
@@ -24,9 +32,6 @@ supabase functions deploy google-auth --no-verify-jwt
 # opcional (ya trae el client id de la app por defecto):
 # supabase secrets set GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
 ```
-
-El código está en `functions/google-auth/index.ts`.
-`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se inyectan solos.
 
 ### 3. El código de la app
 Ya está desplegado en Vercel (`cookeasy-smart.vercel.app`). Usa las funciones
