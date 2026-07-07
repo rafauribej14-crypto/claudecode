@@ -64,10 +64,13 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
     },
     {
       icon: <DollarSign className="text-accent" size={28} />,
-      title: 'Tu presupuesto',
-      subtitle: '¿Cuánto inviertes en mercado al mes?',
+      title: 'Tu presupuesto para el mercado',
+      subtitle: '¿Cuál es tu presupuesto mensual para el mercado?',
       content: (
         <div className="space-y-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            freshapp te ayuda a planear el mercado, controlar tu inventario en casa y cocinar rico con lo que ya tienes, sin pasarte del presupuesto.
+          </p>
           <div>
             <label className="text-sm font-medium text-muted-foreground">¿Dónde vives?</label>
             <div className="grid grid-cols-2 gap-2 mt-1">
@@ -90,7 +93,7 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
             <p className="text-[10px] text-muted-foreground mt-1">Define tu moneda y los supermercados que la IA usará para compararte precios</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual ({profile.currency})</label>
+            <label className="text-sm font-medium text-muted-foreground">Presupuesto mensual para el mercado ({profile.currency})</label>
             <Input
               type="number"
               value={profile.monthly_budget || ''}
