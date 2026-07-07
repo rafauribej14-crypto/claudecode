@@ -1,3 +1,5 @@
+import { remoteSignup, remoteLogin, remoteChangePassword, remoteSetName } from '@/services/cloudAuth'
+
 export interface AuthUser {
   id: string
   username: string
@@ -47,29 +49,97 @@ function setCurrentUser(user: AuthUser) {
   localStorage.setItem('auth_current', JSON.stringify(user))
 }
 
-export function signup(username: string, password: string): { ok: true; user: AuthUser } | { ok: false; error: string } {
+/** Stable cross-device sync key for a username/password account. */
+function syncKeyForUsername(username: string): string {
+  return `u_${username.trim().toLowerCase()}`
+}
+
+/**
+ * Create an account. Stored in Supabase (username + bcrypt password) so it can
+ * be used from any device, and mirrored locally for offline use. If Supabase is
+ * unreachable the account is created locally and pushed up on the next login.
+ */
+export async function signup(username: string, password: string): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
+  const uname = username.trim()
   const users = getUsers()
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+  if (users.find(u => u.username.toLowerCase() === uname.toLowerCase())) {
     return { ok: false, error: 'Ese usuario ya existe' }
   }
+
+  const syncKey = syncKeyForUsername(uname)
+  const remote = await remoteSignup(uname, password, '')
+  if (remote.status === 'taken') {
+    return { ok: false, error: 'Ese usuario ya existe' }
+  }
+  // 'ok' or 'network' (offline) both proceed: create the local mirror. An
+  // offline account migrates to the cloud on the next successful login.
+  const key = remote.status === 'ok' ? (remote.account.sync_key || syncKey) : syncKey
+
   const id = crypto.randomUUID()
-  const newUser: StoredUser = { id, username, password, name: '', onboarded: false }
+  const newUser: StoredUser = { id, username: uname, password, name: '', onboarded: false, sync_key: key }
   users.push(newUser)
   saveUsers(users)
-  const authUser: AuthUser = { id, username, name: '', onboarded: false }
+  const authUser: AuthUser = { id, username: uname, name: '', onboarded: false, sync_key: key }
   setCurrentUser(authUser)
   return { ok: true, user: authUser }
 }
 
-export function login(username: string, password: string): { ok: true; user: AuthUser } | { ok: false; error: string } {
+/**
+ * Log in. Validates against Supabase first (so the account works on any device);
+ * falls back to the local mirror when the cloud rejects it as unknown (legacy
+ * accounts, migrated on success) or is unreachable (offline).
+ */
+export async function login(username: string, password: string): Promise<{ ok: true; user: AuthUser } | { ok: false; error: string }> {
+  const uname = username.trim()
+  const syncKey = syncKeyForUsername(uname)
+
+  const remote = await remoteLogin(uname, password)
+
+  if (remote.status === 'ok') {
+    const key = remote.account.sync_key || syncKey
+    const authUser = upsertLocalUser(uname, password, remote.account.name, key)
+    return { ok: true, user: authUser }
+  }
+
   const users = getUsers()
-  const found = users.find(u => u.username.toLowerCase() === username.toLowerCase())
-  if (!found || found.password !== password) {
+  const found = users.find(u => u.username.toLowerCase() === uname.toLowerCase())
+
+  if (remote.status === 'invalid') {
+    // Cloud says no match. Accept a local legacy account and migrate it up.
+    if (found && found.password === password) {
+      void remoteSignup(uname, password, found.name)
+      const authUser = upsertLocalUser(uname, password, found.name, found.sync_key || syncKey)
+      return { ok: true, user: authUser }
+    }
     return { ok: false, error: 'Usuario o contraseña incorrectos' }
   }
-  const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded }
+
+  // Network error — fall back to local so the app still works offline.
+  if (found) {
+    if (found.password !== password) return { ok: false, error: 'Usuario o contraseña incorrectos' }
+    const authUser: AuthUser = { id: found.id, username: found.username, name: found.name, onboarded: found.onboarded, sync_key: found.sync_key || syncKey }
+    setCurrentUser(authUser)
+    return { ok: true, user: authUser }
+  }
+  return { ok: false, error: 'No hay conexión y la cuenta no está en este dispositivo' }
+}
+
+/** Create or refresh the local mirror of an account and set it as current. */
+function upsertLocalUser(username: string, password: string, name: string, syncKey: string): AuthUser {
+  const users = getUsers()
+  let user = users.find(u => u.username.toLowerCase() === username.toLowerCase())
+  if (!user) {
+    user = { id: crypto.randomUUID(), username, password, name, onboarded: false, sync_key: syncKey }
+    users.push(user)
+  } else {
+    user.password = password
+    user.sync_key = syncKey
+    if (name && !user.name) user.name = name
+  }
+  saveUsers(users)
+  const authUser: AuthUser = { id: user.id, username: user.username, name: user.name, onboarded: user.onboarded, sync_key: user.sync_key }
   setCurrentUser(authUser)
-  return { ok: true, user: authUser }
+  return authUser
 }
 
 export function logout() {
@@ -87,6 +157,7 @@ export function completeOnboarding(name: string) {
     saveUsers(users)
     setCurrentUser({ ...current, name, onboarded: true })
     localStorage.setItem('onboarded_flag', '1')
+    if (user.password !== '') void remoteSetName(user.username, name)
   }
 }
 
@@ -140,6 +211,7 @@ export function updateUserName(name: string) {
     saveUsers(users)
     setCurrentUser({ ...current, name })
     window.dispatchEvent(new Event('freshapp:user'))
+    if (user.password !== '') void remoteSetName(user.username, name)
   }
 }
 
@@ -165,7 +237,7 @@ export function hasPassword(): boolean {
   return !!user && user.password !== ''
 }
 
-export function changePassword(current: string, next: string): { ok: true } | { ok: false; error: string } {
+export async function changePassword(current: string, next: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const users = getUsers()
   const authed = getCurrentUser()
   if (!authed) return { ok: false, error: 'No hay sesión activa' }
@@ -174,6 +246,13 @@ export function changePassword(current: string, next: string): { ok: true } | { 
   if (user.password === '') return { ok: false, error: 'Tu cuenta inicia sesión con Google; la contraseña se gestiona allí' }
   if (user.password !== current) return { ok: false, error: 'La contraseña actual es incorrecta' }
   if (next.length < 4) return { ok: false, error: 'La nueva contraseña debe tener mínimo 4 caracteres' }
+
+  // Update the cloud password so the new one works on other devices too.
+  const write = await remoteChangePassword(user.username, current, next)
+  if (!write.ok && write.reason === 'network') {
+    return { ok: false, error: 'No se pudo actualizar en la nube (sin conexión). Intenta más tarde.' }
+  }
+
   user.password = next
   saveUsers(users)
   return { ok: true }
