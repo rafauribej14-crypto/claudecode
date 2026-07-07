@@ -56,14 +56,20 @@ export function Settings() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const handleChangePassword = () => {
+  const [pwSaving, setPwSaving] = useState(false)
+  const handleChangePassword = async () => {
     setPwError('')
     if (newPw !== confirmPw) { setPwError('Las contraseñas nuevas no coinciden'); return }
-    const result = changePassword(currentPw, newPw)
-    if (!result.ok) { setPwError(result.error); return }
-    setCurrentPw(''); setNewPw(''); setConfirmPw('')
-    setPwSaved(true)
-    setTimeout(() => setPwSaved(false), 2000)
+    setPwSaving(true)
+    try {
+      const result = await changePassword(currentPw, newPw)
+      if (!result.ok) { setPwError(result.error); return }
+      setCurrentPw(''); setNewPw(''); setConfirmPw('')
+      setPwSaved(true)
+      setTimeout(() => setPwSaved(false), 2000)
+    } finally {
+      setPwSaving(false)
+    }
   }
 
   const initial = (user?.name || user?.username || '?').charAt(0).toUpperCase()
@@ -115,8 +121,8 @@ export function Settings() {
               </div>
             </div>
             {pwError && <p className="text-sm text-destructive bg-red-50 px-3 py-2 rounded-xl border border-red-100">{pwError}</p>}
-            <Button onClick={handleChangePassword} variant="outline" className="w-full" disabled={!currentPw || !newPw || !confirmPw}>
-              {pwSaved ? <><Check size={16} className="mr-2" /> Contraseña actualizada</> : 'Actualizar contraseña'}
+            <Button onClick={handleChangePassword} variant="outline" className="w-full" disabled={!currentPw || !newPw || !confirmPw || pwSaving}>
+              {pwSaving ? 'Guardando…' : pwSaved ? <><Check size={16} className="mr-2" /> Contraseña actualizada</> : 'Actualizar contraseña'}
             </Button>
           </div>
         ) : (
