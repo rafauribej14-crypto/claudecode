@@ -75,8 +75,13 @@ function runActions(actions: AssistantAction[]): void {
       if (item) {
         const p = products.find(pr => pr.id === item.product_id)
         const base = p?.base_unit ?? 'g'
-        item.qty_remaining = Math.max(0, item.qty_remaining - normalizeToBase(action.qty, action.unit, base))
-        store.saveInventory(inv)
+        // Count units vs weight/volume aren't comparable — deducting "0.5 unit"
+        // from grams would be meaningless, so leave the stock untouched.
+        const isCount = (u: string) => u === 'unit' || u === 'und'
+        if (isCount(action.unit) === isCount(base)) {
+          item.qty_remaining = Math.max(0, item.qty_remaining - normalizeToBase(action.qty, action.unit, base))
+          store.saveInventory(inv)
+        }
       }
     }
   }

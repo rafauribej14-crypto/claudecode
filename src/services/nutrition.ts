@@ -44,3 +44,13 @@ export function getNutritionTargets(profile: UserProfile): NutritionTargets | nu
 
   return { bmi, bmiCategory, tdee, proteinG, fatG, carbG, goalLabel }
 }
+
+/**
+ * Sanity-check for body data: each field is either empty (0) or within human
+ * range. Prevents nonsense like -80 kg or 99999 cm from poisoning the targets.
+ */
+export function bodyDataValid(p: Pick<UserProfile, 'weight_kg' | 'height_cm'>): boolean {
+  const weightOk = p.weight_kg === 0 || (p.weight_kg >= 25 && p.weight_kg <= 350)
+  const heightOk = p.height_cm === 0 || (p.height_cm >= 90 && p.height_cm <= 250)
+  return weightOk && heightOk
+}

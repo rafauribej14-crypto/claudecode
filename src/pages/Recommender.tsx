@@ -47,15 +47,21 @@ export function Recommender() {
     setBudget(tripBudget)
 
     const recs: Recommendation[] = []
-    const lowStockProducts = inventory.filter(i => i.qty_remaining < 200 && i.qty_remaining > 0)
-    for (const item of lowStockProducts) {
+    // Unit-aware low-stock thresholds (same as the dashboard) — 12 eggs are NOT low stock.
+    const isLowStock = (qty: number, baseUnit: string) => {
+      if (baseUnit === 'unit') return qty <= 1
+      if (baseUnit === 'ml') return qty < 200
+      return qty < 150
+    }
+    for (const item of inventory) {
+      if (item.qty_remaining <= 0) continue
       const product = allProducts.find(p => p.id === item.product_id)
-      if (!product) continue
+      if (!product || !isLowStock(item.qty_remaining, product.base_unit)) continue
       const latestPrice = getLatestPrice(allPrices, item.product_id)
       recs.push({
         product, reason: `Stock bajo: ${item.qty_remaining.toFixed(0)}${product.base_unit} restantes`,
         estimated_price: latestPrice?.price ?? 0, confidence: latestPrice ? 'confirmed' : 'estimated',
-        suggested_qty: `500${product.base_unit}`,
+        suggested_qty: product.base_unit === 'unit' ? '6 unidades' : `500${product.base_unit}`,
       })
     }
     const outOfStock = allProducts.filter(p => !inventory.find(i => i.product_id === p.id && i.qty_remaining > 0))
