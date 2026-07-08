@@ -1,71 +1,77 @@
-# Supabase setup — freshapp
+# Configuración de Supabase — freshapp
 
 Cuentas en la nube (usuario/contraseña **y** Google) con sincronización de datos
-protegida por **token de sesión**. El navegador nunca accede directo a las tablas
-de datos: inicia sesión, recibe un token, y todo el sync pasa por funciones que
-verifican ese token en el servidor.
-
-## Orden de pasos (impórtate seguirlo para no romper el sync)
+protegida por **token de sesión**. Toda cuenta creada se guarda en la nube con
+toda su información, así que el usuario puede iniciar sesión desde cualquier
+dispositivo y ya tiene todo guardado y personalizado.
 
 > ⚠️ **Qué código va en cada lugar (no los mezcles):**
-> - `accounts.sql` y `lockdown.sql` son **SQL** → van en el **SQL Editor**.
+> - `setup.sql` es **SQL** → va en el **SQL Editor**.
 > - `functions/google-auth/index.ts` es **TypeScript (Deno)** → va en
->   **Edge Functions**, NUNCA en el SQL Editor. Si lo pegas en el SQL Editor
->   verás `syntax error at or near "//"` — es normal, ese editor solo corre SQL.
+>   **Edge Functions**, NUNCA en el SQL Editor (si lo pegas ahí verás
+>   `syntax error at or near "//"`).
 
-### 1. Crear tablas y funciones — en el SQL Editor
-En **Supabase → SQL Editor → New query**, pega y corre `accounts.sql`.
-Crea: tabla `accounts`, tabla `sessions`, y las funciones `app_signup`,
-`app_login`, `app_change_password`, `app_set_name`, `kv_pull`, `kv_push`.
-Es aditivo: **no toca** `user_kv`, `user_state` ni `price_intel`.
+## Paso 1 — Correr `setup.sql` (obligatorio, en el SQL Editor)
 
-Verifica que quedó bien (debe listar tus cuentas usuario/contraseña):
+En **Supabase → SQL Editor → New query**, pega **todo** `setup.sql` y dale **Run**.
+
+Es un único archivo, idempotente y seguro de re-ejecutar: usa `if not exists` y
+`drop … if exists`, así que **no aborta a medias ni borra datos** existentes.
+Crea las tablas (`accounts`, `sessions`, `user_kv`, `user_state`, `price_intel`)
+y las funciones (`app_signup`, `app_login`, `app_change_password`, `app_set_name`,
+`kv_pull`, `kv_push`). Con solo este paso, **las cuentas usuario/contraseña ya
+se guardan en la nube y persisten** entre dispositivos.
+
+### Verifica que quedó bien
+Corre estas líneas (una por una) en el SQL Editor:
+
 ```sql
+-- crea una cuenta de prueba y devuelve sync_key + token
+select * from public.app_signup('prueba_qa', 'clave1234', 'Prueba');
+-- debe aparecer en la tabla de cuentas
 select username, name, created_at from public.accounts order by created_at;
+-- login: devuelve un token nuevo si la contraseña es correcta
+select * from public.app_login('prueba_qa', 'clave1234');
+-- limpieza opcional
+delete from public.accounts where username = 'prueba_qa';
 ```
-**Con solo este paso, las cuentas usuario/contraseña ya funcionan y se guardan
-en la nube.** El Paso 2 es únicamente para el login con Google.
 
-### 2. Desplegar la función Edge de Google — en Edge Functions (NO en el SQL Editor)
-Verifica el login de Google del lado del servidor (no se puede confiar en el
-navegador para eso). El código está en `functions/google-auth/index.ts`.
+Si `app_signup` devuelve una fila con `sync_key` y `token`, **ya está arreglado**:
+las cuentas se guardan en la nube.
+
+## Paso 2 — Edge Function de Google (opcional, para login con Google)
+
+Solo si quieres login con Google. En **Edge Functions** (NO en el SQL Editor):
+
+1. **Deploy a new function** → nómbrala `google-auth`.
+2. Pega el contenido de `functions/google-auth/index.ts` → **Deploy**.
+3. En la configuración de la función, **desactiva "Verify JWT"** (nuestro
+   endpoint verifica el token de Google por su cuenta).
+
+Con el CLI sería:
+```bash
+supabase functions deploy google-auth --no-verify-jwt
+```
+
 `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se inyectan solos.
 
-**Opción A — desde el Dashboard (más fácil, sin instalar nada):**
-Supabase → **Edge Functions** → **Deploy a new function** → nómbrala
-`google-auth` → pega el contenido de `functions/google-auth/index.ts` → Deploy.
-En la config de la función, **desactiva "Verify JWT"** (nuestro endpoint es
-público; verifica el token de Google por su cuenta).
-
-**Opción B — con el [CLI de Supabase](https://supabase.com/docs/guides/cli):**
-```bash
-supabase login
-supabase link --project-ref oxkxxvxzrhksbllyhhjg
-supabase functions deploy google-auth --no-verify-jwt
-# opcional (ya trae el client id de la app por defecto):
-# supabase secrets set GOOGLE_CLIENT_ID=<tu-client-id>.apps.googleusercontent.com
-```
-
-### 3. El código de la app
-Ya está desplegado en Vercel (`cookeasy-smart.vercel.app`). Usa las funciones
-y la Edge Function de arriba. Si aún no corriste los pasos 1–2, la app **sigue
-funcionando** en modo local (sin sync ni cuentas en la nube) — no se rompe.
-
-### 4. Verificar
-- Crea una cuenta usuario/contraseña → debe aparecer en `select * from accounts`.
-- Inicia sesión con Google → debe sincronizar.
-- Cambia algo (ej. presupuesto), entra desde otro dispositivo → debe verse.
-
-### 5. Sellar las tablas (cierre final)
-Cuando confirmes que todo funciona, corre `lockdown.sql`. Cierra `user_kv` y
-`user_state` para que la anon key ya no pueda leerlas/escribirlas directamente.
-
 ## Ver cuentas registradas
-Desde el SQL Editor (service role):
+
+Desde el SQL Editor (rol service):
 
 ```sql
 select username, name, created_at from public.accounts order by created_at;
 ```
 
-Las cuentas de Google no están en `accounts`; viven como sesiones/datos con
-`sync_key = g_<google_sub>`.
+Las cuentas de Google no están en `accounts`; viven como datos con
+`sync_key = g_<google_sub>` en `user_kv`.
+
+## Cómo funciona (resumen)
+
+1. **Registro/login** → la app llama `app_signup`/`app_login`; la BD verifica con
+   bcrypt y devuelve un **token de sesión**.
+2. La app guarda ese token y **sincroniza los datos** (perfil, inventario,
+   recetas, presupuesto…) con `kv_push`/`kv_pull`, que resuelven el token a un
+   `sync_key` del lado del servidor.
+3. En otro dispositivo, al iniciar sesión con el mismo usuario/contraseña, la
+   app recibe un token y `kv_pull` restaura toda su información.
