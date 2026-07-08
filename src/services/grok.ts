@@ -17,6 +17,24 @@ function cleanJson(content: string): string {
   return content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 }
 
+/**
+ * Best-effort JSON parse: tries the cleaned string, then falls back to
+ * extracting the outermost object/array if the model wrapped it in prose.
+ * Returns null if nothing parses.
+ */
+function extractJson(content: string): any {
+  const cleaned = cleanJson(content)
+  try { return JSON.parse(cleaned) } catch { /* try harder below */ }
+  for (const [open, close] of [['{', '}'], ['[', ']']] as const) {
+    const start = cleaned.indexOf(open)
+    const end = cleaned.lastIndexOf(close)
+    if (start !== -1 && end > start) {
+      try { return JSON.parse(cleaned.slice(start, end + 1)) } catch { /* ignore */ }
+    }
+  }
+  return null
+}
+
 async function callGroq(body: object): Promise<string> {
   const apiKey = getGroqKey()
   if (!apiKey) throw new Error('No hay API key de Groq configurada. Contacta al administrador.')
@@ -222,10 +240,13 @@ ACCIONES QUE PUEDES DEVOLVER (en el array "actions"):
    { "type": "consume_inventory", "name": "Arroz", "qty": 200, "unit": "g" }
 
 REGLAS:
-- Si el mensaje NO requiere una acción (saludo, pregunta, duda), responde con "actions": [] y una respuesta útil en "reply".
+- Eres un asistente conversacional COMPLETO: además de registrar, RESUELVES DUDAS de nutrición, cocina y de la app. Si te preguntan algo (aunque no haya acción), SIEMPRE responde de forma útil y concreta en "reply".
+- Cuando el usuario mencione una comida (aunque sea una pregunta como "¿cuánta proteína tiene un huevo?"), da SIEMPRE un estimado aproximado de calorías y proteína en "reply", con números realistas.
+- Si el usuario dice que COMIÓ algo, registra con log_meal Y en "reply" dile el aproximado de kcal y proteína que acabas de registrar.
 - Un mismo mensaje puede generar VARIAS acciones (ej: "me comí pollo con arroz y saqué el arroz de la despensa").
-- En "reply" confirma en lenguaje natural lo que hiciste, corto y amable. Menciona el aporte nutricional si registraste comida.
+- Entiende el español coloquial de Latinoamérica (ej: "un cuarto de pollo" ≈ 250-300g de pollo, "apanado/apando" = empanizado y frito, "presa" = pieza). Nunca respondas que no entendiste sin intentar interpretarlo.
 - NO inventes productos que el usuario no mencionó.
+- Aunque no haya nada que registrar, NUNCA dejes "reply" vacío ni digas que no entendiste: responde lo mejor que puedas.
 
 Responde SOLO con JSON válido (sin markdown, sin backticks):
 { "reply": "...", "actions": [ ... ] }`
@@ -236,13 +257,14 @@ Responde SOLO con JSON válido (sin markdown, sin backticks):
     { role: 'user', content: userMessage },
   ]
 
-  const content = await callGroq({ model: TEXT_MODEL, messages, temperature: 0.3 })
+  const content = await callGroq({ model: TEXT_MODEL, messages, temperature: 0.3, response_format: { type: 'json_object' } })
 
-  let parsed: any
-  try {
-    parsed = JSON.parse(cleanJson(content))
-  } catch {
-    return { reply: 'Perdona, no te entendí bien. ¿Puedes decirlo de otra forma?', actions: [] }
+  const parsed = extractJson(content)
+  if (!parsed) {
+    // The model answered but not as JSON — use its text as a conversational reply
+    // instead of a canned "no entendí".
+    const text = cleanJson(content)
+    return { reply: text || 'No pude procesar eso. ¿Puedes darme un poco más de detalle?', actions: [] }
   }
 
   const validCat = ['proteina', 'grano', 'lacteo', 'fruta', 'verdura', 'otro']
@@ -308,6 +330,51 @@ Responde SOLO con JSON válido (sin markdown, sin backticks):
 
   return {
     name: parsed.name?.trim() || description.slice(0, 40),
+    calories: Math.max(0, Math.round(Number(parsed.calories) || 0)),
+    protein_g: Math.max(0, Math.round(Number(parsed.protein_g) || 0)),
+    note: parsed.note ?? '',
+  }
+}
+
+/**
+ * Analyzes a photo of a meal and estimates its nutrition (calories + protein),
+ * so the quick-access assistant can log what someone ate from a picture.
+ */
+export async function analyzeFoodPhoto(imageDataUrl: string): Promise<QuickMealResult> {
+  const prompt = `Eres un nutricionista. Mira la foto de comida y estima el aporte nutricional de la porción que se ve.
+
+1. Identifica los alimentos visibles y su cantidad aproximada (porciones típicas).
+2. Suma calorías y proteína de forma realista según datos por 100g conocidos (ej: pechuga pollo ≈31g proteína y 165 kcal/100g, arroz cocido ≈2.7g/100g, carne de res ≈26g/100g, frijoles ≈9g/100g, huevo ≈13g/100g).
+
+Responde SOLO con JSON válido (sin markdown, sin backticks):
+{
+  "name": "Nombre corto de lo que se ve en el plato",
+  "calories": 620,
+  "protein_g": 38,
+  "note": "una frase corta y amable describiendo lo que ves"
+}
+
+Si la imagen NO muestra comida claramente, pon calories 0, protein_g 0 y explica en note que no reconociste comida.`
+
+  const content = await callGroq({
+    model: VISION_MODEL,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: imageDataUrl } },
+        ],
+      },
+    ],
+    temperature: 0.2,
+  })
+
+  const parsed = extractJson(content)
+  if (!parsed) throw new Error('No pude analizar la foto. Intenta con una imagen más clara.')
+
+  return {
+    name: parsed.name?.trim() || 'Comida',
     calories: Math.max(0, Math.round(Number(parsed.calories) || 0)),
     protein_g: Math.max(0, Math.round(Number(parsed.protein_g) || 0)),
     note: parsed.note ?? '',

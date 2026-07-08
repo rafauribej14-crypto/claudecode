@@ -1,12 +1,38 @@
 import { useState, useRef, useEffect } from 'react'
 import { store } from '@/store'
 import { getNutritionTargets } from '@/services/nutrition'
-import { assistantTurn, hasGrokKey, type AssistantAction, type AssistantMessage } from '@/services/grok'
-import { Mic, MicOff, Send, X, Sparkles, Loader2, ChefHat } from 'lucide-react'
+import { assistantTurn, analyzeFoodPhoto, hasGrokKey, type AssistantAction, type AssistantMessage } from '@/services/grok'
+import { Mic, MicOff, Send, X, Loader2, ChefHat, Camera } from 'lucide-react'
 
-interface ChatMessage { role: 'user' | 'assistant'; content: string }
+interface ChatMessage { role: 'user' | 'assistant'; content: string; image?: string }
 
-const GREETING = '¡Hola! Cuéntame qué comiste o qué cambió en tu despensa. Por ejemplo: "me comí pollo con arroz" o "compré 2 kilos de arroz".'
+/** Downscale a photo to a data URL small enough to send to the vision model. */
+function fileToImage(file: File, maxSize = 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return reject(new Error('canvas'))
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL('image/jpeg', 0.8))
+      }
+      img.onerror = () => reject(new Error('image'))
+      img.src = reader.result as string
+    }
+    reader.onerror = () => reject(new Error('read'))
+    reader.readAsDataURL(file)
+  })
+}
+
+const GREETING = '¡Hola! Cuéntame qué comiste y te digo cuántas calorías y proteína llevas, resuelvo tus dudas de nutrición, o toma una foto de tu plato 📷 y la analizo por ti.'
 
 function normalizeToBase(qty: number, unit: string, baseUnit: string): number {
   if ((unit === 'kg' && baseUnit === 'g') || (unit === 'L' && baseUnit === 'ml')) return qty * 1000
@@ -69,6 +95,7 @@ export function AssistantChat() {
   const baseRef = useRef('')
   const finalRef = useRef('')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const photoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -166,6 +193,45 @@ export function AssistantChat() {
     }
   }
 
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (photoRef.current) photoRef.current.value = ''
+    if (!file || loading) return
+    setLoading(true)
+    let image = ''
+    try {
+      image = await fileToImage(file)
+    } catch {
+      setLoading(false)
+      return
+    }
+    const userMsg: ChatMessage = { role: 'user', content: '📷 Analiza esta comida', image }
+    const nextMessages = [...messages, userMsg]
+    setMessages(nextMessages)
+    try {
+      const result = await analyzeFoodPhoto(image)
+      if (result.calories > 0) {
+        store.addMealLog({
+          user_id: 'default-user',
+          date: new Date().toISOString().split('T')[0],
+          recipe_id: null,
+          recipe_name: result.name,
+          calories: result.calories,
+          protein_g: result.protein_g,
+        })
+        window.dispatchEvent(new Event('freshapp:data'))
+        const note = result.note ? ` ${result.note}` : ''
+        setMessages([...nextMessages, { role: 'assistant', content: `Registré "${result.name}": ~${result.calories} kcal y ~${result.protein_g} g de proteína.${note}` }])
+      } else {
+        setMessages([...nextMessages, { role: 'assistant', content: result.note || 'No pude reconocer comida en la foto. Intenta con una imagen más clara.' }])
+      }
+    } catch (err: any) {
+      setMessages([...nextMessages, { role: 'assistant', content: err?.message ?? 'No pude analizar la foto.' }])
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       {/* Floating button — chef you can talk to */}
@@ -212,6 +278,7 @@ export function AssistantChat() {
             {messages.map((m, i) => (
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${m.role === 'user' ? 'bg-primary text-white rounded-br-sm' : 'bg-muted text-foreground rounded-bl-sm'}`}>
+                  {m.image && <img src={m.image} alt="Comida" className="rounded-lg mb-1.5 max-h-40 w-auto" />}
                   {m.content}
                 </div>
               </div>
@@ -234,6 +301,22 @@ export function AssistantChat() {
               >
                 {listening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
+              <button
+                onClick={() => photoRef.current?.click()}
+                disabled={loading}
+                className="p-2.5 rounded-xl shrink-0 bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer disabled:opacity-40"
+                title="Analizar una foto de tu comida"
+              >
+                <Camera size={18} />
+              </button>
+              <input
+                ref={photoRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhoto}
+              />
               <input
                 value={input}
                 onChange={e => onManualEdit(e.target.value)}
