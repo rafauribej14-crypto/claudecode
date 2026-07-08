@@ -102,7 +102,7 @@ drop function if exists public._sync_key_for(text);
 -- ── Helpers internos ─────────────────────────────────────────────────────────
 create or replace function public._new_session(p_sync_key text)
 returns text
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare v_token text := encode(gen_random_bytes(32), 'hex');
 begin
   insert into sessions(token_hash, sync_key)
@@ -112,7 +112,7 @@ end; $$;
 
 create or replace function public._sync_key_for(p_token text)
 returns text
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare v_key text;
 begin
   update sessions set last_seen = now()
@@ -126,7 +126,7 @@ end; $$;
 -- o credenciales incorrectas.
 create or replace function public.app_signup(p_username text, p_password text, p_name text default '')
 returns table(sync_key text, name text, token text)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_username text := lower(trim(p_username));
   v_sync_key text := 'u_' || v_username;
@@ -141,7 +141,7 @@ end; $$;
 
 create or replace function public.app_login(p_username text, p_password text)
 returns table(sync_key text, name text, token text)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_username text := lower(trim(p_username));
   v_row accounts%rowtype;
@@ -154,7 +154,7 @@ end; $$;
 
 create or replace function public.app_change_password(p_username text, p_current text, p_new text)
 returns boolean
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_username text := lower(trim(p_username));
   v_ok boolean;
@@ -169,7 +169,7 @@ end; $$;
 
 create or replace function public.app_set_name(p_username text, p_name text)
 returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 begin
   update accounts set name = coalesce(p_name, ''), updated_at = now()
     where username = lower(trim(p_username));
@@ -180,7 +180,7 @@ end; $$;
 -- una vez desde el blob heredado user_state.
 create or replace function public.kv_pull(p_token text)
 returns table(key text, value text, updated_at timestamptz)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_key text := public._sync_key_for(p_token);
   v_has boolean;
@@ -200,7 +200,7 @@ end; $$;
 -- Guarda un arreglo de {key,value,updated_at} para el usuario del token.
 create or replace function public.kv_push(p_token text, p_rows jsonb)
 returns boolean
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, extensions as $$
 declare
   v_key text := public._sync_key_for(p_token);
   r jsonb;
