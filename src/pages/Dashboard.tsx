@@ -507,6 +507,35 @@ export function Dashboard() {
         </Card>
       )}
 
+      {/* Without weight/height there are no targets, but what you ate must still be visible */}
+      {!nutrition && (
+        <Card className="bg-gradient-to-r from-orange-50 to-rose-50 border-orange-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <ChefHat className="text-orange-500" size={16} />
+              Lo que comiste hoy
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="bg-white/70 rounded-xl py-2.5">
+              <p className="text-lg font-bold text-orange-600 leading-none">{consumedKcal}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">kcal consumidas</p>
+            </div>
+            <div className="bg-white/70 rounded-xl py-2.5">
+              <p className="text-lg font-bold text-rose-600 leading-none">{consumedProtein}g</p>
+              <p className="text-[10px] text-muted-foreground mt-1">proteína</p>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">
+            {todayMeals.length > 0 && `Hoy: ${todayMeals.map(m => m.recipe_name).join(', ')}. `}
+            <Link to="/profile" className="text-primary font-medium underline underline-offset-2">
+              Completa tu peso y altura
+            </Link>{' '}
+            para ver tus metas diarias y el % de avance.
+          </p>
+        </Card>
+      )}
+
       {/* Quick "what did you eat?" logging */}
       {hasGrokKey() && (
         <Card className="border-rose-200 bg-gradient-to-r from-rose-50/60 to-orange-50/40">

@@ -148,6 +148,7 @@ export function Recipes() {
     const prods = store.getProducts()
     const deducted: string[] = []
     const skipped: string[] = []
+    const unitMismatch: string[] = []
 
     for (const ing of recipe.ingredients) {
       // Match by linked product_id, or fall back to name matching
@@ -167,6 +168,13 @@ export function Recipes() {
         // so "0.2 kg" correctly deducts 200 g and "0.25 L" deducts 250 ml.
         const product = prods.find(pr => pr.id === item.product_id)
         const base = product?.base_unit ?? 'g'
+        const isCount = (u: string) => u === 'unit' || u === 'und'
+        if (isCount(ing.unit) !== isCount(base)) {
+          // "¼ unidad de mantequilla" vs stock en gramos: restar 0.25 g sería
+          // mentira. Mejor no tocar el stock y avisar para ajuste manual.
+          unitMismatch.push(`${ing.ingredient_name} (${ing.qty} ${ing.unit})`)
+          continue
+        }
         let qtyInBase = ing.qty
         if ((ing.unit === 'kg' && base === 'g') || (ing.unit === 'L' && base === 'ml')) {
           qtyInBase = ing.qty * 1000
@@ -197,6 +205,7 @@ export function Recipes() {
         : `🍽 +${recipe.est_calories} kcal registrados hoy (sin dato de proteína)`,
     ]
     if (deducted.length > 0) parts.push(`✓ Descontado: ${deducted.join(', ')}`)
+    if (unitMismatch.length > 0) parts.push(`⚠ Ajusta a mano en Despensa (unidad no comparable): ${unitMismatch.join(', ')}`)
     if (skipped.length > 0) parts.push(`No estaban (quizá los sustituiste): ${skipped.join(', ')}`)
     setCookedMsg(prev => ({ ...prev, [recipe.id]: parts.join(' · ') || 'Nada que descontar' }))
     setTimeout(() => setCookedMsg(prev => { const { [recipe.id]: _, ...rest } = prev; return rest }), 6000)

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { completeOnboarding } from '@/store/auth'
+import { bodyDataValid } from '@/services/nutrition'
 import type { UserProfile } from '@/types'
 import { ArrowRight, ArrowLeft, Check, User, DollarSign, Target, ChefHat } from 'lucide-react'
 
@@ -151,6 +152,8 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
               <label className="text-sm font-medium text-muted-foreground">Peso actual (kg)</label>
               <Input
                 type="number"
+                min={25}
+                max={350}
                 value={profile.weight_kg || ''}
                 onChange={e => update({ weight_kg: +e.target.value })}
                 placeholder="Ej: 70"
@@ -161,6 +164,8 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
               <label className="text-sm font-medium text-muted-foreground">Altura (cm)</label>
               <Input
                 type="number"
+                min={90}
+                max={250}
                 value={profile.height_cm || ''}
                 onChange={e => update({ height_cm: +e.target.value })}
                 placeholder="Ej: 175"
@@ -168,10 +173,13 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
               />
             </div>
           </div>
+          {!bodyDataValid(profile) && (
+            <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg">Revisa los datos: peso entre 25 y 350 kg, altura entre 90 y 250 cm (o déjalos vacíos).</p>
+          )}
           <p className="text-xs text-muted-foreground">La IA usa estos datos para ajustar porciones y calorías a tu objetivo.</p>
         </div>
       ),
-      valid: true,
+      valid: bodyDataValid(profile),
     },
     {
       icon: <ChefHat className="text-accent" size={28} />,

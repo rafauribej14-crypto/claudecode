@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { updateUserName } from '@/store/auth'
+import { bodyDataValid } from '@/services/nutrition'
 import type { UserProfile } from '@/types'
 import { Save, ArrowLeft, User, DollarSign, Target, ChefHat } from 'lucide-react'
 
@@ -23,6 +24,7 @@ export function Profile() {
   }
 
   const handleSave = () => {
+    if (!bodyDataValid(profile)) return // inline error is already visible
     store.saveProfile(profile)
     updateUserName(profile.name)
     setSaved(true)
@@ -130,13 +132,16 @@ export function Profile() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Peso actual (kg)</label>
-              <Input type="number" value={profile.weight_kg || ''} onChange={e => update({ weight_kg: +e.target.value })} placeholder="Ej: 70" className="mt-1" />
+              <Input type="number" min={25} max={350} value={profile.weight_kg || ''} onChange={e => update({ weight_kg: +e.target.value })} placeholder="Ej: 70" className="mt-1" />
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Altura (cm)</label>
-              <Input type="number" value={profile.height_cm || ''} onChange={e => update({ height_cm: +e.target.value })} placeholder="Ej: 175" className="mt-1" />
+              <Input type="number" min={90} max={250} value={profile.height_cm || ''} onChange={e => update({ height_cm: +e.target.value })} placeholder="Ej: 175" className="mt-1" />
             </div>
           </div>
+          {!bodyDataValid(profile) && (
+            <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg">Revisa los datos: peso entre 25 y 350 kg, altura entre 90 y 250 cm (o déjalos vacíos).</p>
+          )}
           <p className="text-xs text-muted-foreground">La IA usa estos datos para ajustar porciones y calorías a tu objetivo.</p>
         </div>
       </Card>
