@@ -190,8 +190,10 @@ begin
   if v_has then
     return query select k.key, k.value, k.updated_at from user_kv k where k.user_id = v_key;
   else
+    -- Legacy seed: stamp with epoch (oldest possible) so it only fills gaps on a
+    -- fresh device and NEVER overrides a fresher local edit made on this device.
     return query
-      select e.key, e.value, now()
+      select e.key, e.value, '1970-01-01 00:00:00+00'::timestamptz
       from user_state s, jsonb_each_text(s.data) e
       where s.user_id = v_key;
   end if;
