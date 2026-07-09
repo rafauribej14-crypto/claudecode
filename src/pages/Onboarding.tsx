@@ -7,7 +7,8 @@ import { store } from '@/store'
 import { completeOnboarding } from '@/store/auth'
 import { bodyDataValid } from '@/services/nutrition'
 import type { UserProfile } from '@/types'
-import { ArrowRight, ArrowLeft, Check, User, DollarSign, Target, ChefHat } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Check, User, DollarSign, Target, ChefHat, Package } from 'lucide-react'
+import { PantryDictation } from '@/components/PantryDictation'
 
 export function Onboarding({ userId, onComplete }: { userId: string; onComplete: () => void }) {
   const [step, setStep] = useState(0)
@@ -30,6 +31,7 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
     restrictions: [],
   })
   const [newRestriction, setNewRestriction] = useState('')
+  const [pantryAdded, setPantryAdded] = useState(0)
 
   const update = (patch: Partial<UserProfile>) => setProfile(prev => ({ ...prev, ...patch }))
 
@@ -230,6 +232,32 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
               className="mt-1"
             />
           </div>
+        </div>
+      ),
+      valid: true,
+    },
+    {
+      icon: <Package className="text-primary" size={28} />,
+      title: '¿Qué tienes ya en tu cocina?',
+      subtitle: 'Arranca con tu despensa lista — es opcional',
+      content: (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Cuéntanos por voz 🎤 o texto lo que recuerdes tener. No tiene que ser exacto — general está perfecto.
+          </p>
+          <div className="text-xs text-muted-foreground bg-sky-50 border border-sky-100 rounded-xl px-3 py-2">
+            Por ejemplo: <span className="text-sky-700 font-medium">"media bolsa de sal, como 2 kg de costilla y uno de lomo, arroz, aceite y unos huevos"</span>
+          </div>
+          <PantryDictation
+            submitLabel="Agregar a mi despensa"
+            onAdded={(count) => setPantryAdded(prev => prev + count)}
+          />
+          {pantryAdded > 0 && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+              ✓ Llevas {pantryAdded} producto(s) en tu despensa. Puedes agregar más o continuar.
+            </p>
+          )}
+          <p className="text-[11px] text-muted-foreground text-center">Puedes omitir este paso y agregar tus productos después desde <strong>Despensa</strong>.</p>
         </div>
       ),
       valid: true,

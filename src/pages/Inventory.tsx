@@ -7,7 +7,9 @@ import { Select } from '@/components/ui/select'
 import { store } from '@/store'
 import { formatDate, daysBetween, formatCurrency } from '@/lib/utils'
 import type { InventoryItem, Product } from '@/types'
-import { Package, Minus, Pencil, Trash2, Check, X } from 'lucide-react'
+import { Package, Minus, Pencil, Trash2, Check, X, MessageSquare } from 'lucide-react'
+import { PantryDictation } from '@/components/PantryDictation'
+import { hasGrokKey } from '@/services/grok'
 
 export function Inventory() {
   const [inventory, setInventory] = useState<InventoryItem[]>([])
@@ -100,6 +102,18 @@ export function Inventory() {
         <h1 className="text-2xl font-bold">Inventario</h1>
         <Badge className="ml-2">{sorted.length} activos</Badge>
       </div>
+
+      {/* Quick capture: describe what you already have by voice or text */}
+      {hasGrokKey() && (
+        <Card className="border-sky-200 bg-gradient-to-r from-sky-50/50 to-violet-50/30">
+          <div className="flex items-center gap-2 mb-1">
+            <MessageSquare className="text-sky-600" size={16} />
+            <h3 className="font-semibold text-sm">¿Ya tienes cosas en casa?</h3>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">Escribe o dicta lo que ya tienes en tu despensa y la IA lo agrega al inventario. Puedes ser general.</p>
+          <PantryDictation onAdded={reload} />
+        </Card>
+      )}
 
       {sorted.length === 0 ? (
         <Card className="text-center py-12 bg-gradient-to-br from-emerald-50/50 to-amber-50/30 border-dashed border-2 border-border">

@@ -773,7 +773,7 @@ export function Dashboard() {
             <div className="relative">
               <textarea
                 value={dictText}
-                onChange={e => { const v = e.target.value; setDictText(v); dictBaseRef.current = v.trim() ? v.trim() + ' ' : ''; dictFinalRef.current = '' }}
+                onChange={e => { const v = e.target.value; setDictText(v); dictBaseRef.current = v.trim() ? v.trim() + ' ' : ''; dictFinalRef.current = ''; if (listeningRef.current) { try { recognitionRef.current?.abort() } catch { /* onend restarts */ } } }}
                 placeholder='Ej: "Tengo 2 kilos de arroz, un pollo entero, medio litro de aceite, 500 gramos de pasta, 3 latas de atún y una bolsa de lentejas"'
                 className="flex w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm min-h-[80px] focus-visible:ring-2 focus-visible:ring-sky-300 pr-12"
               />
