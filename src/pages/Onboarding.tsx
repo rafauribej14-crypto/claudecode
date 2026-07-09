@@ -246,7 +246,7 @@ export function Onboarding({ userId, onComplete }: { userId: string; onComplete:
             Cuéntanos por voz 🎤 o texto lo que recuerdes tener. No tiene que ser exacto — general está perfecto.
           </p>
           <div className="text-xs text-muted-foreground bg-sky-50 border border-sky-100 rounded-xl px-3 py-2">
-            Por ejemplo: <span className="text-sky-700 font-medium">"media bolsa de sal, como 2 kg de costilla y uno de lomo, arroz, aceite y unos huevos"</span>
+            Por ejemplo: <span className="text-sky-700 font-medium">"Ya cuento con sal, pimienta, sal de ajo, arroz y pasta"</span>
           </div>
           <PantryDictation
             submitLabel="Agregar a mi despensa"

@@ -12,7 +12,7 @@ interface Props {
 }
 
 const DEFAULT_PLACEHOLDER =
-  'Ej: "media bolsa de sal, como 2 kg de costilla y uno de lomo, arroz, aceite y unos huevos"'
+  'Ej: "Ya cuento con sal, pimienta, sal de ajo, arroz y pasta"'
 
 /**
  * Voice-or-text pantry capture: the user describes what they already have and
