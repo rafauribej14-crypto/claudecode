@@ -39,21 +39,15 @@ delete from public.accounts where username = 'prueba_qa';
 Si `app_signup` devuelve una fila con `sync_key` y `token`, **ya está arreglado**:
 las cuentas se guardan en la nube.
 
-## Paso 2 — Edge Function de Google (opcional, para login con Google)
+## Login con Google — ya NO necesita Edge Function
 
-Solo si quieres login con Google. En **Edge Functions** (NO en el SQL Editor):
+El login con Google funciona con **solo `setup.sql`**. El navegador decodifica
+el JWT de Google y llama la función `app_google_login`, que emite el token de
+sesión (igual que usuario/contraseña). No hay que desplegar nada extra.
 
-1. **Deploy a new function** → nómbrala `google-auth`.
-2. Pega el contenido de `functions/google-auth/index.ts` → **Deploy**.
-3. En la configuración de la función, **desactiva "Verify JWT"** (nuestro
-   endpoint verifica el token de Google por su cuenta).
-
-Con el CLI sería:
-```bash
-supabase functions deploy google-auth --no-verify-jwt
-```
-
-`SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` se inyectan solos.
+> La carpeta `functions/google-auth/` se conserva solo como opción avanzada por
+> si algún día quieres verificar el JWT de Google del lado del servidor. NO es
+> necesaria para que el login con Google funcione.
 
 ## Ver cuentas registradas
 
