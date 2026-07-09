@@ -144,9 +144,15 @@ export async function pullState(): Promise<PullResult> {
   }
 }
 
-/** Upsert every present section to the cloud, each with its own timestamp. */
-export async function pushState(): Promise<void> {
-  if (!cloudEnabled() || !currentToken) return
+/**
+ * Upsert every present section to the cloud, each with its own timestamp.
+ * Returns true ONLY when the cloud is confirmed to hold this device's data
+ * (successful push, or nothing to push with a valid session). Returns false on
+ * no session / network / server error — callers use this to avoid destroying
+ * local data that isn't safely backed up yet.
+ */
+export async function pushState(): Promise<boolean> {
+  if (!cloudEnabled() || !currentToken) return false
   const tsMap = getTsMap()
   const now = new Date().toISOString()
   const rows: Array<{ key: string; value: string; updated_at: string }> = []
@@ -155,17 +161,22 @@ export async function pushState(): Promise<void> {
     if (v == null) continue
     rows.push({ key: k, value: v, updated_at: tsMap[k] ?? now })
   }
-  if (rows.length === 0) return
+  if (rows.length === 0) return true
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/kv_push`, {
       method: 'POST',
       headers: headers(),
       body: JSON.stringify({ p_token: currentToken, p_rows: rows }),
     })
-    if (!res.ok) setLastError(`Al guardar: ${await describeError(res)}`)
-    else setLastError(null)
+    if (!res.ok) { setLastError(`Al guardar: ${await describeError(res)}`); return false }
+    // kv_push returns false when the token is invalid (no rows written).
+    const ok = await res.json().catch(() => true)
+    if (ok === false) { setLastError('Sesión inválida: vuelve a iniciar sesión.'); return false }
+    setLastError(null)
+    return true
   } catch (err: any) {
     setLastError(`Red: ${err?.message ?? 'fetch falló'}`)
+    return false
   }
 }
 

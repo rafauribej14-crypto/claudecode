@@ -80,10 +80,13 @@ export default function App() {
     )
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Flush pending changes to the cloud FIRST, and only wipe local data if the
+    // cloud is confirmed to hold it. Otherwise keep it so nothing is ever lost.
+    const synced = await pushState()
     logout()
     setSyncSession(null)
-    if (cloudEnabled()) clearLocalUserData()
+    if (cloudEnabled() && synced) clearLocalUserData()
     setUser(null)
   }
 
