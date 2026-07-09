@@ -105,28 +105,32 @@ export type GoogleAuthResult =
   | { status: 'network' }
 
 /**
- * Exchange a Google Sign-In credential (JWT) for a freshapp session token by
- * calling the google-auth Edge Function, which verifies the JWT server-side.
+ * Exchange a Google Sign-In credential (JWT) for a freshapp session token.
+ * The browser decodes the JWT to read Google's stable user id (sub), then calls
+ * the app_google_login DB function to get a session token. No Edge Function
+ * required — Google login works with only supabase/setup.sql.
  */
 export async function googleAuth(credential: string): Promise<GoogleAuthResult> {
   if (!cloudEnabled()) return { status: 'network' }
-  const ctrl = new AbortController()
-  const t = setTimeout(() => ctrl.abort(), 10000)
+  let sub = '', email = '', name = ''
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/google-auth`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({ credential }),
-      signal: ctrl.signal,
-    })
-    if (res.status === 401) return { status: 'invalid' }
+    const payload = JSON.parse(atob(credential.split('.')[1]))
+    sub = String(payload.sub ?? '')
+    email = String(payload.email ?? '')
+    name = String(payload.name ?? '')
+  } catch {
+    return { status: 'invalid' }
+  }
+  if (!sub) return { status: 'invalid' }
+  try {
+    const res = await rpc('app_google_login', { p_sub: sub, p_email: email, p_name: name })
     if (!res.ok) return { status: 'network' }
-    const body = await res.json()
-    if (!body?.token || !body?.sync_key) return { status: 'network' }
-    return { status: 'ok', account: { sync_key: body.sync_key, name: body.name ?? '', token: body.token, email: body.email } }
+    const rows = await res.json()
+    if (Array.isArray(rows) && rows.length > 0) {
+      return { status: 'ok', account: { ...(rows[0] as AccountInfo), email } }
+    }
+    return { status: 'network' }
   } catch {
     return { status: 'network' }
-  } finally {
-    clearTimeout(t)
   }
 }

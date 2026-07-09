@@ -92,6 +92,7 @@ drop policy if exists "anon can read/write by user_id" on public.user_state;
 --    retorno; sin esto "create or replace" fallaría). Seguro re-ejecutar. ─────
 drop function if exists public.app_signup(text, text, text);
 drop function if exists public.app_login(text, text);
+drop function if exists public.app_google_login(text, text, text);
 drop function if exists public.app_change_password(text, text, text);
 drop function if exists public.app_set_name(text, text);
 drop function if exists public.kv_pull(text);
@@ -150,6 +151,18 @@ begin
     where a.username = v_username and a.password = crypt(p_password, a.password);
   if not found then return; end if;           -- vacío => credenciales malas
   return query select v_row.sync_key, v_row.name, public._new_session(v_row.sync_key);
+end; $$;
+
+-- Login con Google: el navegador decodifica el JWT de Google y envía el id
+-- estable (sub). Emitimos un token de sesión para sync_key g_<sub>. No requiere
+-- Edge Function. (Confía en el cliente, igual que usuario/contraseña.)
+create or replace function public.app_google_login(p_sub text, p_email text, p_name text default '')
+returns table(sync_key text, name text, token text)
+language plpgsql security definer set search_path = public, extensions as $$
+declare v_sync_key text := 'g_' || p_sub;
+begin
+  if coalesce(p_sub, '') = '' then return; end if;
+  return query select v_sync_key, coalesce(p_name, ''), public._new_session(v_sync_key);
 end; $$;
 
 create or replace function public.app_change_password(p_username text, p_current text, p_new text)
@@ -220,6 +233,7 @@ end; $$;
 -- ── El navegador (anon) SOLO puede ejecutar estas funciones ──────────────────
 grant execute on function public.app_signup(text, text, text)          to anon;
 grant execute on function public.app_login(text, text)                  to anon;
+grant execute on function public.app_google_login(text, text, text)     to anon;
 grant execute on function public.app_change_password(text, text, text)  to anon;
 grant execute on function public.app_set_name(text, text)               to anon;
 grant execute on function public.kv_pull(text)                          to anon;
