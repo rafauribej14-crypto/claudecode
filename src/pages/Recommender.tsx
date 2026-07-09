@@ -8,7 +8,7 @@ import { recommendWhereToBuy, hasGrokKey } from '@/services/grok'
 import { fetchCommunityPrices } from '@/services/priceIntel'
 import type { ShoppingNeedItem, ShoppingPlanResult } from '@/services/grok'
 import type { Product, PriceObservation, Recipe, InventoryItem } from '@/types'
-import { ShoppingCart, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, MapPin, Store as StoreIcon } from 'lucide-react'
+import { ShoppingCart, TrendingDown, AlertCircle, ChevronDown, ChevronUp, Trash2, Sparkles, Loader2, MapPin, Store as StoreIcon, Repeat } from 'lucide-react'
 
 interface Recommendation {
   product: Product
@@ -31,6 +31,7 @@ export function Recommender() {
   const [planLoading, setPlanLoading] = useState(false)
   const [planError, setPlanError] = useState('')
   const [plan, setPlan] = useState<ShoppingPlanResult | null>(null)
+  const [habits, setHabits] = useState('')
 
   const reload = () => {
     const profile = store.getProfile()
@@ -45,6 +46,7 @@ export function Recommender() {
     const freqDivisor = profile.shopping_frequency === 'weekly' ? 4 : profile.shopping_frequency === 'biweekly' ? 2 : 1
     const tripBudget = (profile.monthly_budget + profile.budget_carryover) / freqDivisor
     setBudget(tripBudget)
+    setHabits(profile.habits ?? '')
 
     const recs: Recommendation[] = []
     // Unit-aware low-stock thresholds (same as the dashboard) — 12 eggs are NOT low stock.
@@ -211,6 +213,20 @@ export function Recommender() {
           </p>
         </Card>
       </div>
+
+      {/* Habit reminder — buy the foods you consume regularly */}
+      {habits.trim() && (
+        <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-amber-100 rounded-xl shrink-0"><Repeat className="text-amber-600" size={18} /></div>
+            <div>
+              <h3 className="font-semibold text-amber-800 text-sm">No olvides tu hábito</h3>
+              <p className="text-sm text-amber-700 mt-0.5">"{habits.trim()}"</p>
+              <p className="text-xs text-amber-600 mt-1">Recuerda incluir en tu compra los ingredientes que consumes de forma habitual para no quedarte sin ellos.</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* ¿Dónde compro? — AI shopping plan */}
       {hasGrokKey() && recipes.length > 0 && (

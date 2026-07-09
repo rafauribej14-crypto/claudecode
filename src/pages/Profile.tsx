@@ -25,8 +25,14 @@ export function Profile() {
 
   const handleSave = () => {
     if (!bodyDataValid(profile)) return // inline error is already visible
-    store.saveProfile(profile)
-    updateUserName(profile.name)
+    // If the user typed a restriction but didn't press "Agregar", save it anyway.
+    const pending = newRestriction.trim()
+    const toSave = pending && !profile.restrictions.includes(pending)
+      ? { ...profile, restrictions: [...profile.restrictions, pending] }
+      : profile
+    if (pending) { setProfile(toSave); setNewRestriction('') }
+    store.saveProfile(toSave)
+    updateUserName(toSave.name)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
