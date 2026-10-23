@@ -282,6 +282,35 @@ details.preview[open] summary::after{content:"–"}
 .cliente-chip{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--blanco);border:1px solid var(--linea);border-radius:14px;padding:12px 14px}
 .cliente-chip b{display:block;color:var(--cafe);font-size:14px}
 .cliente-chip span{font-size:12px;color:var(--gris)}
+/* Propósito: misión y visión */
+.proposito{display:grid;gap:12px}
+.prop-cab .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--naranja-osc)}
+.prop-cab h2{font-size:22px;line-height:1.15;margin-top:4px}
+.prop-cab h2 em{font-family:var(--f-script);font-style:normal;color:var(--naranja);font-size:1.2em}
+.prop-card{border-radius:20px;padding:18px 16px;position:relative;overflow:hidden}
+.prop-card .tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800}
+.prop-card .tag i{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-style:normal}
+.prop-card .tag svg{width:17px;height:17px}
+.prop-card h3{font-size:19px;line-height:1.2;margin-top:10px}
+.prop-card p{font-size:14px;line-height:1.55;margin:8px 0 0}
+.mision{background:var(--blanco);box-shadow:var(--sombra);border:1.5px solid var(--naranja-suave)}
+.mision .tag{color:var(--naranja-osc)}
+.mision .tag i{background:var(--naranja);color:var(--blanco)}
+.mision p{color:var(--texto)}
+.pilares{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.pilares li{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;font-size:13.5px;line-height:1.4;color:var(--cafe)}
+.pilares li span{width:26px;height:26px;border-radius:50%;background:var(--naranja-suave);color:var(--naranja);display:grid;place-items:center}
+.pilares li span svg{width:14px;height:14px}
+.pilares b{display:block}
+.pilares small{color:var(--gris);font-size:12.5px}
+.vision{background:var(--cafe);color:#F6EADF}
+.vision::after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;border:24px solid rgba(192,99,26,.22);right:-64px;bottom:-70px}
+.vision .tag{color:#F2A86B}
+.vision .tag i{background:rgba(255,255,255,.12);color:#FFB778}
+.vision h3{color:var(--blanco)}
+.vision h3 em{font-family:var(--f-script);font-style:normal;color:#FFB778;font-size:1.15em}
+.vision p{position:relative;z-index:1;opacity:.93}
+.reg-prop{margin-top:22px;padding-bottom:28px}
 /* Pantalla de entrada: dos caminos */
 .eleccion{display:grid;gap:12px;margin-top:16px}
 .opcion{width:100%;display:grid;grid-template-columns:48px 1fr 22px;gap:14px;align-items:center;text-align:left;border-radius:18px;padding:16px 16px;transition:transform .12s,box-shadow .15s}
@@ -421,6 +450,26 @@ details.preview[open] summary::after{content:"–"}
         <button class="btn-pri" type="submit" id="r-btn">Crear mi cuenta</button>
         <p class="cambio" id="r-cambio"></p>
       </form>
+      <div class="reg-prop" id="reg-prop">
+        <div class="proposito">
+          <div class="prop-cab"><div class="eyebrow">Nuestro propósito</div><h2>Emprende con Gold Mills <em>existe para ti</em></h2></div>
+          <article class="prop-card mision">
+            <div class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg></i>Misión</div>
+            <h3>Para quienes dan la milla extra en cada producto</h3>
+            <p>Llevamos a la puerta de tu negocio los insumos de panadería de la mejor calidad, a precio de fábrica y sin costo de envío. Así dejas de perder horas en tranques y filas, y dedicas tu tiempo a lo que te hace único: hornear productos que tus clientes recuerdan.</p>
+            <ul class="pilares">
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Calidad Gold Mills en cada pedido</b><small>Las mismas harinas y margarinas que usan las panaderías del país.</small></div></li>
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Tu tiempo, de vuelta</b><small>Sin tranques ni cargar sacos: pides desde el celular y te lo llevamos.</small></div></li>
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Un asesor que te acompaña</b><small>Te ayudamos a elegir los insumos correctos para cada receta.</small></div></li>
+            </ul>
+          </article>
+          <article class="prop-card vision">
+            <div class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></i>Visión</div>
+            <h3>Que tu emprendimiento <em>se consolide y crezca</em></h3>
+            <p>Queremos que cada emprendimiento de panadería se formalice y crezca cada vez más, de la mano de los mejores productos y del mejor equipo de panadería de Panamá. Soñamos con un país donde crecer sea cada vez más fácil y las oportunidades estén al alcance de quien se atreve a emprender.</p>
+          </article>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -458,6 +507,27 @@ details.preview[open] summary::after{content:"–"}
       <div class="sec">
         <div class="sec-cab"><h2>Compra por categoría</h2><button class="lnk" data-ir="buscar">Buscar producto</button></div>
         <div class="cats" id="cats"></div>
+      </div>
+
+      <div class="sec">
+        <div class="proposito">
+          <div class="prop-cab"><div class="eyebrow">Nuestro propósito</div><h2>Emprende con Gold Mills <em>existe para ti</em></h2></div>
+          <article class="prop-card mision">
+            <div class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg></i>Misión</div>
+            <h3>Para quienes dan la milla extra en cada producto</h3>
+            <p>Llevamos a la puerta de tu negocio los insumos de panadería de la mejor calidad, a precio de fábrica y sin costo de envío. Así dejas de perder horas en tranques y filas, y dedicas tu tiempo a lo que te hace único: hornear productos que tus clientes recuerdan.</p>
+            <ul class="pilares">
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Calidad Gold Mills en cada pedido</b><small>Las mismas harinas y margarinas que usan las panaderías del país.</small></div></li>
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Tu tiempo, de vuelta</b><small>Sin tranques ni cargar sacos: pides desde el celular y te lo llevamos.</small></div></li>
+              <li><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b>Un asesor que te acompaña</b><small>Te ayudamos a elegir los insumos correctos para cada receta.</small></div></li>
+            </ul>
+          </article>
+          <article class="prop-card vision">
+            <div class="tag"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></i>Visión</div>
+            <h3>Que tu emprendimiento <em>se consolide y crezca</em></h3>
+            <p>Queremos que cada emprendimiento de panadería se formalice y crezca cada vez más, de la mano de los mejores productos y del mejor equipo de panadería de Panamá. Soñamos con un país donde crecer sea cada vez más fácil y las oportunidades estén al alcance de quien se atreve a emprender.</p>
+          </article>
+        </div>
       </div>
 
       <div class="sec">
@@ -914,6 +984,7 @@ function setModo(m){
   modoReg=m;
   $("#reg-elegir").hidden = m!=="elegir";
   $("#f-registro").hidden = m==="elegir";
+  $("#reg-prop").hidden = m!=="elegir";
   $("#r-err").hidden=true;
   ["r-cel","r-nombre"].forEach(id=>{$("#"+id+"-err").hidden=true; $("#"+id).removeAttribute("aria-invalid");});
   if(m==="elegir") return;
