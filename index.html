@@ -249,7 +249,7 @@ details.preview[open] summary::after{content:"–"}
 .carrito-bar .ver{background:var(--naranja);border-radius:13px;padding:10px 16px;font-weight:800;font-size:13.5px;white-space:nowrap}
 .carrito-bar.bump button{animation:bump .35s ease}
 @keyframes bump{40%{transform:scale(1.03)}}
-.nav{bottom:0;background:var(--blanco);border-top:1px solid var(--linea);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.nav{bottom:0;background:var(--blanco);border-top:1px solid var(--linea);display:grid;grid-template-columns:repeat(4,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 .nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 9px;font-size:11.5px;font-weight:800;color:var(--gris);position:relative}
 .nav button svg{width:23px;height:23px}
 .nav button[aria-current="page"]{color:var(--naranja)}
@@ -282,6 +282,76 @@ details.preview[open] summary::after{content:"–"}
 .cliente-chip{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--blanco);border:1px solid var(--linea);border-radius:14px;padding:12px 14px}
 .cliente-chip b{display:block;color:var(--cafe);font-size:14px}
 .cliente-chip span{font-size:12px;color:var(--gris)}
+/* Pantalla de entrada: dos caminos */
+.eleccion{display:grid;gap:12px;margin-top:16px}
+.opcion{width:100%;display:grid;grid-template-columns:48px 1fr 22px;gap:14px;align-items:center;text-align:left;border-radius:18px;padding:16px 16px;transition:transform .12s,box-shadow .15s}
+.opcion:active{transform:scale(.985)}
+.opcion b{display:block;font-family:var(--f-display);font-size:18px;font-weight:800;line-height:1.15}
+.opcion small{display:block;font-size:13px;margin-top:3px;line-height:1.3}
+.op-ic{width:48px;height:48px;border-radius:14px;display:grid;place-items:center}
+.op-ic svg{width:24px;height:24px}
+.op-fl svg{width:20px;height:20px}
+.opcion-nuevo{background:var(--naranja);color:var(--blanco);box-shadow:0 8px 20px rgba(192,99,26,.32)}
+.opcion-nuevo .op-ic{background:rgba(255,255,255,.18)}
+.opcion-nuevo small{opacity:.92}
+.opcion-cuenta{background:var(--blanco);color:var(--cafe);border:2px solid var(--linea)}
+.opcion-cuenta .op-ic{background:var(--naranja-suave);color:var(--naranja)}
+.opcion-cuenta small{color:var(--gris)}
+.opcion-cuenta:hover{border-color:var(--naranja)}
+.reg-volver{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:var(--gris);margin-bottom:6px}
+.reg-volver svg{width:16px;height:16px}
+.cambio{text-align:center;font-size:13.5px;color:var(--gris);margin:16px 0 0}
+.cambio button{font-weight:800;color:var(--naranja-osc);text-decoration:underline}
+.err-gral button{display:block;margin-top:8px;font-weight:800;color:var(--naranja-osc);text-decoration:underline}
+.salir-top{margin-top:6px;font-size:11.5px;font-weight:800;color:var(--blanco);opacity:.9;text-decoration:underline}
+/* Mis compras */
+.cuenta-card{background:var(--cafe);color:#F6EADF;border-radius:20px;padding:16px;display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center;margin-top:4px}
+.cuenta-av{width:48px;height:48px;border-radius:50%;background:var(--naranja);color:var(--blanco);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:20px}
+.cuenta-card b{display:block;color:var(--blanco);font-family:var(--f-display);font-size:17px;line-height:1.2}
+.cuenta-card span{font-size:12.5px;opacity:.85}
+.cuenta-acc{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.12);padding-top:12px}
+.cuenta-acc button{font-size:13px;font-weight:800;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.1);color:var(--blanco)}
+.cuenta-acc .btn-salir{background:transparent;border:1.5px solid rgba(255,255,255,.35)}
+.res-cta{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.res-cta div{background:var(--blanco);border-radius:16px;padding:12px 14px;box-shadow:var(--sombra)}
+.res-cta small{display:block;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--gris)}
+.res-cta b{font-family:var(--f-display);font-size:22px;color:var(--cafe)}
+.hist-tit{font-size:17px;margin:22px 0 10px}
+.compras{display:grid;gap:12px}
+.compra{background:var(--blanco);border-radius:var(--r-card);box-shadow:var(--sombra);padding:14px}
+.compra-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.compra-cab b{display:block;font-family:var(--f-display);font-size:15.5px;color:var(--cafe);line-height:1.2;text-transform:capitalize}
+.compra-cab span{font-size:12.5px;color:var(--gris)}
+.compra-total{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--cafe);text-align:right}
+.estado{display:inline-block;margin-top:4px;font-size:11px;font-weight:800;padding:3px 9px;border-radius:var(--r-pill);background:var(--naranja-suave);color:var(--naranja-osc)}
+.estado.confirmado{background:#E3EEFA;color:#1F5C99}
+.estado.entregado{background:#E6F5EC;color:var(--verde-osc)}
+.estado.cancelado{background:#F3E8E6;color:var(--alerta)}
+.estado.guardando{background:var(--crema-osc);color:var(--gris)}
+.compra-fotos{display:flex;gap:6px;margin-top:12px;overflow:hidden}
+.compra-fotos .f{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid #F3ECE3;overflow:hidden;position:relative;background:var(--blanco)}
+.compra-fotos .f img,.compra-fotos .f svg{width:100%;height:100%;object-fit:contain;display:block}
+.compra-fotos .f i{position:absolute;right:2px;bottom:2px;background:var(--cafe);color:var(--blanco);font-style:normal;font-size:9.5px;font-weight:800;border-radius:6px;padding:0 4px;line-height:15px}
+.compra details{margin-top:10px;border-top:1px solid var(--linea);padding-top:8px}
+.compra summary{font-size:12.5px;font-weight:800;color:var(--naranja-osc);cursor:pointer}
+.compra ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;font-size:13px}
+.compra li{display:flex;justify-content:space-between;gap:10px}
+.compra li span:last-child{font-variant-numeric:tabular-nums;color:var(--cafe);font-weight:700;white-space:nowrap}
+.btn-otra{margin-top:12px;width:100%;height:42px;border-radius:12px;border:1.5px solid var(--naranja);color:var(--naranja-osc);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-otra svg{width:16px;height:16px}
+.aviso-hist{font-size:12px;color:var(--gris);margin-top:10px;text-align:center}
+/* Pedido enviado */
+.ok-envio{text-align:center;padding-top:10px}
+.ok-ic{width:72px;height:72px;border-radius:50%;background:#E6F5EC;color:var(--verde);display:grid;place-items:center;margin:0 auto}
+.ok-ic svg{width:38px;height:38px}
+.ok-envio h2{font-size:23px;margin-top:14px}
+.ok-envio > p{font-size:14px;color:var(--gris);margin:8px auto 0;max-width:34ch;line-height:1.5}
+.ok-resumen{margin-top:16px;background:var(--blanco);border-radius:16px;box-shadow:var(--sombra);padding:14px;display:flex;justify-content:space-between;align-items:center;text-align:left}
+.ok-resumen b{font-family:var(--f-display);font-size:20px;color:var(--cafe)}
+.ok-resumen span{font-size:12.5px;color:var(--gris)}
+.ok-envio .btn-wa{height:50px;font-size:15px}
+.ok-envio .btn-pri{margin-top:12px}
+.ok-ayuda{font-size:12.5px;color:var(--gris);margin-top:10px}
 .cliente-chip button{font-size:12.5px;font-weight:800;color:var(--naranja-osc);text-decoration:underline;flex:none}
 
 @media (min-width:560px){
@@ -303,35 +373,53 @@ details.preview[open] summary::after{content:"–"}
       <p>EPA Bakery y Gold Mills creemos en los emprendedores de Panamá. Te llevamos los insumos hasta tu puerta para que tú te dediques a crecer.</p>
     </div>
     <div class="gut">
-      <form class="reg-card" id="f-registro" novalidate>
-        <h2>Entra o crea tu cuenta</h2>
-        <p>¿Ya nos compraste? Escribe el mismo nombre y celular y te reconocemos con tu último pedido.</p>
-        <div class="campo">
-          <label for="r-nombre">Nombre y apellido</label>
-          <input id="r-nombre" name="nombre" autocomplete="name" placeholder="Ej. Rosa Méndez" required>
-          <div class="err" id="r-nombre-err" hidden>Escribe tu nombre para registrarte.</div>
+      <div class="reg-card" id="reg-elegir">
+        <h2>¿Cómo quieres empezar?</h2>
+        <div class="eleccion">
+          <button class="opcion opcion-nuevo" type="button" data-modo="nuevo">
+            <span class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 5 4h14l2 6.5"/><path d="M3 10.5a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/></svg></span>
+            <span class="op-txt"><b>Soy emprendedor nuevo</b><small>Crea tu cuenta gratis en 1 minuto</small></span>
+            <span class="op-fl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+          </button>
+          <button class="opcion opcion-cuenta" type="button" data-modo="entrar">
+            <span class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>
+            <span class="op-txt"><b>Ya tengo cuenta</b><small>Entra solo con tu número de celular</small></span>
+            <span class="op-fl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+          </button>
         </div>
-        <div class="campo">
-          <label for="r-negocio">Nombre de tu negocio <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
-          <input id="r-negocio" name="negocio" autocomplete="organization" placeholder="Ej. Panadería Doña Rosa">
-        </div>
-        <div class="campo">
-          <label for="r-cel">Celular</label>
-          <input id="r-cel" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="6000-0000" maxlength="9" required>
-          <div class="err" id="r-cel-err" hidden>Escribe un celular de 8 dígitos que empiece por 6.</div>
-        </div>
-        <div class="nota">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
-          <span>Tu ubicación la compartes por WhatsApp con tu primer pedido.<small>Con ella te asignamos tu zona y tu día de entrega de ruta.</small></span>
-        </div>
-        <div class="err-gral" id="r-err" hidden></div>
-        <button class="btn-pri" type="submit" id="r-btn">Entrar</button>
         <button class="btn-sec" type="button" data-ir="inicio">Ver el catálogo primero</button>
         <div class="reg-ben">
           <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></span><span><b>Sin costo de envío</b>Te lo llevamos el día de tu ruta.</span></div>
           <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span><b>Precios de fábrica</b>Directo de Gold Mills a tu negocio.</span></div>
           <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/></svg></span><span><b>Asesoría personalizada</b>Un asesor confirma cada pedido contigo.</span></div>
         </div>
+      </div>
+
+      <form class="reg-card" id="f-registro" novalidate hidden>
+        <button type="button" class="reg-volver" data-modo="elegir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg>Volver</button>
+        <h2 id="f-tit">Cuéntanos de tu negocio</h2>
+        <p id="f-sub">Te registras una sola vez. Desde ahí, tu celular es tu cuenta.</p>
+        <div class="campo" id="r-cel-campo">
+          <label for="r-cel">Número de celular</label>
+          <input id="r-cel" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="6000-0000" maxlength="9" required>
+          <div class="err" id="r-cel-err" hidden>Escribe un celular de 8 dígitos que empiece por 6.</div>
+        </div>
+        <div class="campo" id="r-nombre-campo">
+          <label for="r-nombre">Nombre y apellido</label>
+          <input id="r-nombre" name="nombre" autocomplete="name" placeholder="Ej. Rosa Méndez" required>
+          <div class="err" id="r-nombre-err" hidden>Escribe tu nombre para crear tu cuenta.</div>
+        </div>
+        <div class="campo" id="r-negocio-campo">
+          <label for="r-negocio">Nombre de tu negocio <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
+          <input id="r-negocio" name="negocio" autocomplete="organization" placeholder="Ej. Panadería Doña Rosa">
+        </div>
+        <div class="nota" id="r-nota">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <span>Tu ubicación la compartes por WhatsApp con tu primer pedido.<small>Con ella te asignamos tu zona y tu día de entrega de ruta.</small></span>
+        </div>
+        <div class="err-gral" id="r-err" hidden></div>
+        <button class="btn-pri" type="submit" id="r-btn">Crear mi cuenta</button>
+        <p class="cambio" id="r-cambio"></p>
       </form>
     </div>
   </section>
@@ -341,7 +429,7 @@ details.preview[open] summary::after{content:"–"}
     <header class="top gut">
       <div class="top-fila">
         <div class="logo-card"><img src="img/logo.png" alt="EPA Bakery Solutions"></div>
-        <div class="saludo"><small>Bienvenido a</small><strong>Emprende con Gold Mills</strong><span class="saludo-nom" id="saludo-nombre">Hola, emprendedor</span></div>
+        <div class="saludo"><small>Bienvenido a</small><strong>Emprende con Gold Mills</strong><span class="saludo-nom" id="saludo-nombre">Hola, emprendedor</span><button class="salir-top" data-salir id="salir-top" hidden>Cerrar sesión</button></div>
       </div>
     </header>
     <div class="gut">
@@ -396,7 +484,7 @@ details.preview[open] summary::after{content:"–"}
       <div class="cab-fila">
         <button class="volver" data-ir="inicio" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
         <div class="cab-tit"><small>Catálogo</small><h1 id="cat-tit">Harinas</h1></div>
-        <button class="bolsa" data-ir="pedido" aria-label="Ver mi pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
+        <button class="bolsa" data-ir="pedido" aria-label="Ver mi canasta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
       </div>
       <div class="tabs" id="tabs" role="tablist" aria-label="Categorías"></div>
     </div>
@@ -412,7 +500,7 @@ details.preview[open] summary::after{content:"–"}
       <div class="cab-fila">
         <button class="volver" data-ir="inicio" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
         <div class="cab-tit"><small>Catálogo completo</small><h1 id="bus-tit">Buscar</h1></div>
-        <button class="bolsa" data-ir="pedido" aria-label="Ver mi pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
+        <button class="bolsa" data-ir="pedido" aria-label="Ver mi canasta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
       </div>
       <label class="buscador" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Harina, margarina, esencia…" autocomplete="off"></label>
       <div class="chips" id="chips"></div>
@@ -420,21 +508,42 @@ details.preview[open] summary::after{content:"–"}
     <div class="gut"><div class="lista" id="resultados" style="margin-top:12px"></div></div>
   </section>
 
-  <!-- ============ MI PEDIDO ============ -->
+  <!-- ============ MIS COMPRAS ============ -->
+  <section class="view" id="v-compras" aria-labelledby="com-tit">
+    <div class="cab gut">
+      <div class="cab-fila">
+        <button class="volver" data-ir="inicio" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
+        <div class="cab-tit"><small>Tu cuenta</small><h1 id="com-tit">Mis compras</h1></div>
+      </div>
+    </div>
+    <div class="gut"><div id="compras-cuerpo"></div></div>
+  </section>
+
+  <!-- ============ MI CANASTA ============ -->
   <section class="view" id="v-pedido" aria-labelledby="ped-tit">
     <div class="cab gut">
       <div class="cab-fila">
         <button class="volver" data-ir="atras" aria-label="Seguir comprando"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
-        <div class="cab-tit"><small>Revisa antes de enviar</small><h1 id="ped-tit">Mi pedido</h1></div>
+        <div class="cab-tit"><small id="ped-eyebrow">Revisa antes de enviar</small><h1 id="ped-tit">Mi canasta</h1></div>
       </div>
     </div>
     <div class="gut">
       <div id="ped-vacio" class="vacio" hidden>
         <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--naranja)"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
-        <p style="font-weight:800;color:var(--cafe);font-size:16px;margin:10px 0 4px">Tu pedido está vacío</p>
+        <p style="font-weight:800;color:var(--cafe);font-size:16px;margin:10px 0 4px">Tu canasta está vacía</p>
         <p style="margin:0 0 16px">Agrega productos desde el catálogo con el botón +.</p>
         <div id="repetir-vacio" style="text-align:left;margin-bottom:14px"></div>
         <button class="btn-pri" style="max-width:260px" data-ir="cat" data-cat="harinas">Ir al catálogo</button>
+      </div>
+      <div id="ped-ok" class="ok-envio" hidden>
+        <div class="ok-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h2>Tu pedido está listo en WhatsApp</h2>
+        <p>Toca <b>Enviar</b> en WhatsApp y comparte tu ubicación de entrega en el mismo chat. Tu asesor te confirma el día de entrega.</p>
+        <div class="ok-resumen" id="ok-resumen"></div>
+        <a class="btn-wa" id="btn-wa-otra" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>¿No se abrió? Abrir WhatsApp otra vez</a>
+        <p class="ok-ayuda">O escríbele a tu asesor al <b class="num">+507 6757-7826</b><br><button class="copiar" id="copiar">Copiar el pedido</button></p>
+        <button class="btn-pri" data-ir="compras">Ver mis compras</button>
+        <button class="btn-sec" data-ir="cat" data-cat="harinas">Seguir comprando</button>
       </div>
       <div id="ped-lleno">
         <div class="items" id="items"></div>
@@ -462,11 +571,6 @@ details.preview[open] summary::after{content:"–"}
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3z"/></svg>
           Enviar pedido por WhatsApp
         </a>
-        <div class="enviado" id="enviado" hidden>
-          <b>Tu pedido está listo en WhatsApp.</b> Toca enviar y luego comparte tu ubicación de entrega en el mismo chat.<br>
-          Si WhatsApp no se abrió, escríbele a tu asesor al <b class="num" id="num-asesor">+507 6757-7826</b>.
-          <br><button class="copiar" id="copiar">Copiar el pedido</button>
-        </div>
         <div class="garantia">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           <div><b>Pedido directo y atención personalizada</b>Un asesor confirmará la entrega contigo.</div>
@@ -475,7 +579,7 @@ details.preview[open] summary::after{content:"–"}
           <summary>Ver el mensaje que recibirá tu asesor</summary>
           <div class="wa-burbuja" id="wa-preview"></div>
         </details>
-        <button class="vaciar" id="vaciar">Vaciar pedido</button>
+        <button class="vaciar" id="vaciar">Vaciar canasta</button>
       </div>
     </div>
   </section>
@@ -484,19 +588,20 @@ details.preview[open] summary::after{content:"–"}
 
   <!-- Barra de carrito -->
   <div class="fijo carrito-bar" id="carrito-bar" hidden>
-    <button data-ir="pedido"><span class="res num" id="bar-res">0 productos · $0.00<small>Envío sin costo</small></span><span class="ver">Ver pedido →</span></button>
+    <button data-ir="pedido"><span class="res num" id="bar-res">0 productos · $0.00<small>Envío sin costo</small></span><span class="ver">Ver canasta →</span></button>
   </div>
 
   <!-- Navegación -->
   <nav class="fijo nav" aria-label="Navegación principal">
     <button data-ir="inicio" data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
     <button data-ir="buscar" data-nav="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
-    <button data-ir="pedido" data-nav="pedido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></span>Mi pedido</button>
+    <button data-ir="compras" data-nav="compras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>Mis compras</button>
+    <button data-ir="pedido" data-nav="pedido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></span>Canasta</button>
   </nav>
 </div>
 
 <script>
-const PRODUCTOS=[{"c": 320058, "n": "Harina Multiuso", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320042, "n": "Harina Dura", "p": "Saco 25 LB", "k": "harinas", "$": 11.0, "i": true, "t": false}, {"c": 320048, "n": "Harina Pan Francés", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": true}, {"c": 320055, "n": "Harina Suave", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320186, "n": "Harina Integral", "p": "Saco 25 LB", "k": "harinas", "$": null, "i": true, "t": false}, {"c": 320003, "n": "Harina Semidura", "p": "Fardo 9 × 5 LB", "k": "harinas", "$": 3.1, "i": true, "t": false}, {"c": 320004, "n": "Harina Dura para Pan", "p": "Fardo 9 × 5 LB", "k": "harinas", "$": null, "i": true, "t": false}, {"c": 320129, "n": "Premezcla Creme Cake", "p": "Saco 25 LB", "k": "harinas", "$": 27.0, "i": true, "t": false}, {"c": 320128, "n": "Premezcla Creme Cake", "p": "Saco 50 LB", "k": "harinas", "$": 54.0, "i": true, "t": false}, {"c": 8790, "n": "Margarina Dagusto Multipropósitos", "p": "Caja 15 KG", "k": "grasas", "$": 31.95, "i": true, "t": true}, {"c": 8832, "n": "Hojaldrina en Hojas", "p": "Caja 10 KG", "k": "grasas", "$": 26.2, "i": true, "t": true}, {"c": 8781, "n": "Margarina Dagusto Repostería Especial", "p": "Caja 15 KG", "k": "grasas", "$": 36.0, "i": true, "t": false}, {"c": 8871, "n": "Margarina Dagusto Panadera", "p": "Caja 15 KG", "k": "grasas", "$": 25.5, "i": true, "t": false}, {"c": 8834, "n": "Margarina Exclusiva Hojaldre", "p": "Caja 20 × 500 g (10 KG)", "k": "grasas", "$": 23.2, "i": true, "t": false}, {"c": 310285, "n": "Margarina La Comadre Multipropósito", "p": "Caja 33 LB", "k": "grasas", "$": 37.0, "i": true, "t": false}, {"c": 8858, "n": "Manteca La Comadre", "p": "30 LB", "k": "grasas", "$": 23.5, "i": false, "t": false}, {"c": 8799, "n": "Aceite Super Fry Vegetal", "p": "Galón 5.000 ml", "k": "grasas", "$": 12.7, "i": false, "t": false}, {"c": 8882, "n": "Aceite La Sevillana", "p": "18 L", "k": "grasas", "$": 35.0, "i": false, "t": false}, {"c": 310442, "n": "Relleno de Guayaba", "p": "Horneable", "k": "rellenos", "$": 4.2, "i": true, "t": false}, {"c": 310444, "n": "Relleno Chocolate y Avellana", "p": "Horneable", "k": "rellenos", "$": 6.6, "i": true, "t": false}, {"c": 310440, "n": "Relleno de Fresa", "p": "Horneable", "k": "rellenos", "$": 5.05, "i": true, "t": false}, {"c": 310441, "n": "Relleno de Frutos Rojos", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310443, "n": "Relleno de Piña", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310445, "n": "Dulce de Leche", "p": "1 KG", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310456, "n": "KitKat Pasta Cremosa Chocolate", "p": "Balde 1 KG", "k": "rellenos", "$": 11.5, "i": true, "t": false}, {"c": 310455, "n": "Manjar Nestlé", "p": "Bolsa 6 KG", "k": "rellenos", "$": 25.5, "i": true, "t": false}, {"c": 8909, "n": "Esencia de Mantequilla", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8907, "n": "Esencia Vainilla Blanca", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8901, "n": "Esencia Vainilla Negra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8903, "n": "Esencia Dulce de Leche", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8911, "n": "Esencia de Coco", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8912, "n": "Esencia de Almendra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8913, "n": "Esencia de Canela", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8914, "n": "Esencia de Banano", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8916, "n": "Esencia de Fresa", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8946, "n": "Esencia de Piña", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8921, "n": "Esencia de Margarina", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8923, "n": "Esencia Pan Caliente", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8902, "n": "Esencia de Ron", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8918, "n": "Esencia Naranja Oil", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8922, "n": "Esencia Hinojo / Anís", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8944, "n": "Color Caramelo", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8947, "n": "Colorante en Polvo Amarillo Huevo", "p": "500 g", "k": "esencias", "$": 5.5, "i": true, "t": false}, {"c": 310207, "n": "Levadura Dorada Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 310200, "n": "Levadura Roja Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 8900, "n": "Polvo para Hornear", "p": "Bolsa 1 KG", "k": "complementos", "$": 4.15, "i": true, "t": true}, {"c": 8924, "n": "Polvo para Hornear", "p": "Bolsa 5 KG", "k": "complementos", "$": 19.0, "i": true, "t": false}, {"c": 310199, "n": "Pasitas Sweety", "p": "Caja 22 LB", "k": "complementos", "$": 34.0, "i": true, "t": false}, {"c": 310238, "n": "Frutas Cristalizadas La Comadre", "p": "Caja 30 LB", "k": "complementos", "$": 44.0, "i": true, "t": false}, {"c": 9404, "n": "Azúcar Blanca La Estrella", "p": "2 LB", "k": "complementos", "$": 1.29, "i": true, "t": true}, {"c": 310265, "n": "Azúcar Morena Doradita", "p": "Saco 44 LB", "k": "complementos", "$": 25.1, "i": true, "t": false}, {"c": 9000, "n": "Café Durán Tradicional", "p": "Docena de sobres 22 g", "k": "cafe", "$": 4.2, "i": true, "t": true}, {"c": 9023, "n": "Café Durán Tradicional", "p": "212 g", "k": "cafe", "$": 2.96, "i": true, "t": false}, {"c": 9020, "n": "Café Durán Tradicional", "p": "425 g", "k": "cafe", "$": 5.66, "i": true, "t": false}, {"c": 9180, "n": "Café Durán Legado", "p": "425 g", "k": "cafe", "$": 7.08, "i": true, "t": false}, {"c": 9014, "n": "Café Durán en Granos", "p": "354 g", "k": "cafe", "$": 6.01, "i": true, "t": false}, {"c": 9010, "n": "Café Durán Granos de Altura", "p": "2,27 KG", "k": "cafe", "$": 30.68, "i": true, "t": false}, {"c": 9231, "n": "Café Coclé Instantáneo", "p": "425 g", "k": "cafe", "$": 4.33, "i": true, "t": false}, {"c": 9145, "n": "Té de Canela", "p": "100 sobres", "k": "cafe", "$": 3.38, "i": true, "t": false}, {"c": 9141, "n": "Té Negro", "p": "24 sobres", "k": "cafe", "$": 0.69, "i": true, "t": false}, {"c": 9149, "n": "Té de Manzanilla", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9148, "n": "Té de Menta", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9152, "n": "Té de Limón", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9163, "n": "Té Verde Surtido", "p": "20 sobres", "k": "cafe", "$": 1.29, "i": true, "t": false}, {"c": 9659, "n": "Coffee-mate Nestlé", "p": "200 sobres", "k": "cafe", "$": 16.37, "i": true, "t": false}, {"c": 9652, "n": "Azúcar en Sobres Tubulares", "p": "Bolsa 250 sobres", "k": "cafe", "$": 3.24, "i": true, "t": false}, {"c": 9839, "n": "Azúcar Morena en Sobres", "p": "Bolsa 250 sobres", "k": "cafe", "$": 3.24, "i": true, "t": false}, {"c": 9670, "n": "Vaso de Papel con Asa Durán", "p": "6 oz · 50 und", "k": "cafe", "$": 2.16, "i": true, "t": false}, {"c": 9857, "n": "Tapa Negra Bebida Caliente", "p": "100 und · 6 oz", "k": "cafe", "$": 3.14, "i": true, "t": false}, {"c": 9935, "n": "Revolvedores de Bambú Individuales", "p": "100 und", "k": "cafe", "$": 1.1, "i": true, "t": false}, {"c": 9593, "n": "Revolvedores de Bambú", "p": "700 und", "k": "cafe", "$": 2.99, "i": true, "t": false}];
+const PRODUCTOS=[{"c": 320058, "n": "Harina Multiuso", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320042, "n": "Harina Dura", "p": "Saco 25 LB", "k": "harinas", "$": 11.0, "i": true, "t": false}, {"c": 320048, "n": "Harina Pan Francés", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": true}, {"c": 320055, "n": "Harina Suave", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320044, "n": "Harina Multiuso", "p": "Saco 50 LB", "k": "harinas", "$": 20.0, "i": false, "t": false}, {"c": 320045, "n": "Harina Semidura", "p": "Saco 50 LB", "k": "harinas", "$": 25.0, "i": false, "t": false}, {"c": 320041, "n": "Harina Gold Mills 022", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": false}, {"c": 320003, "n": "Harina Semidura", "p": "Bolsa 5 LB", "k": "harinas", "$": 3.1, "i": true, "t": false}, {"c": 320007, "n": "Harina Leudante", "p": "Bolsa 5 LB", "k": "harinas", "$": 3.3, "i": false, "t": false}, {"c": 320008, "n": "Mezcla Hojaldres y Empanadas", "p": "Bolsa 400 g", "k": "harinas", "$": 0.97, "i": false, "t": false}, {"c": 320129, "n": "Premezcla Creme Cake", "p": "Saco 25 LB", "k": "harinas", "$": 27.0, "i": true, "t": false}, {"c": 320128, "n": "Premezcla Creme Cake", "p": "Saco 50 LB", "k": "harinas", "$": 54.0, "i": true, "t": false}, {"c": 8790, "n": "Margarina Dagusto Multipropósitos", "p": "Caja 15 KG", "k": "grasas", "$": 31.95, "i": true, "t": true}, {"c": 8832, "n": "Hojaldrina en Hojas", "p": "Caja 10 KG", "k": "grasas", "$": 26.2, "i": true, "t": true}, {"c": 8781, "n": "Margarina Dagusto Repostería Especial", "p": "Caja 15 KG", "k": "grasas", "$": 36.0, "i": true, "t": false}, {"c": 8871, "n": "Margarina Dagusto Panadera", "p": "Caja 15 KG", "k": "grasas", "$": 25.5, "i": true, "t": false}, {"c": 8858, "n": "Manteca La Comadre", "p": "30 LB", "k": "grasas", "$": 23.5, "i": false, "t": false}, {"c": 8799, "n": "Aceite Super Fry Vegetal", "p": "Galón 5.000 ml", "k": "grasas", "$": 12.7, "i": false, "t": false}, {"c": 8882, "n": "Aceite La Sevillana", "p": "18 L", "k": "grasas", "$": 35.0, "i": false, "t": false}, {"c": 310442, "n": "Relleno de Guayaba", "p": "Horneable", "k": "rellenos", "$": 4.2, "i": true, "t": false}, {"c": 310444, "n": "Relleno Chocolate y Avellana", "p": "Horneable", "k": "rellenos", "$": 6.6, "i": true, "t": false}, {"c": 310440, "n": "Relleno de Fresa", "p": "Horneable", "k": "rellenos", "$": 5.05, "i": true, "t": false}, {"c": 310441, "n": "Relleno de Frutos Rojos", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310443, "n": "Relleno de Piña", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310445, "n": "Dulce de Leche", "p": "1 KG", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310455, "n": "Manjar Nestlé", "p": "Bolsa 6 KG", "k": "rellenos", "$": 25.5, "i": true, "t": false}, {"c": 8909, "n": "Esencia de Mantequilla", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8908, "n": "Esencia de Mantequilla", "p": "Galón 3.850 ml", "k": "esencias", "$": 23.9, "i": false, "t": false}, {"c": 8907, "n": "Esencia Vainilla Blanca", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8901, "n": "Esencia Vainilla Negra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8903, "n": "Esencia Dulce de Leche", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8911, "n": "Esencia de Coco", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8912, "n": "Esencia de Almendra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8913, "n": "Esencia de Canela", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8914, "n": "Esencia de Banano", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8916, "n": "Esencia de Fresa", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8946, "n": "Esencia de Piña", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8921, "n": "Esencia de Margarina", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8923, "n": "Esencia Pan Caliente", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8902, "n": "Esencia de Ron", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8918, "n": "Esencia Naranja Oil", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8922, "n": "Esencia Hinojo / Anís", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8944, "n": "Color Caramelo", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 310207, "n": "Levadura Dorada Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 310200, "n": "Levadura Roja Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 8900, "n": "Polvo para Hornear", "p": "Bolsa 1 KG", "k": "complementos", "$": 4.15, "i": true, "t": true}, {"c": 310199, "n": "Pasitas Sweety", "p": "Caja 22 LB", "k": "complementos", "$": 34.0, "i": true, "t": false}, {"c": 310238, "n": "Frutas Cristalizadas La Comadre", "p": "Caja 30 LB", "k": "complementos", "$": 44.0, "i": true, "t": false}, {"c": 9404, "n": "Azúcar Blanca La Estrella", "p": "2 LB", "k": "complementos", "$": 1.29, "i": true, "t": true}, {"c": 310265, "n": "Azúcar Morena Doradita", "p": "Saco 44 LB", "k": "complementos", "$": 25.1, "i": true, "t": false}, {"c": 310431, "n": "Azúcar Morena Turbinada", "p": "Saco 100 LB", "k": "complementos", "$": 52.0, "i": false, "t": false}, {"c": 310235, "n": "Sal La Preferida", "p": "Saco 50 LB", "k": "complementos", "$": 9.35, "i": false, "t": false}, {"c": 310243, "n": "Maicena de Maíz", "p": "Saco 55 LB", "k": "complementos", "$": 24.0, "i": false, "t": false}, {"c": 320013, "n": "Maicena Vainilla Gold Mills", "p": "Sobre 47 g", "k": "complementos", "$": 0.24, "i": false, "t": false}, {"c": 1799, "n": "Galleta María Molida", "p": "454 g", "k": "complementos", "$": 2.3, "i": false, "t": false}, {"c": 1797, "n": "Galleta María Molida Industrial", "p": "Caja 20 KG", "k": "complementos", "$": 56.71, "i": false, "t": false}, {"c": 9000, "n": "Café Durán Tradicional", "p": "Docena de sobres 22 g", "k": "cafe", "$": 4.2, "i": true, "t": true}, {"c": 9023, "n": "Café Durán Tradicional", "p": "212 g", "k": "cafe", "$": 2.96, "i": true, "t": false}, {"c": 9020, "n": "Café Durán Tradicional", "p": "425 g", "k": "cafe", "$": 5.66, "i": true, "t": false}, {"c": 9180, "n": "Café Durán Legado", "p": "425 g", "k": "cafe", "$": 7.08, "i": true, "t": false}, {"c": 9232, "n": "Café Coclé", "p": "212 g", "k": "cafe", "$": 2.25, "i": false, "t": false}, {"c": 9231, "n": "Café Coclé Instantáneo", "p": "425 g", "k": "cafe", "$": 4.33, "i": true, "t": false}, {"c": 9141, "n": "Té Negro", "p": "24 sobres", "k": "cafe", "$": 0.69, "i": true, "t": false}, {"c": 9145, "n": "Té de Canela", "p": "100 sobres", "k": "cafe", "$": 3.38, "i": true, "t": false}, {"c": 1301, "n": "Galleta María", "p": "Caja 36 × 30 g", "k": "cafe", "$": 6.48, "i": false, "t": false}];
 const WA_NUM="50767577826";
 
 /* ===== Conexión a Supabase =====
@@ -531,11 +636,12 @@ const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
 const ILUS={
   saco:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M30 22h40l4 10-3 50a6 6 0 0 1-6 6H35a6 6 0 0 1-6-6l-3-50z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><path d="M30 22l4-6h32l4 6" fill="none" stroke="#C0631A" stroke-width="2.5"/><rect x="36" y="42" width="28" height="18" rx="3" fill="#FBEADB"/><path d="M50 46v10M45 49l5 3 5-3" stroke="#C0631A" stroke-width="2" fill="none"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>',
   balde:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M26 34h48l-5 44a5 5 0 0 1-5 4H36a5 5 0 0 1-5-4z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><rect x="22" y="26" width="56" height="9" rx="3" fill="#FBEADB" stroke="#C0631A" stroke-width="2.5"/><rect x="38" y="48" width="24" height="14" rx="3" fill="#FBEADB"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>',
+  caja:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M24 36 50 24l26 12v32L50 80 24 68z" fill="#fff" stroke="#C0631A" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 36l26 12 26-12M50 48v32" fill="none" stroke="#C0631A" stroke-width="2.5" stroke-linejoin="round"/><path d="M37 30l26 12" stroke="#F2A86B" stroke-width="4"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>',
   galon:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M34 30h22l12 10v38a5 5 0 0 1-5 5H37a5 5 0 0 1-5-5V34z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><rect x="38" y="20" width="12" height="10" rx="2" fill="#F2A86B" stroke="#C0631A" stroke-width="2"/><path d="M58 32c8 0 10 4 10 10" fill="none" stroke="#C0631A" stroke-width="2.5"/><path d="M50 52c-4 6-5 9-5 11a5 5 0 0 0 10 0c0-2-1-5-5-11z" fill="#F2A86B"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>'
 };
 function foto(p){
   if(p.i) return `<img src="img/${p.c}.webp" alt="${p.n} ${p.p}" loading="lazy" width="400" height="400">`;
-  const t = p.k==="harinas"?"saco":(/aceite/i.test(p.n)?"galon":"balde");
+  const t = /aceite|galón/i.test(p.n+" "+p.p) ? "galon" : /manteca/i.test(p.n) ? "balde" : /saco|bolsa 5 lb/i.test(p.p) ? "saco" : "caja";
   return ILUS[t];
 }
 
@@ -544,7 +650,9 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v)
 let carrito=store.get("epa_carrito",{});
 let usuario=store.get("epa_usuario",null);
 let ultimo=store.get("epa_ultimo",null);          // {items:[{c,q}], total, fecha}
-let pendientes=store.get("epa_pendientes",[]);    // pedidos que no alcanzaron a guardarse en la nube
+let pendientes=store.get("epa_pendientes",[]);
+let historial=store.get("epa_historial",[]);     // copia local de las compras de este celular
+let modoReg="elegir", pedOk=false, envioHref="", envioTexto="", envioResumen=null;    // pedidos que no alcanzaron a guardarse en la nube
 const ultimoDesdeNube=u=>u&&Array.isArray(u.items)?{items:u.items.map(i=>({c:+i.codigo,q:+i.cantidad})).filter(i=>i.q>0),total:+u.total,fecha:u.creado_en}:null;
 function guardarUsuario(u){usuario=u;store.set("epa_usuario",u);}
 function guardarUltimo(u){ultimo=u;store.set("epa_ultimo",u);}
@@ -606,8 +714,10 @@ function repetirPedido(){
 let toastT;
 function toast(t){const e=$("#toast"); e.textContent=t; e.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("on"),2600);}
 function renderCuenta(){
-  $("#cuenta").innerHTML = usuario?.nombre ? `Pedidos a nombre de <b>${esc(usuario.nombre)}</b> · <button data-salir>No soy yo</button>` : `<button data-ir="registro">Entrar con mi nombre y celular</button>`;
+  $("#cuenta").innerHTML = usuario?.celular ? `Cuenta de <b>${esc(usuario.nombre||"")}</b> · ${fmtCel(usuario.celular)} · <button data-salir>Cerrar sesión</button>` : `<button data-ir="registro" data-modo="entrar">Ya tengo cuenta: entrar con mi celular</button>`;
+  $("#salir-top").hidden = !usuario?.celular;
 }
+const fmtCel=c=>c?String(c).slice(0,4)+"-"+String(c).slice(4):"";
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function renderInicio(){
   $("#repetir-box").innerHTML=bloqueRepetir();
@@ -653,6 +763,17 @@ function mensaje(){
 }
 function renderPedido(){
   const {l,total,consultar}=totales();
+  if(l.length) pedOk=false;
+  $("#ped-ok").hidden = !pedOk;
+  $("#ped-eyebrow").textContent = pedOk ? "Pedido enviado" : "Revisa antes de enviar";
+  $("#ped-tit").textContent = pedOk ? "¡Listo!" : "Mi canasta";
+  if(pedOk){
+    $("#ped-vacio").hidden=true; $("#ped-lleno").hidden=true;
+    $("#btn-wa-otra").href=envioHref;
+    const r=envioResumen||{unidades:0,total:0,consultar:0};
+    $("#ok-resumen").innerHTML=`<div><span>Tu pedido</span><br><b class="num">${money(r.total)}</b>${r.consultar?' <span>+ por consultar</span>':''}</div><span>${r.unidades} ${r.unidades===1?"unidad":"unidades"}<br>Envío sin costo</span>`;
+    return;
+  }
   $("#ped-vacio").hidden = l.length>0; $("#ped-lleno").hidden = l.length===0;
   $("#repetir-vacio").innerHTML = l.length? "" : bloqueRepetir();
   $("#p-cel-campo").hidden = !!usuario?.celular;
@@ -682,6 +803,7 @@ function renderContadores(){
 }
 
 /* ---------- Navegación ---------- */
+let modoPend=null;
 function ir(v,cat){
   if(v==="atras") v = vistaPrevia && vistaPrevia!=="pedido" ? vistaPrevia : "inicio";
   if(cat) catActual=cat;
@@ -694,10 +816,13 @@ function ir(v,cat){
   if(v==="inicio") renderInicio();
   if(v==="cat") renderCat();
   if(v==="buscar") renderBuscar();
+  if(v==="compras") renderCompras();
+  if(v==="registro") setModo(modoPend||"elegir"), modoPend=null;
+  if(v!=="pedido") pedOk=false;
   if(v==="pedido"){
     if(!$("#p-nombre").value && usuario) $("#p-nombre").value = usuario.negocio ? `${usuario.nombre} – ${usuario.negocio}` : usuario.nombre;
     if(usuario?.celular) $("#p-cel").value = usuario.celular.slice(0,4)+"-"+usuario.celular.slice(4);
-    $("#enviado").hidden=true; renderPedido();
+    renderPedido();
   }
   renderContadores();
   window.scrollTo({top:0});
@@ -718,9 +843,13 @@ document.addEventListener("click",e=>{
     return;
   }
   if(e.target.closest("[data-repetir]")){ repetirPedido(); return; }
-  if(e.target.closest("[data-salir]")){ guardarUsuario(null); guardarUltimo(null); try{localStorage.removeItem("epa_usuario");localStorage.removeItem("epa_ultimo")}catch(_){}; $("#p-nombre").value=""; $("#p-cel").value=""; ir("registro"); return; }
+  if(e.target.closest("[data-salir]")){ cerrarSesion(); return; }
+  const rc=e.target.closest("[data-repetir-compra]");
+  if(rc){ repetirCompra(rc.dataset.repetirCompra); return; }
   const n=e.target.closest("[data-ir]");
-  if(n){ e.preventDefault(); ir(n.dataset.ir, n.dataset.cat); }
+  if(n){ e.preventDefault(); if(n.dataset.modo) modoPend=n.dataset.modo; ir(n.dataset.ir, n.dataset.cat); return; }
+  const md=e.target.closest("[data-modo]");
+  if(md){ setModo(md.dataset.modo); }
 });
 $("#q").addEventListener("input",renderBuscar);
 $("#p-nombre").addEventListener("input",()=>{ $("#p-nombre-err").hidden=true; $("#p-nombre").removeAttribute("aria-invalid"); actualizarWA(); });
@@ -733,15 +862,21 @@ $("#btn-wa").addEventListener("click",e=>{
     e.preventDefault(); $("#p-cel-err").hidden=false; $("#p-cel").setAttribute("aria-invalid","true"); $("#p-cel").focus(); return;
   }
   actualizarWA();
+  const {unidades,total,consultar}=totales();
+  envioHref=$("#btn-wa").href; envioTexto=mensaje(); envioResumen={unidades,total,consultar};
   registrarPedido(usuario?.celular||cel);
-  setTimeout(()=>{$("#enviado").hidden=false;},300);
+  setTimeout(()=>{ carrito={}; store.set("epa_carrito",carrito); pedOk=true; renderPedido(); renderContadores(); window.scrollTo({top:0}); },60);
 });
 $("#p-cel").addEventListener("input",e=>{ let d=e.target.value.replace(/\D/g,"").slice(0,8); e.target.value=d.length>4?d.slice(0,4)+"-"+d.slice(4):d; $("#p-cel-err").hidden=true; e.target.removeAttribute("aria-invalid"); });
 
 function registrarPedido(cel){
   const {l,total,consultar}=totales();
   const nombre=$("#p-nombre").value.trim();
-  guardarUltimo({items:l.map(({p,q})=>({c:p.c,q})),total,fecha:new Date().toISOString()});
+  const ahora=new Date().toISOString();
+  guardarUltimo({items:l.map(({p,q})=>({c:p.c,q})),total,fecha:ahora});
+  historial.unshift({id:"local-"+Date.now(),creado_en:ahora,estado:"enviado_whatsapp",total:Math.round(total*100)/100,productos_por_consultar:consultar,
+    items:l.map(({p,q})=>({codigo:p.c,nombre:p.n,presentacion:p.p,cantidad:q,precio:p.$})),local:true});
+  historial=historial.slice(0,40); store.set("epa_historial",historial);
   if(!usuario?.celular){ guardarUsuario({...(usuario||{}),nombre:nombre.split(/\s[–-]\s/)[0],celular:cel}); }
   const args={p_token:usuario?.token||null,p_nombre:nombre,p_celular:cel,
     p_items:l.map(({p,q})=>({codigo:p.c,nombre:p.n,presentacion:p.p,cantidad:q,precio:p.$})),
@@ -769,52 +904,148 @@ async function sincronizar(){
   }
 }
 $("#copiar").addEventListener("click",()=>{
-  const t=mensaje(), b=$("#copiar");
+  const t=envioTexto||mensaje(), b=$("#copiar");
   const ok=()=>{b.textContent="Pedido copiado";setTimeout(()=>b.textContent="Copiar el pedido",2000)};
-  try{ navigator.clipboard.writeText(t).then(ok).catch(()=>{ $("details.preview").open=true; ok(); }); }catch(err){ $("details.preview").open=true; }
+  try{ navigator.clipboard.writeText(t).then(ok).catch(()=>{ b.textContent="No se pudo copiar"; }); }catch(err){ b.textContent="No se pudo copiar"; }
 });
 $("#vaciar").addEventListener("click",()=>{ carrito={}; store.set("epa_carrito",carrito); renderPedido(); renderContadores(); });
 $("#r-cel").addEventListener("input",e=>{ let d=e.target.value.replace(/\D/g,"").slice(0,8); e.target.value=d.length>4?d.slice(0,4)+"-"+d.slice(4):d; });
+function setModo(m){
+  modoReg=m;
+  $("#reg-elegir").hidden = m!=="elegir";
+  $("#f-registro").hidden = m==="elegir";
+  $("#r-err").hidden=true;
+  ["r-cel","r-nombre"].forEach(id=>{$("#"+id+"-err").hidden=true; $("#"+id).removeAttribute("aria-invalid");});
+  if(m==="elegir") return;
+  const nuevo = m==="nuevo";
+  $("#f-tit").textContent = nuevo ? "Cuéntanos de tu negocio" : "Hola de nuevo";
+  $("#f-sub").textContent = nuevo ? "Te registras una sola vez. Desde ahí, tu celular es tu cuenta." : "Escribe tu número de celular y te mostramos tu cuenta y tus compras.";
+  $("#r-nombre-campo").hidden = !nuevo; $("#r-negocio-campo").hidden = !nuevo; $("#r-nota").hidden = !nuevo;
+  $("#r-btn").textContent = nuevo ? "Crear mi cuenta" : "Entrar";
+  $("#r-cambio").innerHTML = nuevo ? `¿Ya tienes cuenta? <button type="button" data-modo="entrar">Entra con tu celular</button>`
+                                   : `¿Es tu primera vez? <button type="button" data-modo="nuevo">Crea tu cuenta</button>`;
+  setTimeout(()=>{ try{$("#r-cel").focus({preventScroll:true})}catch(_){} },50);
+}
+function entrarCon(r,{nuevo}){
+  const cambio = usuario?.celular && usuario.celular!==r.celular;
+  guardarUsuario({token:r.token||null,nombre:r.nombre,negocio:r.negocio||"",celular:r.celular});
+  if(cambio){ historial=[]; store.set("epa_historial",historial); }
+  if(r.ultimo_pedido!==undefined) guardarUltimo(ultimoDesdeNube(r.ultimo_pedido));
+  $("#p-nombre").value=""; $("#p-cel").value="";
+  const nom=(r.nombre||"").split(" ")[0];
+  if(nuevo){ ir("inicio"); toast(`Bienvenido, ${nom}`); }
+  else { ir("compras"); toast(`Hola de nuevo, ${nom}`); }
+}
 $("#f-registro").addEventListener("submit",async e=>{
   e.preventDefault();
+  const nuevo = modoReg==="nuevo";
   const nom=$("#r-nombre").value.trim(), neg=$("#r-negocio").value.trim(), cel=$("#r-cel").value.replace(/\D/g,"");
-  const okN=nom.length>1, okC=/^6\d{7}$/.test(cel);
-  $("#r-nombre-err").hidden=okN; $("#r-nombre").setAttribute("aria-invalid",!okN);
+  const okC=/^6\d{7}$/.test(cel), okN=!nuevo||nom.length>1;
   $("#r-cel-err").hidden=okC; $("#r-cel").setAttribute("aria-invalid",!okC);
+  $("#r-nombre-err").hidden=okN; $("#r-nombre").setAttribute("aria-invalid",!okN);
   $("#r-err").hidden=true;
-  if(!okN||!okC) return;
-  if(!NUBE){
-    const mismo = usuario?.celular===cel;
-    guardarUsuario({nombre:nom,negocio:neg,celular:cel});
-    if(!mismo) guardarUltimo(null);
-    ir("inicio"); toast(`Bienvenido, ${nom.split(" ")[0]}`); return;
-  }
-  const b=$("#r-btn"); b.disabled=true; b.textContent="Entrando…";
+  if(!okC||!okN) return;
+  const local = ()=>{
+    if(nuevo){ entrarCon({nombre:nom,negocio:neg,celular:cel},{nuevo:true}); return true; }
+    if(usuario?.celular===cel){ entrarCon(usuario,{nuevo:false}); return true; }
+    return false;
+  };
+  if(!NUBE){ if(!local()){ $("#r-err").innerHTML="En este celular no hay una cuenta con ese número."; $("#r-err").hidden=false; } return; }
+  const b=$("#r-btn"), txt=b.textContent; b.disabled=true; b.textContent= nuevo?"Creando tu cuenta…":"Entrando…";
   try{
-    const r=await rpc("ingresar_cliente",{p_nombre:nom,p_negocio:neg,p_celular:cel});
-    guardarUsuario({token:r.token,nombre:r.nombre,negocio:r.negocio||"",celular:r.celular});
-    guardarUltimo(ultimoDesdeNube(r.ultimo_pedido));
-    $("#p-nombre").value="";
-    ir("inicio");
-    toast(r.nuevo?`Bienvenido, ${r.nombre.split(" ")[0]}`:`Hola de nuevo, ${r.nombre.split(" ")[0]}`);
+    const r = nuevo ? await rpc("ingresar_cliente",{p_nombre:nom,p_negocio:neg,p_celular:cel})
+                    : await rpc("entrar_cliente",{p_celular:cel});
+    if(nuevo && !r.nuevo){ entrarCon(r,{nuevo:false}); toast(`Ese celular ya tenía cuenta, ${(r.nombre||"").split(" ")[0]}. Aquí están tus compras`); }
+    else entrarCon(r,{nuevo});
   }catch(err){
-    const m={celular_registrado:"Este celular ya está registrado con otro nombre. Escribe el nombre con el que te registraste.",
-             celular_invalido:"Revisa el celular: deben ser 8 dígitos y empezar por 6.",
-             nombre_invalido:"Escribe tu nombre completo."}[err.code];
-    if(!m && !err.code){   // sin conexión con la base: entra igual y se vincula con su primer pedido
-      const mismo = usuario?.celular===cel;
-      guardarUsuario({nombre:nom,negocio:neg,celular:cel}); if(!mismo) guardarUltimo(null);
-      ir("inicio"); toast(`Bienvenido, ${nom.split(" ")[0]}`); return;
+    if(err.code==="no_registrado"){
+      $("#r-err").innerHTML=`No encontramos una cuenta con el ${fmtCel(cel)}.<button type="button" data-modo="nuevo">Crear mi cuenta con este número</button>`;
+      $("#r-err").hidden=false; return;
     }
+    const m={celular_invalido:"Revisa el celular: deben ser 8 dígitos y empezar por 6.", nombre_invalido:"Escribe tu nombre y apellido."}[err.code];
+    if(!m && !err.code && local()) return;      // sin conexión con la base
     $("#r-err").textContent = m || "No pudimos conectarnos. Revisa tu internet e inténtalo de nuevo.";
     $("#r-err").hidden=false;
-  }finally{ b.disabled=false; b.textContent="Entrar"; }
+  }finally{ b.disabled=false; b.textContent=txt; }
 });
+
+function cerrarSesion(){
+  guardarUsuario(null); guardarUltimo(null); historial=[]; carrito={};
+  try{ ["epa_usuario","epa_ultimo","epa_historial","epa_carrito"].forEach(k=>localStorage.removeItem(k)); }catch(_){}
+  $("#p-nombre").value=""; $("#p-cel").value=""; $("#r-cel").value=""; $("#r-nombre").value=""; $("#r-negocio").value="";
+  pedOk=false; ir("registro"); toast("Cerraste sesión");
+}
+
+/* ---------- Mis compras ---------- */
+const ESTADOS={enviado_whatsapp:"Enviado",confirmado:"Confirmado",entregado:"Entregado",cancelado:"Cancelado"};
+let comprasVista=[];
+function fechaLarga(f){
+  const d=new Date(f); if(isNaN(d)) return "";
+  return d.toLocaleDateString("es-PA",{weekday:"long",day:"numeric",month:"short"})+" · "+d.toLocaleTimeString("es-PA",{hour:"numeric",minute:"2-digit"});
+}
+function tarjetaCompra(c,idx){
+  const items=(c.items||[]).filter(i=>i&&i.cantidad>0);
+  const uni=items.reduce((a,i)=>a+(+i.cantidad||0),0);
+  const fotos=items.slice(0,6).map(i=>{const p=P[+i.codigo]||{c:+i.codigo,n:i.nombre||"",p:i.presentacion||"",k:"",i:false}; return `<span class="f">${foto(p)}<i>${i.cantidad}</i></span>`;}).join("");
+  const est=c.guardando?"guardando":(c.estado||"enviado_whatsapp");
+  const lista=items.map(i=>`<li><span>${i.cantidad} × ${esc(i.nombre||("Código "+i.codigo))} ${esc(i.presentacion||"")}</span><span>${i.precio==null?"Consultar":money(i.precio*i.cantidad)}</span></li>`).join("");
+  const vigentes=items.filter(i=>P[+i.codigo]).length;
+  return `<article class="compra">
+    <div class="compra-cab"><div><b>${fechaLarga(c.creado_en)}</b><span>${uni} ${uni===1?"unidad":"unidades"} · ${items.length} ${items.length===1?"producto":"productos"}</span><br>
+      <span class="estado ${est}">${est==="guardando"?"Guardando…":ESTADOS[est]||est}</span></div>
+      <div class="compra-total num">${money(+c.total||0)}${c.productos_por_consultar?'<br><span style="font-size:11px;color:var(--gris);font-family:var(--f-body)">+ por consultar</span>':""}</div></div>
+    <div class="compra-fotos">${fotos}</div>
+    <details><summary>Ver detalle</summary><ul>${lista}</ul></details>
+    ${vigentes?`<button class="btn-otra" data-repetir-compra="${idx}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>Volver a pedir esto</button>`:""}
+  </article>`;
+}
+function pintarCompras(lista,aviso){
+  comprasVista=lista;
+  const tot=lista.filter(c=>c.estado!=="cancelado").reduce((a,c)=>a+(+c.total||0),0);
+  $("#compras-cuerpo").innerHTML=`
+    <div class="cuenta-card"><span class="cuenta-av">${esc((usuario.nombre||"?").trim().charAt(0).toUpperCase())}</span>
+      <div><b>${esc(usuario.nombre||"Mi cuenta")}</b><span>${usuario.negocio?esc(usuario.negocio)+" · ":""}${fmtCel(usuario.celular)}</span></div>
+      <div class="cuenta-acc"><button data-ir="cat" data-cat="harinas">Hacer un pedido</button><button class="btn-salir" data-salir>Cerrar sesión</button></div></div>
+    <div class="res-cta"><div><small>Pedidos</small><b class="num">${lista.length}</b></div><div><small>Total pedido</small><b class="num">${money(tot)}</b></div></div>
+    <h2 class="hist-tit">Historial de pedidos</h2>
+    ${lista.length?`<div class="compras">${lista.map(tarjetaCompra).join("")}</div>`:
+      `<div class="vacio">Todavía no tienes pedidos.<br>Cuando envíes uno por WhatsApp, aparece aquí.</div>`}
+    ${aviso?`<p class="aviso-hist">${aviso}</p>`:""}`;
+}
+async function renderCompras(){
+  if(!usuario?.celular){
+    $("#compras-cuerpo").innerHTML=`<div class="vacio" style="padding-top:20px">
+      <p style="font-weight:800;color:var(--cafe);font-size:16px;margin:0 0 6px">Entra para ver tus compras</p>
+      <p style="margin:0 0 16px">Tu número de celular es tu cuenta: con él ves tu historial y repites pedidos en un toque.</p>
+      <div class="eleccion" style="text-align:left">
+        <button class="opcion opcion-cuenta" data-ir="registro" data-modo="entrar"><span class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span><span><b>Ya tengo cuenta</b><small>Entra con tu celular</small></span><span></span></button>
+        <button class="opcion opcion-nuevo" data-ir="registro" data-modo="nuevo"><span class="op-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span><span><b>Soy emprendedor nuevo</b><small>Crea tu cuenta gratis</small></span><span></span></button>
+      </div></div>`;
+    return;
+  }
+  const locales=historial.slice();
+  pintarCompras(locales, NUBE&&usuario.token?"Actualizando…":(NUBE?"":"Compras guardadas en este celular."));
+  if(!NUBE||!usuario.token) return;
+  try{
+    const nube=await rpc("mis_pedidos",{p_token:usuario.token,p_limite:40})||[];
+    const ult=nube.length?new Date(nube[0].creado_en):new Date(0);
+    const sinSubir=locales.filter(c=>new Date(c.creado_en)>ult && pendientes.length).map(c=>({...c,guardando:true}));
+    if(vistaActual==="compras") pintarCompras([...sinSubir,...nube]);
+  }catch(_){
+    if(vistaActual==="compras") pintarCompras(locales,"Sin conexión: te mostramos las compras guardadas en este celular.");
+  }
+}
+function repetirCompra(idx){
+  const c=comprasVista[+idx]; if(!c) return;
+  carrito={}; (c.items||[]).forEach(i=>{ const k=+i.codigo; if(P[k]&&i.cantidad>0) carrito[k]=Math.min(99,+i.cantidad); });
+  store.set("epa_carrito",carrito); ir("pedido"); toast("Listo: tu canasta tiene ese pedido");
+}
 
 /* Arranque */
 const h=(location.hash||"").slice(1);
 if(CATS.some(c=>c.k===h)) ir("cat",h);
 else if(h==="pedido") ir("pedido");
+else if(h==="compras") ir("compras");
 else if(h==="inicio"||usuario) ir("inicio");
 else ir("registro");
 sincronizar();

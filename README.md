@@ -9,11 +9,14 @@ Catálogo web de insumos de panadería de EPA Bakery y Gold Mills. El emprendedo
 | `index.html` | La página completa |
 | `img/` | Fotos de producto (nombradas por código) y logo |
 | `supabase/esquema.sql` | Base de datos: clientes, pedidos y funciones seguras |
+| `supabase/02_historial_y_entrada.sql` | El celular como dato madre, entrada con solo el celular e historial de compras |
 | `netlify.toml` | Publicación en Netlify, sin compilación |
 
 ## Memoria de clientes
 
-- El cliente entra con **nombre + celular**. Si ya existe, la página lo reconoce en cualquier celular.
+- **El celular es el dato madre.** "Soy emprendedor nuevo" crea la cuenta; "Ya tengo cuenta" pide solo el celular y abre el historial y la información de la cuenta.
+- **Mis compras** muestra cada pedido con fecha, estado y detalle, y permite volver a pedirlo.
+- Al enviar por WhatsApp la canasta se vacía. **Cerrar sesión** borra la cuenta y la canasta del teléfono.
 - Cada vez que toca **Enviar pedido por WhatsApp**, el pedido queda guardado.
 - En la próxima visita aparece **Repetir mi último pedido**, que llena la canasta con lo mismo y los precios de hoy.
 - Si el cliente no tiene internet al enviar, el pedido queda pendiente y se sube solo la próxima vez que abra la página.
@@ -25,7 +28,7 @@ Proyecto conectado: `emprende-con-goldmills` (us-east-1), `https://wajzboetmyyyh
 ### Para montar en otro proyecto
 
 1. En Supabase, crear el proyecto.
-2. Abrir **SQL Editor → New query**, pegar `supabase/esquema.sql` y ejecutar con **Run**.
+2. Abrir **SQL Editor → New query**, pegar `supabase/esquema.sql` y ejecutar con **Run**. Repetir con `supabase/02_historial_y_entrada.sql`.
 3. En **Project Settings → API**, copiar la **Project URL** y la llave **anon public**.
 4. En `index.html`, pegar ambas en `SUPABASE_URL` y `SUPABASE_KEY`.
 
