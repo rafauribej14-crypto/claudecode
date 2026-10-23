@@ -18,7 +18,11 @@ Catálogo web de insumos de panadería de EPA Bakery y Gold Mills. El emprendedo
 - En la próxima visita aparece **Repetir mi último pedido**, que llena la canasta con lo mismo y los precios de hoy.
 - Si el cliente no tiene internet al enviar, el pedido queda pendiente y se sube solo la próxima vez que abra la página.
 
-## Encender Supabase (una sola vez)
+## Supabase
+
+Proyecto conectado: `emprende-con-goldmills` (us-east-1), `https://wajzboetmyyyhnggjice.supabase.co`. La página usa la llave pública anon, que puede ir en el código del navegador.
+
+### Para montar en otro proyecto
 
 1. En Supabase, crear el proyecto.
 2. Abrir **SQL Editor → New query**, pegar `supabase/esquema.sql` y ejecutar con **Run**.

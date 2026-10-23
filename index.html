@@ -502,8 +502,8 @@ const WA_NUM="50767577826";
 /* ===== Conexión a Supabase =====
    Pega aquí la URL del proyecto y la llave pública "anon" (Supabase → Project Settings → API).
    Mientras estén vacías, la página recuerda al cliente solo en su propio celular. */
-const SUPABASE_URL="";
-const SUPABASE_KEY="";
+const SUPABASE_URL="https://wajzboetmyyyhnggjice.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indhanpib2V0bXl5eWhuZ2dqaWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NTk0MDYsImV4cCI6MjEwODMzNTQwNn0.BkDs0gAhcOI4dyhw94Tt_ueR2MFlIB4uAoifcNpS9kU";
 const NUBE=!!(SUPABASE_URL&&SUPABASE_KEY);
 async function rpc(fn,args,keep){
   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`,{method:"POST",keepalive:!!keep,
@@ -801,6 +801,11 @@ $("#f-registro").addEventListener("submit",async e=>{
     const m={celular_registrado:"Este celular ya está registrado con otro nombre. Escribe el nombre con el que te registraste.",
              celular_invalido:"Revisa el celular: deben ser 8 dígitos y empezar por 6.",
              nombre_invalido:"Escribe tu nombre completo."}[err.code];
+    if(!m && !err.code){   // sin conexión con la base: entra igual y se vincula con su primer pedido
+      const mismo = usuario?.celular===cel;
+      guardarUsuario({nombre:nom,negocio:neg,celular:cel}); if(!mismo) guardarUltimo(null);
+      ir("inicio"); toast(`Bienvenido, ${nom.split(" ")[0]}`); return;
+    }
     $("#r-err").textContent = m || "No pudimos conectarnos. Revisa tu internet e inténtalo de nuevo.";
     $("#r-err").hidden=false;
   }finally{ b.disabled=false; b.textContent="Entrar"; }

@@ -4,7 +4,7 @@
 -- Es seguro volver a ejecutarlo: no borra datos existentes.
 -- =====================================================================
 
-create extension if not exists unaccent;
+create extension if not exists unaccent with schema extensions;
 
 -- ---------------------------------------------------------------------
 -- 1. CLIENTES · un registro por celular
@@ -136,6 +136,7 @@ $$;
 
 -- Permisos: la página (rol anon) solo ejecuta estas tres funciones
 revoke all on function public._ultimo_pedido_de(uuid) from public, anon, authenticated;
+revoke all on function public.mismo_nombre(text, text) from public, anon, authenticated;
 grant execute on function public.ingresar_cliente(text, text, text) to anon, authenticated;
 grant execute on function public.enviar_pedido(uuid, text, text, jsonb, numeric, int) to anon, authenticated;
 grant execute on function public.ultimo_pedido(uuid) to anon, authenticated;
@@ -143,14 +144,14 @@ grant execute on function public.ultimo_pedido(uuid) to anon, authenticated;
 -- ---------------------------------------------------------------------
 -- 5. VISTAS PARA TI (solo desde el panel de Supabase, no desde la página)
 -- ---------------------------------------------------------------------
-create or replace view public.v_pedidos as
+create or replace view public.v_pedidos with (security_invoker = true) as
   select p.id, p.creado_en at time zone 'America/Panama' as fecha_panama,
          p.nombre, c.negocio, p.celular, c.zona, c.dia_entrega,
          jsonb_array_length(p.items) as referencias, p.total, p.productos_por_consultar, p.estado
   from pedidos p left join clientes c on c.id = p.cliente_id
   order by p.creado_en desc;
 
-create or replace view public.v_productos_pedidos as
+create or replace view public.v_productos_pedidos with (security_invoker = true) as
   select (i->>'codigo')::int as codigo, i->>'nombre' as producto, i->>'presentacion' as presentacion,
          sum((i->>'cantidad')::int) as unidades, count(distinct p.id) as pedidos,
          count(distinct p.cliente_id) as clientes
