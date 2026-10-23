@@ -282,6 +282,30 @@ details.preview[open] summary::after{content:"–"}
 .cliente-chip{margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--blanco);border:1px solid var(--linea);border-radius:14px;padding:12px 14px}
 .cliente-chip b{display:block;color:var(--cafe);font-size:14px}
 .cliente-chip span{font-size:12px;color:var(--gris)}
+/* Zona de entrega */
+.campo select{width:100%;height:50px;border:1.5px solid var(--linea);border-radius:14px;padding:0 40px 0 14px;font:inherit;font-size:15px;background:var(--blanco) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239C4D12' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/18px;color:var(--texto);appearance:none;-webkit-appearance:none}
+.campo select:focus{outline:0;border-color:var(--naranja);box-shadow:0 0 0 3px var(--naranja-suave)}
+.campo select[aria-invalid="true"]{border-color:var(--alerta)}
+.zona-chip{margin-top:8px;display:flex;align-items:center;gap:10px;background:#E6F5EC;color:var(--cafe);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.35}
+.zona-chip svg{flex:none;width:20px;height:20px;color:var(--verde-osc)}
+.zona-chip.asignar{background:var(--naranja-tinte);border:1px solid var(--naranja-suave)}
+.zona-chip.asignar svg{color:var(--naranja)}
+.zona-top{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:4px 10px;border-radius:var(--r-pill);font-size:11.5px;font-weight:800;color:var(--blanco)}
+.zona-top svg{width:14px;height:14px}
+.zona-card{margin-top:12px;background:var(--blanco);border-radius:var(--r-card);box-shadow:var(--sombra);padding:14px 16px}
+.zona-card.falta{border:1.5px solid var(--naranja)}
+.zona-card .z-cab{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.zona-card small{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--gris)}
+.zona-card b{display:block;font-family:var(--f-display);font-size:17px;color:var(--cafe);margin-top:2px}
+.zona-card .z-dia{font-size:13.5px;color:var(--verde-osc);font-weight:800;margin-top:2px}
+.zona-card .z-loc{font-size:12.5px;color:var(--gris);margin-top:2px}
+.zona-card .z-btn{font-size:12.5px;font-weight:800;color:var(--naranja-osc);text-decoration:underline;flex:none}
+.zona-card .campo{margin-top:12px}
+.zona-card .btn-pri{margin-top:12px;height:48px;font-size:15px}
+.entrega{margin-top:14px;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;background:#E6F5EC;border-radius:14px;padding:12px 14px;font-size:13px;color:var(--cafe);line-height:1.35}
+.entrega .ic{width:30px;height:30px;border-radius:50%;background:var(--blanco);color:var(--verde-osc);display:grid;place-items:center}
+.entrega .ic svg{width:16px;height:16px}
+.entrega small{display:block;color:var(--gris);font-size:12px}
 /* Propósito: misión y visión */
 .proposito{display:grid;gap:12px}
 .prop-cab .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--naranja-osc)}
@@ -442,9 +466,20 @@ details.preview[open] summary::after{content:"–"}
           <label for="r-negocio">Nombre de tu negocio <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
           <input id="r-negocio" name="negocio" autocomplete="organization" placeholder="Ej. Panadería Doña Rosa">
         </div>
+        <div class="campo" id="r-loc-campo">
+          <label for="r-loc">¿Dónde recibes tus pedidos?</label>
+          <select id="r-loc" class="sel-loc" data-px="r"></select>
+          <div class="zona-chip" id="r-loc-chip" hidden></div>
+          <div class="err" id="r-loc-err" hidden>Elige el corregimiento o distrito donde recibes tus pedidos.</div>
+        </div>
+        <div class="campo" id="r-barrio-campo">
+          <label for="r-barrio" id="r-barrio-label">Barrio, calle o punto de referencia <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
+          <input id="r-barrio" maxlength="120" autocomplete="address-line1" placeholder="Ej. Barrio Colón, frente al parque">
+          <div class="err" id="r-barrio-err" hidden>Escribe tu sector para que tu asesor sepa dónde estás.</div>
+        </div>
         <div class="nota" id="r-nota">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
-          <span>Tu ubicación la compartes por WhatsApp con tu primer pedido.<small>Con ella te asignamos tu zona y tu día de entrega de ruta.</small></span>
+          <span>Tu ubicación exacta la compartes por WhatsApp con tu primer pedido.<small>Así tu asesor llega directo a tu puerta el día de tu ruta.</small></span>
         </div>
         <div class="err-gral" id="r-err" hidden></div>
         <button class="btn-pri" type="submit" id="r-btn">Crear mi cuenta</button>
@@ -478,7 +513,7 @@ details.preview[open] summary::after{content:"–"}
     <header class="top gut">
       <div class="top-fila">
         <div class="logo-card"><img src="img/logo.png" alt="EPA Bakery Solutions"></div>
-        <div class="saludo"><small>Bienvenido a</small><strong>Emprende con Gold Mills</strong><span class="saludo-nom" id="saludo-nombre">Hola, emprendedor</span><button class="salir-top" data-salir id="salir-top" hidden>Cerrar sesión</button></div>
+        <div class="saludo"><small>Bienvenido a</small><strong>Emprende con Gold Mills</strong><span class="saludo-nom" id="saludo-nombre">Hola, emprendedor</span><button class="zona-top" id="zona-top" data-ir="compras" hidden></button><button class="salir-top" data-salir id="salir-top" hidden>Cerrar sesión</button></div>
       </div>
     </header>
     <div class="gut">
@@ -610,6 +645,7 @@ details.preview[open] summary::after{content:"–"}
         <h2>Tu pedido está listo en WhatsApp</h2>
         <p>Toca <b>Enviar</b> en WhatsApp y comparte tu ubicación de entrega en el mismo chat. Tu asesor te confirma el día de entrega.</p>
         <div class="ok-resumen" id="ok-resumen"></div>
+        <div id="ok-entrega"></div>
         <a class="btn-wa" id="btn-wa-otra" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>¿No se abrió? Abrir WhatsApp otra vez</a>
         <p class="ok-ayuda">O escríbele a tu asesor al <b class="num">+507 6757-7826</b><br><button class="copiar" id="copiar">Copiar el pedido</button></p>
         <button class="btn-pri" data-ir="compras">Ver mis compras</button>
@@ -628,6 +664,18 @@ details.preview[open] summary::after{content:"–"}
           <div class="ayuda">Con tu celular te reconocemos y en tu próximo pedido llenamos la canasta en un toque.</div>
           <div class="err" id="p-cel-err" hidden>Escribe un celular de 8 dígitos que empiece por 6.</div>
         </div>
+        <div class="campo" id="p-loc-campo">
+          <label for="p-loc">¿Dónde recibes tus pedidos?</label>
+          <select id="p-loc" class="sel-loc" data-px="p"></select>
+          <div class="zona-chip" id="p-loc-chip" hidden></div>
+          <div class="err" id="p-loc-err" hidden>Elige el corregimiento o distrito donde recibes tus pedidos.</div>
+        </div>
+        <div class="campo" id="p-barrio-campo">
+          <label for="p-barrio" id="p-barrio-label">Barrio, calle o punto de referencia <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
+          <input id="p-barrio" maxlength="120" autocomplete="address-line1" placeholder="Ej. La Siesta, casa 24">
+          <div class="err" id="p-barrio-err" hidden>Escribe tu sector para que tu asesor sepa dónde estás.</div>
+        </div>
+        <div class="entrega" id="p-entrega" hidden></div>
         <div class="nota">
           <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
           <span>Al enviar, comparte tu ubicación por WhatsApp para la entrega.</span>
@@ -672,6 +720,8 @@ details.preview[open] summary::after{content:"–"}
 
 <script>
 const PRODUCTOS=[{"c": 320058, "n": "Harina Multiuso", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320042, "n": "Harina Dura", "p": "Saco 25 LB", "k": "harinas", "$": 11.0, "i": true, "t": false}, {"c": 320048, "n": "Harina Pan Francés", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": true}, {"c": 320055, "n": "Harina Suave", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320044, "n": "Harina Multiuso", "p": "Saco 50 LB", "k": "harinas", "$": 20.0, "i": false, "t": false}, {"c": 320045, "n": "Harina Semidura", "p": "Saco 50 LB", "k": "harinas", "$": 25.0, "i": false, "t": false}, {"c": 320041, "n": "Harina Gold Mills 022", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": false}, {"c": 320003, "n": "Harina Semidura", "p": "Bolsa 5 LB", "k": "harinas", "$": 3.1, "i": true, "t": false}, {"c": 320007, "n": "Harina Leudante", "p": "Bolsa 5 LB", "k": "harinas", "$": 3.3, "i": false, "t": false}, {"c": 320008, "n": "Mezcla Hojaldres y Empanadas", "p": "Bolsa 400 g", "k": "harinas", "$": 0.97, "i": false, "t": false}, {"c": 320129, "n": "Premezcla Creme Cake", "p": "Saco 25 LB", "k": "harinas", "$": 27.0, "i": true, "t": false}, {"c": 320128, "n": "Premezcla Creme Cake", "p": "Saco 50 LB", "k": "harinas", "$": 54.0, "i": true, "t": false}, {"c": 8790, "n": "Margarina Dagusto Multipropósitos", "p": "Caja 15 KG", "k": "grasas", "$": 31.95, "i": true, "t": true}, {"c": 8832, "n": "Hojaldrina en Hojas", "p": "Caja 10 KG", "k": "grasas", "$": 26.2, "i": true, "t": true}, {"c": 8781, "n": "Margarina Dagusto Repostería Especial", "p": "Caja 15 KG", "k": "grasas", "$": 36.0, "i": true, "t": false}, {"c": 8871, "n": "Margarina Dagusto Panadera", "p": "Caja 15 KG", "k": "grasas", "$": 25.5, "i": true, "t": false}, {"c": 8858, "n": "Manteca La Comadre", "p": "30 LB", "k": "grasas", "$": 23.5, "i": false, "t": false}, {"c": 8799, "n": "Aceite Super Fry Vegetal", "p": "Galón 5.000 ml", "k": "grasas", "$": 12.7, "i": false, "t": false}, {"c": 8882, "n": "Aceite La Sevillana", "p": "18 L", "k": "grasas", "$": 35.0, "i": false, "t": false}, {"c": 310442, "n": "Relleno de Guayaba", "p": "Horneable", "k": "rellenos", "$": 4.2, "i": true, "t": false}, {"c": 310444, "n": "Relleno Chocolate y Avellana", "p": "Horneable", "k": "rellenos", "$": 6.6, "i": true, "t": false}, {"c": 310440, "n": "Relleno de Fresa", "p": "Horneable", "k": "rellenos", "$": 5.05, "i": true, "t": false}, {"c": 310441, "n": "Relleno de Frutos Rojos", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310443, "n": "Relleno de Piña", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310445, "n": "Dulce de Leche", "p": "1 KG", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310455, "n": "Manjar Nestlé", "p": "Bolsa 6 KG", "k": "rellenos", "$": 25.5, "i": true, "t": false}, {"c": 8909, "n": "Esencia de Mantequilla", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8908, "n": "Esencia de Mantequilla", "p": "Galón 3.850 ml", "k": "esencias", "$": 23.9, "i": false, "t": false}, {"c": 8907, "n": "Esencia Vainilla Blanca", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8901, "n": "Esencia Vainilla Negra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8903, "n": "Esencia Dulce de Leche", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8911, "n": "Esencia de Coco", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8912, "n": "Esencia de Almendra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8913, "n": "Esencia de Canela", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8914, "n": "Esencia de Banano", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8916, "n": "Esencia de Fresa", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8946, "n": "Esencia de Piña", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8921, "n": "Esencia de Margarina", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8923, "n": "Esencia Pan Caliente", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8902, "n": "Esencia de Ron", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8918, "n": "Esencia Naranja Oil", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8922, "n": "Esencia Hinojo / Anís", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8944, "n": "Color Caramelo", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 310207, "n": "Levadura Dorada Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 310200, "n": "Levadura Roja Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 8900, "n": "Polvo para Hornear", "p": "Bolsa 1 KG", "k": "complementos", "$": 4.15, "i": true, "t": true}, {"c": 310199, "n": "Pasitas Sweety", "p": "Caja 22 LB", "k": "complementos", "$": 34.0, "i": true, "t": false}, {"c": 310238, "n": "Frutas Cristalizadas La Comadre", "p": "Caja 30 LB", "k": "complementos", "$": 44.0, "i": true, "t": false}, {"c": 9404, "n": "Azúcar Blanca La Estrella", "p": "2 LB", "k": "complementos", "$": 1.29, "i": true, "t": true}, {"c": 310265, "n": "Azúcar Morena Doradita", "p": "Saco 44 LB", "k": "complementos", "$": 25.1, "i": true, "t": false}, {"c": 310431, "n": "Azúcar Morena Turbinada", "p": "Saco 100 LB", "k": "complementos", "$": 52.0, "i": false, "t": false}, {"c": 310235, "n": "Sal La Preferida", "p": "Saco 50 LB", "k": "complementos", "$": 9.35, "i": false, "t": false}, {"c": 310243, "n": "Maicena de Maíz", "p": "Saco 55 LB", "k": "complementos", "$": 24.0, "i": false, "t": false}, {"c": 320013, "n": "Maicena Vainilla Gold Mills", "p": "Sobre 47 g", "k": "complementos", "$": 0.24, "i": false, "t": false}, {"c": 1799, "n": "Galleta María Molida", "p": "454 g", "k": "complementos", "$": 2.3, "i": false, "t": false}, {"c": 1797, "n": "Galleta María Molida Industrial", "p": "Caja 20 KG", "k": "complementos", "$": 56.71, "i": false, "t": false}, {"c": 9000, "n": "Café Durán Tradicional", "p": "Docena de sobres 22 g", "k": "cafe", "$": 4.2, "i": true, "t": true}, {"c": 9023, "n": "Café Durán Tradicional", "p": "212 g", "k": "cafe", "$": 2.96, "i": true, "t": false}, {"c": 9020, "n": "Café Durán Tradicional", "p": "425 g", "k": "cafe", "$": 5.66, "i": true, "t": false}, {"c": 9180, "n": "Café Durán Legado", "p": "425 g", "k": "cafe", "$": 7.08, "i": true, "t": false}, {"c": 9232, "n": "Café Coclé", "p": "212 g", "k": "cafe", "$": 2.25, "i": false, "t": false}, {"c": 9231, "n": "Café Coclé Instantáneo", "p": "425 g", "k": "cafe", "$": 4.33, "i": true, "t": false}, {"c": 9141, "n": "Té Negro", "p": "24 sobres", "k": "cafe", "$": 0.69, "i": true, "t": false}, {"c": 9145, "n": "Té de Canela", "p": "100 sobres", "k": "cafe", "$": 3.38, "i": true, "t": false}, {"c": 1301, "n": "Galleta María", "p": "Caja 36 × 30 g", "k": "cafe", "$": 6.48, "i": false, "t": false}];
+const ZONAS_BASE=[{"codigo": "ESTE", "nombre": "Zona Este", "dias": "Lunes y jueves"}, {"codigo": "CENTRO", "nombre": "Zona Centro", "dias": "Martes"}, {"codigo": "NORTE", "nombre": "Zona Norte", "dias": "Miércoles"}, {"codigo": "OESTE", "nombre": "Zona Oeste", "dias": "Viernes"}, {"codigo": "SANMIGUELITO", "nombre": "Zona San Miguelito", "dias": "Sábado"}, {"codigo": "PORASIGNAR", "nombre": "Por asignar", "dias": "Tu asesor te confirma el día"}];
+const LOCALIDADES_BASE=[{"id": "panama-san-felipe", "distrito": "Panamá", "nombre": "San Felipe", "zona": "CENTRO", "pista": ""}, {"id": "panama-el-chorrillo", "distrito": "Panamá", "nombre": "El Chorrillo", "zona": "CENTRO", "pista": ""}, {"id": "panama-santa-ana", "distrito": "Panamá", "nombre": "Santa Ana", "zona": "CENTRO", "pista": ""}, {"id": "panama-la-exposicion-o-calidonia", "distrito": "Panamá", "nombre": "La Exposición o Calidonia", "zona": "CENTRO", "pista": ""}, {"id": "panama-curundu", "distrito": "Panamá", "nombre": "Curundú", "zona": "CENTRO", "pista": ""}, {"id": "panama-betania", "distrito": "Panamá", "nombre": "Betania", "zona": "CENTRO", "pista": "La Locería"}, {"id": "panama-bella-vista", "distrito": "Panamá", "nombre": "Bella Vista", "zona": "CENTRO", "pista": "Obarrio, Paitilla"}, {"id": "panama-pueblo-nuevo", "distrito": "Panamá", "nombre": "Pueblo Nuevo", "zona": "CENTRO", "pista": ""}, {"id": "panama-san-francisco", "distrito": "Panamá", "nombre": "San Francisco", "zona": "CENTRO", "pista": ""}, {"id": "panama-parque-lefevre", "distrito": "Panamá", "nombre": "Parque Lefevre", "zona": "CENTRO", "pista": "Chanis"}, {"id": "panama-rio-abajo", "distrito": "Panamá", "nombre": "Río Abajo", "zona": "CENTRO", "pista": ""}, {"id": "panama-juan-diaz", "distrito": "Panamá", "nombre": "Juan Díaz", "zona": "CENTRO", "pista": "Costa del Este"}, {"id": "panama-pedregal", "distrito": "Panamá", "nombre": "Pedregal", "zona": "ESTE", "pista": ""}, {"id": "panama-ancon", "distrito": "Panamá", "nombre": "Ancón", "zona": "OESTE", "pista": "Ciudad del Saber"}, {"id": "panama-chilibre", "distrito": "Panamá", "nombre": "Chilibre", "zona": "NORTE", "pista": ""}, {"id": "panama-las-cumbres", "distrito": "Panamá", "nombre": "Las Cumbres", "zona": "NORTE", "pista": ""}, {"id": "panama-pacora", "distrito": "Panamá", "nombre": "Pacora", "zona": "ESTE", "pista": "Río Chico"}, {"id": "panama-san-martin", "distrito": "Panamá", "nombre": "San Martín", "zona": "ESTE", "pista": ""}, {"id": "panama-tocumen", "distrito": "Panamá", "nombre": "Tocumen", "zona": "ESTE", "pista": "La Siesta"}, {"id": "panama-las-mananitas", "distrito": "Panamá", "nombre": "Las Mañanitas", "zona": "ESTE", "pista": ""}, {"id": "panama-24-de-diciembre", "distrito": "Panamá", "nombre": "24 de Diciembre", "zona": "ESTE", "pista": ""}, {"id": "panama-alcalde-diaz", "distrito": "Panamá", "nombre": "Alcalde Díaz", "zona": "NORTE", "pista": ""}, {"id": "panama-ernesto-cordoba-campos", "distrito": "Panamá", "nombre": "Ernesto Córdoba Campos", "zona": "NORTE", "pista": ""}, {"id": "panama-caimitillo", "distrito": "Panamá", "nombre": "Caimitillo", "zona": "NORTE", "pista": ""}, {"id": "panama-don-bosco", "distrito": "Panamá", "nombre": "Don Bosco", "zona": "ESTE", "pista": ""}, {"id": "panama-las-garzas", "distrito": "Panamá", "nombre": "Las Garzas", "zona": "ESTE", "pista": ""}, {"id": "la-chorrera", "distrito": "La Chorrera", "nombre": "La Chorrera", "zona": "OESTE", "pista": ""}, {"id": "arraijan", "distrito": "Arraiján", "nombre": "Arraiján", "zona": "OESTE", "pista": "Westland"}, {"id": "san-miguelito", "distrito": "San Miguelito", "nombre": "San Miguelito", "zona": "SANMIGUELITO", "pista": "Torrijos Carter"}, {"id": "chepo", "distrito": "Chepo", "nombre": "Chepo", "zona": "ESTE", "pista": ""}, {"id": "otra", "distrito": "Otra", "nombre": "Otra localidad", "zona": "PORASIGNAR", "pista": ""}];
 const WA_NUM="50767577826";
 
 /* ===== Conexión a Supabase =====
@@ -722,6 +772,47 @@ let usuario=store.get("epa_usuario",null);
 let ultimo=store.get("epa_ultimo",null);          // {items:[{c,q}], total, fecha}
 let pendientes=store.get("epa_pendientes",[]);
 let historial=store.get("epa_historial",[]);     // copia local de las compras de este celular
+let ZL={zonas:ZONAS_BASE,localidades:LOCALIDADES_BASE}, editandoZona=false;
+const CAMION=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>`;
+const zonaPorCodigo=c=>ZL.zonas.find(z=>z.codigo===c);
+const locPorId=id=>ZL.localidades.find(l=>l.id===id);
+const losDias=d=>!d?"":/confirma/i.test(d)?d:"los "+d.toLowerCase().replace("sábado","sábados").replace("domingo","domingos");
+function zonaInfo(locId,barrio){ const l=locPorId(locId); if(!l) return null; const z=zonaPorCodigo(l.zona)||{};
+  return {localidad_id:l.id,localidad:l.nombre,barrio:(barrio||"").trim(),zona:z.codigo,zona_nombre:z.nombre,dias:z.dias}; }
+function zonaUsuario(){ if(!usuario) return null;
+  const zi=usuario.localidad_id?zonaInfo(usuario.localidad_id,usuario.barrio):null; if(zi) return zi;
+  return usuario.zona?{localidad_id:usuario.localidad_id||null,localidad:usuario.localidad||"",barrio:usuario.barrio||"",zona:usuario.zona,zona_nombre:usuario.zona_nombre,dias:usuario.dias}:null; }
+async function asegurarCuenta(){   // si la cuenta se creó sin conexión, se registra en la base antes de seguir
+  if(!NUBE || !usuario?.sinSubir || usuario.token) return;
+  const r=await rpc("ingresar_cliente",{p_nombre:usuario.nombre,p_negocio:usuario.negocio||"",p_celular:usuario.celular,p_localidad:usuario.localidad_id||null,p_barrio:usuario.barrio||""});
+  const u={...usuario,...usuarioDesde(r)}; delete u.sinSubir; guardarUsuario(u);
+}
+function usuarioDesde(r){ const u={token:r.token||null,nombre:r.nombre,negocio:r.negocio||"",celular:r.celular};
+  ["localidad_id","localidad","barrio","zona","zona_nombre","dias"].forEach(k=>{ if(r[k]!=null) u[k]=r[k]; }); return u; }
+function opcionesLoc(sel){
+  const grupos=[["Ciudad de Panamá (distrito de Panamá)",l=>l.distrito==="Panamá"],["Otros distritos",l=>l.distrito!=="Panamá"&&l.id!=="otra"],["No está en la lista",l=>l.id==="otra"]];
+  return `<option value="">Elige tu corregimiento o distrito</option>`+grupos.map(([g,f])=>{
+    const ls=ZL.localidades.filter(f).sort((a,b)=>g.startsWith("Ciudad")?norm(a.nombre).localeCompare(norm(b.nombre)):0);
+    return ls.length?`<optgroup label="${g}">${ls.map(l=>`<option value="${l.id}"${l.id===sel?" selected":""}>${esc(l.nombre)}${l.pista?" ("+esc(l.pista)+")":""}</option>`).join("")}</optgroup>`:"";
+  }).join("");
+}
+function pintarSelects(){ $$(".sel-loc").forEach(s=>{ const v=s.value; s.innerHTML=opcionesLoc(v); s.value=v; actualizarChip(s.dataset.px,true); }); }
+function actualizarChip(px,silencioso){
+  const s=$("#"+px+"-loc"); if(!s) return;
+  const zi=zonaInfo(s.value), chip=$("#"+px+"-loc-chip"), otra=s.value==="otra";
+  chip.hidden=!zi; chip.classList.toggle("asignar",!!zi&&zi.zona==="PORASIGNAR");
+  if(zi) chip.innerHTML = zi.zona==="PORASIGNAR" ? `${CAMION}<span>Revisamos si llegamos a tu sector y <b>tu asesor te confirma el día de entrega</b>.</span>`
+                                                 : `${CAMION}<span><b>${esc(zi.zona_nombre)}</b> · Te atendemos <b>${esc(losDias(zi.dias))}</b></span>`;
+  const lab=$("#"+px+"-barrio-label");
+  if(lab) lab.innerHTML = otra ? "Escribe tu sector o comunidad" : `Barrio, calle o punto de referencia <span style="font-weight:600;color:var(--gris)">(opcional)</span>`;
+  if(!silencioso){ $("#"+px+"-loc-err").hidden=true; s.removeAttribute("aria-invalid"); }
+}
+function validarZona(px){
+  const s=$("#"+px+"-loc"), b=$("#"+px+"-barrio");
+  if(!s.value){ $("#"+px+"-loc-err").hidden=false; s.setAttribute("aria-invalid","true"); s.focus(); return false; }
+  if(s.value==="otra" && b.value.trim().length<3){ $("#"+px+"-barrio-err").hidden=false; b.setAttribute("aria-invalid","true"); b.focus(); return false; }
+  $("#"+px+"-barrio-err").hidden=true; b.removeAttribute("aria-invalid"); return true;
+}
 let modoReg="elegir", pedOk=false, envioHref="", envioTexto="", envioResumen=null;    // pedidos que no alcanzaron a guardarse en la nube
 const ultimoDesdeNube=u=>u&&Array.isArray(u.items)?{items:u.items.map(i=>({c:+i.codigo,q:+i.cantidad})).filter(i=>i.q>0),total:+u.total,fecha:u.creado_en}:null;
 function guardarUsuario(u){usuario=u;store.set("epa_usuario",u);}
@@ -786,6 +877,9 @@ function toast(t){const e=$("#toast"); e.textContent=t; e.classList.add("on"); c
 function renderCuenta(){
   $("#cuenta").innerHTML = usuario?.celular ? `Cuenta de <b>${esc(usuario.nombre||"")}</b> · ${fmtCel(usuario.celular)} · <button data-salir>Cerrar sesión</button>` : `<button data-ir="registro" data-modo="entrar">Ya tengo cuenta: entrar con mi celular</button>`;
   $("#salir-top").hidden = !usuario?.celular;
+  const zt=$("#zona-top"), zu=zonaUsuario();
+  zt.hidden=!usuario?.celular;
+  zt.innerHTML = zu ? `${CAMION}${zu.zona==="PORASIGNAR"?"Día de entrega por confirmar":"Entregas "+esc(losDias(zu.dias))}` : `${CAMION}Elige tu zona de entrega`;
 }
 const fmtCel=c=>c?String(c).slice(0,4)+"-"+String(c).slice(4):"";
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -825,11 +919,15 @@ function totales(){
   l.forEach(({p,q})=>{unidades+=q; if(p.$==null) consultar++; else total+=p.$*q;});
   return {l,unidades,total,consultar};
 }
+function pideZona(){ return !zonaUsuario(); }
+function zonaPedido(){ return zonaUsuario() || (pideZona()&&$("#p-loc").value ? zonaInfo($("#p-loc").value,$("#p-barrio").value) : null); }
 function mensaje(){
   const {l,total,consultar}=totales();
   const nom=$("#p-nombre").value.trim()||"(sin nombre)";
   const items=l.map(({p,q})=>`• ${q} x ${p.n} ${p.p} — ${p.$==null?"Consultar precio":money(p.$*q)}`).join("\n");
-  return `🧁 *NUEVO PEDIDO – Emprende con Gold Mills*\n\n👤 *Cliente:* ${nom}\n\n🛒 *Pedido:*\n${items}\n\n💰 *Total:* ${money(total)}${consultar?" + productos por consultar":""}\n🚚 Envío sin costo\n\n📍 Por favor, envía la ubicación donde se va a entregar el producto.`;
+  const zp=zonaPedido();
+  const zl = zp ? `\n📍 *Zona:* ${zp.zona_nombre}${zp.zona==="PORASIGNAR"?"":" ("+zp.dias+")"}\n🏠 *Localidad:* ${zp.localidad}${zp.barrio?" – "+zp.barrio:""}` : "";
+  return `🧁 *NUEVO PEDIDO – Emprende con Gold Mills*\n\n👤 *Cliente:* ${nom}${zl}\n\n🛒 *Pedido:*\n${items}\n\n💰 *Total:* ${money(total)}${consultar?" + productos por consultar":""}\n🚚 Envío sin costo\n\n📍 Por favor, envía la ubicación donde se va a entregar el producto.`;
 }
 function renderPedido(){
   const {l,total,consultar}=totales();
@@ -842,11 +940,15 @@ function renderPedido(){
     $("#btn-wa-otra").href=envioHref;
     const r=envioResumen||{unidades:0,total:0,consultar:0};
     $("#ok-resumen").innerHTML=`<div><span>Tu pedido</span><br><b class="num">${money(r.total)}</b>${r.consultar?' <span>+ por consultar</span>':''}</div><span>${r.unidades} ${r.unidades===1?"unidad":"unidades"}<br>Envío sin costo</span>`;
+    $("#ok-entrega").innerHTML = r.zona ? `<div class="entrega" style="text-align:left"><span class="ic">${CAMION}</span><span><b>${r.zona.zona==="PORASIGNAR"?"Tu asesor te confirma el día de entrega":"Tu entrega: "+esc(losDias(r.zona.dias))}</b><small>${esc(r.zona.zona_nombre||"")} · ${esc(r.zona.localidad)}</small></span></div>` : "";
     return;
   }
   $("#ped-vacio").hidden = l.length>0; $("#ped-lleno").hidden = l.length===0;
   $("#repetir-vacio").innerHTML = l.length? "" : bloqueRepetir();
   $("#p-cel-campo").hidden = !!usuario?.celular;
+  const pz=pideZona(); $("#p-loc-campo").hidden=!pz; $("#p-barrio-campo").hidden=!pz;
+  const zu=zonaUsuario(), en=$("#p-entrega"); en.hidden=!zu;
+  if(zu) en.innerHTML=`<span class="ic">${CAMION}</span><span><b>${zu.zona==="PORASIGNAR"?"Día de entrega por confirmar":"Entrega "+esc(losDias(zu.dias))}</b> · ${esc(zu.zona_nombre||"")}<small>${esc(zu.localidad)}${zu.barrio?" · "+esc(zu.barrio):""} · <button class="copiar" data-ir="compras" style="margin:0">Cambiar</button></small></span>`;
   $("#items").innerHTML=l.map(({p,q})=>`<div class="item"><div class="foto">${foto(p)}</div>
     <div><h3>${p.n}</h3><div class="u">${p.p}${p.$!=null?" · "+money(p.$)+" c/u":""}</div>${stepper(p.c)}</div>
     <div class="sub"><small>Subtotal</small><b class="num">${p.$==null?"Consultar":money(p.$*q)}</b></div></div>`).join("");
@@ -914,6 +1016,7 @@ document.addEventListener("click",e=>{
   }
   if(e.target.closest("[data-repetir]")){ repetirPedido(); return; }
   if(e.target.closest("[data-salir]")){ cerrarSesion(); return; }
+  if(e.target.closest("[data-zona-editar]")){ editandoZona=true; renderCompras(); return; }
   const rc=e.target.closest("[data-repetir-compra]");
   if(rc){ repetirCompra(rc.dataset.repetirCompra); return; }
   const n=e.target.closest("[data-ir]");
@@ -931,9 +1034,11 @@ $("#btn-wa").addEventListener("click",e=>{
   if(!usuario?.celular && !/^6\d{7}$/.test(cel)){
     e.preventDefault(); $("#p-cel-err").hidden=false; $("#p-cel").setAttribute("aria-invalid","true"); $("#p-cel").focus(); return;
   }
+  if(pideZona() && !validarZona("p")){ e.preventDefault(); return; }
   actualizarWA();
   const {unidades,total,consultar}=totales();
-  envioHref=$("#btn-wa").href; envioTexto=mensaje(); envioResumen={unidades,total,consultar};
+  const zpE=zonaPedido();
+  envioHref=$("#btn-wa").href; envioTexto=mensaje(); envioResumen={unidades,total,consultar,zona:zpE};
   registrarPedido(usuario?.celular||cel);
   setTimeout(()=>{ carrito={}; store.set("epa_carrito",carrito); pedOk=true; renderPedido(); renderContadores(); window.scrollTo({top:0}); },60);
 });
@@ -947,21 +1052,29 @@ function registrarPedido(cel){
   historial.unshift({id:"local-"+Date.now(),creado_en:ahora,estado:"enviado_whatsapp",total:Math.round(total*100)/100,productos_por_consultar:consultar,
     items:l.map(({p,q})=>({codigo:p.c,nombre:p.n,presentacion:p.p,cantidad:q,precio:p.$})),local:true});
   historial=historial.slice(0,40); store.set("epa_historial",historial);
-  if(!usuario?.celular){ guardarUsuario({...(usuario||{}),nombre:nombre.split(/\s[–-]\s/)[0],celular:cel}); }
-  const args={p_token:usuario?.token||null,p_nombre:nombre,p_celular:cel,
+  const zSel = pideZona()&&$("#p-loc").value ? zonaInfo($("#p-loc").value,$("#p-barrio").value) : null;
+  if(!usuario?.celular){ guardarUsuario({...(usuario||{}),nombre:nombre.split(/\s[–-]\s/)[0],celular:cel,...(zSel||{})}); }
+  else if(zSel){ guardarUsuario({...usuario,...zSel}); }
+  const zArgs = zSel || zonaUsuario() || {};
+  const args={p_token:usuario?.token||null,p_nombre:nombre,p_celular:cel,p_localidad:zArgs.localidad_id||null,p_barrio:zArgs.barrio||null,
     p_items:l.map(({p,q})=>({codigo:p.c,nombre:p.n,presentacion:p.p,cantidad:q,precio:p.$})),
     p_total:Math.round(total*100)/100,p_consultar:consultar};
   if(!NUBE) return;
-  rpc("enviar_pedido",args,true).then(adoptarRespuesta).catch(err=>{
+  asegurarCuenta().catch(()=>{}).then(()=>{ if(usuario?.token&&!args.p_token) args.p_token=usuario.token; return rpc("enviar_pedido",args,true); }).then(adoptarRespuesta).catch(err=>{
     if(/invalido/.test(err.code||"")) return;            // datos rechazados: no se reintenta
     pendientes.push(args); store.set("epa_pendientes",pendientes);
   });
 }
 function adoptarRespuesta(r){
-  if(r&&r.token){ guardarUsuario({token:r.token,nombre:r.nombre,negocio:r.negocio||"",celular:r.celular}); }
+  if(!r) return; const u={...(usuario||{})};
+  if(r.token){ u.token=r.token; u.nombre=r.nombre||u.nombre; u.negocio=r.negocio||u.negocio||""; u.celular=r.celular||u.celular; }
+  if(r.zona && !u.localidad_id){ u.zona=r.zona; u.zona_nombre=r.zona_nombre; u.dias=r.dias; }
+  if(r.token||r.zona) guardarUsuario(u);
 }
 async function sincronizar(){
   if(!NUBE) return;
+  try{ await asegurarCuenta(); }catch(_){}
+  try{ const d=await rpc("zonas_y_localidades",{}); if(d&&Array.isArray(d.localidades)&&d.localidades.length){ ZL=d; pintarSelects(); if(vistaActual==="inicio") renderCuenta(); } }catch(_){}
   while(pendientes.length){
     const a=pendientes[0]; if(usuario?.token&&!a.p_token) a.p_token=usuario.token;
     try{ adoptarRespuesta(await rpc("enviar_pedido",a)); pendientes.shift(); store.set("epa_pendientes",pendientes); }
@@ -992,14 +1105,15 @@ function setModo(m){
   $("#f-tit").textContent = nuevo ? "Cuéntanos de tu negocio" : "Hola de nuevo";
   $("#f-sub").textContent = nuevo ? "Te registras una sola vez. Desde ahí, tu celular es tu cuenta." : "Escribe tu número de celular y te mostramos tu cuenta y tus compras.";
   $("#r-nombre-campo").hidden = !nuevo; $("#r-negocio-campo").hidden = !nuevo; $("#r-nota").hidden = !nuevo;
+  $("#r-loc-campo").hidden = !nuevo; $("#r-barrio-campo").hidden = !nuevo;
   $("#r-btn").textContent = nuevo ? "Crear mi cuenta" : "Entrar";
   $("#r-cambio").innerHTML = nuevo ? `¿Ya tienes cuenta? <button type="button" data-modo="entrar">Entra con tu celular</button>`
                                    : `¿Es tu primera vez? <button type="button" data-modo="nuevo">Crea tu cuenta</button>`;
-  setTimeout(()=>{ try{$("#r-cel").focus({preventScroll:true})}catch(_){} },50);
+  setTimeout(()=>{ try{ if(!$("#f-registro").contains(document.activeElement)) $("#r-cel").focus({preventScroll:true}); }catch(_){} },50);
 }
 function entrarCon(r,{nuevo}){
   const cambio = usuario?.celular && usuario.celular!==r.celular;
-  guardarUsuario({token:r.token||null,nombre:r.nombre,negocio:r.negocio||"",celular:r.celular});
+  guardarUsuario(usuarioDesde(r));
   if(cambio){ historial=[]; store.set("epa_historial",historial); }
   if(r.ultimo_pedido!==undefined) guardarUltimo(ultimoDesdeNube(r.ultimo_pedido));
   $("#p-nombre").value=""; $("#p-cel").value="";
@@ -1016,15 +1130,17 @@ $("#f-registro").addEventListener("submit",async e=>{
   $("#r-nombre-err").hidden=okN; $("#r-nombre").setAttribute("aria-invalid",!okN);
   $("#r-err").hidden=true;
   if(!okC||!okN) return;
+  if(nuevo && !validarZona("r")) return;
+  const loc=$("#r-loc").value, barrio=$("#r-barrio").value.trim();
   const local = ()=>{
-    if(nuevo){ entrarCon({nombre:nom,negocio:neg,celular:cel},{nuevo:true}); return true; }
+    if(nuevo){ entrarCon({nombre:nom,negocio:neg,celular:cel,...(zonaInfo(loc,barrio)||{})},{nuevo:true}); if(NUBE){ guardarUsuario({...usuario,sinSubir:true}); } return true; }
     if(usuario?.celular===cel){ entrarCon(usuario,{nuevo:false}); return true; }
     return false;
   };
   if(!NUBE){ if(!local()){ $("#r-err").innerHTML="En este celular no hay una cuenta con ese número."; $("#r-err").hidden=false; } return; }
   const b=$("#r-btn"), txt=b.textContent; b.disabled=true; b.textContent= nuevo?"Creando tu cuenta…":"Entrando…";
   try{
-    const r = nuevo ? await rpc("ingresar_cliente",{p_nombre:nom,p_negocio:neg,p_celular:cel})
+    const r = nuevo ? await rpc("ingresar_cliente",{p_nombre:nom,p_negocio:neg,p_celular:cel,p_localidad:loc,p_barrio:barrio})
                     : await rpc("entrar_cliente",{p_celular:cel});
     if(nuevo && !r.nuevo){ entrarCon(r,{nuevo:false}); toast(`Ese celular ya tenía cuenta, ${(r.nombre||"").split(" ")[0]}. Aquí están tus compras`); }
     else entrarCon(r,{nuevo});
@@ -1033,17 +1149,21 @@ $("#f-registro").addEventListener("submit",async e=>{
       $("#r-err").innerHTML=`No encontramos una cuenta con el ${fmtCel(cel)}.<button type="button" data-modo="nuevo">Crear mi cuenta con este número</button>`;
       $("#r-err").hidden=false; return;
     }
-    const m={celular_invalido:"Revisa el celular: deben ser 8 dígitos y empezar por 6.", nombre_invalido:"Escribe tu nombre y apellido."}[err.code];
+    const m={celular_invalido:"Revisa el celular: deben ser 8 dígitos y empezar por 6.", nombre_invalido:"Escribe tu nombre y apellido.", localidad_invalida:"Vuelve a elegir dónde recibes tus pedidos."}[err.code];
     if(!m && !err.code && local()) return;      // sin conexión con la base
     $("#r-err").textContent = m || "No pudimos conectarnos. Revisa tu internet e inténtalo de nuevo.";
     $("#r-err").hidden=false;
   }finally{ b.disabled=false; b.textContent=txt; }
 });
 
+document.addEventListener("change",e=>{ const s=e.target.closest(".sel-loc"); if(s){ actualizarChip(s.dataset.px); if(s.dataset.px==="p") actualizarWA(); } });
+document.addEventListener("input",e=>{ if(e.target.id==="p-barrio") actualizarWA(); if(/-barrio$/.test(e.target.id)){ const px=e.target.id.split("-")[0]; $("#"+px+"-barrio-err").hidden=true; e.target.removeAttribute("aria-invalid"); } });
+document.addEventListener("submit",e=>{ if(e.target.id==="f-zona"){ e.preventDefault(); guardarZona(); } });
 function cerrarSesion(){
   guardarUsuario(null); guardarUltimo(null); historial=[]; carrito={};
   try{ ["epa_usuario","epa_ultimo","epa_historial","epa_carrito"].forEach(k=>localStorage.removeItem(k)); }catch(_){}
   $("#p-nombre").value=""; $("#p-cel").value=""; $("#r-cel").value=""; $("#r-nombre").value=""; $("#r-negocio").value="";
+  ["r","p"].forEach(px=>{ $("#"+px+"-loc").value=""; $("#"+px+"-barrio").value=""; actualizarChip(px); }); editandoZona=false;
   pedOk=false; ir("registro"); toast("Cerraste sesión");
 }
 
@@ -1070,18 +1190,44 @@ function tarjetaCompra(c,idx){
     ${vigentes?`<button class="btn-otra" data-repetir-compra="${idx}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/></svg>Volver a pedir esto</button>`:""}
   </article>`;
 }
+function tarjetaZona(){
+  const zu=zonaUsuario(), abrir=editandoZona||!zu;
+  const info = zu ? `<div><small>Tu zona de entrega</small><b>${esc(zu.zona_nombre||"")}</b><div class="z-dia">${zu.zona==="PORASIGNAR"?"Tu asesor te confirma el día":"Te atendemos "+esc(losDias(zu.dias))}</div><div class="z-loc">${esc(zu.localidad)}${zu.barrio?" · "+esc(zu.barrio):""}</div></div>`
+                  : `<div><small>Falta un dato</small><b>Elige tu zona de entrega</b><div class="z-loc">Con ella tu asesor programa tus pedidos y sabes qué día te atendemos.</div></div>`;
+  return `<div class="zona-card${zu?"":" falta"}"><div class="z-cab">${info}${zu&&!abrir?`<button class="z-btn" data-zona-editar>Cambiar</button>`:""}</div>
+    ${abrir?`<form id="f-zona" novalidate>
+      <div class="campo"><label for="c-loc">¿Dónde recibes tus pedidos?</label><select id="c-loc" class="sel-loc" data-px="c">${opcionesLoc(usuario.localidad_id||"")}</select>
+        <div class="zona-chip" id="c-loc-chip" hidden></div><div class="err" id="c-loc-err" hidden>Elige el corregimiento o distrito donde recibes tus pedidos.</div></div>
+      <div class="campo"><label for="c-barrio" id="c-barrio-label">Barrio, calle o punto de referencia <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
+        <input id="c-barrio" maxlength="120" value="${esc(usuario.barrio||"")}" placeholder="Ej. Villa Lucre, calle 5"><div class="err" id="c-barrio-err" hidden>Escribe tu sector para que tu asesor sepa dónde estás.</div></div>
+      <div class="err-gral" id="c-err" hidden></div>
+      <button class="btn-pri" type="submit" id="c-btn">Guardar mi zona</button></form>`:""}</div>`;
+}
+async function guardarZona(){
+  if(!validarZona("c")) return;
+  const loc=$("#c-loc").value, barrio=$("#c-barrio").value.trim(), b=$("#c-btn");
+  if(NUBE && usuario.token){
+    b.disabled=true; b.textContent="Guardando…";
+    try{ const r=await rpc("actualizar_zona",{p_token:usuario.token,p_localidad:loc,p_barrio:barrio}); guardarUsuario({...usuario,...usuarioDesde(r)}); }
+    catch(err){ b.disabled=false; b.textContent="Guardar mi zona"; $("#c-err").textContent="No pudimos guardar tu zona. Revisa tu internet e inténtalo de nuevo."; $("#c-err").hidden=false; return; }
+  } else guardarUsuario({...usuario,...zonaInfo(loc,barrio)});
+  editandoZona=false; renderCompras(); toast("Listo: guardamos tu zona de entrega");
+}
 function pintarCompras(lista,aviso){
   comprasVista=lista;
+  const prev = $("#c-loc") ? {loc:$("#c-loc").value, barrio:$("#c-barrio").value} : null;   // conservar lo que el cliente está editando
   const tot=lista.filter(c=>c.estado!=="cancelado").reduce((a,c)=>a+(+c.total||0),0);
   $("#compras-cuerpo").innerHTML=`
     <div class="cuenta-card"><span class="cuenta-av">${esc((usuario.nombre||"?").trim().charAt(0).toUpperCase())}</span>
       <div><b>${esc(usuario.nombre||"Mi cuenta")}</b><span>${usuario.negocio?esc(usuario.negocio)+" · ":""}${fmtCel(usuario.celular)}</span></div>
       <div class="cuenta-acc"><button data-ir="cat" data-cat="harinas">Hacer un pedido</button><button class="btn-salir" data-salir>Cerrar sesión</button></div></div>
+    ${tarjetaZona()}
     <div class="res-cta"><div><small>Pedidos</small><b class="num">${lista.length}</b></div><div><small>Total pedido</small><b class="num">${money(tot)}</b></div></div>
     <h2 class="hist-tit">Historial de pedidos</h2>
     ${lista.length?`<div class="compras">${lista.map(tarjetaCompra).join("")}</div>`:
       `<div class="vacio">Todavía no tienes pedidos.<br>Cuando envíes uno por WhatsApp, aparece aquí.</div>`}
     ${aviso?`<p class="aviso-hist">${aviso}</p>`:""}`;
+  if($("#c-loc")){ if(prev){ $("#c-loc").value=prev.loc; $("#c-barrio").value=prev.barrio; } actualizarChip("c"); }
 }
 async function renderCompras(){
   if(!usuario?.celular){
@@ -1113,6 +1259,7 @@ function repetirCompra(idx){
 }
 
 /* Arranque */
+pintarSelects();
 const h=(location.hash||"").slice(1);
 if(CATS.some(c=>c.k===h)) ir("cat",h);
 else if(h==="pedido") ir("pedido");

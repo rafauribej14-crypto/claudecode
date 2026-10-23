@@ -10,6 +10,7 @@ Catálogo web de insumos de panadería de EPA Bakery y Gold Mills. El emprendedo
 | `img/` | Fotos de producto (nombradas por código) y logo |
 | `supabase/esquema.sql` | Base de datos: clientes, pedidos y funciones seguras |
 | `supabase/02_historial_y_entrada.sql` | El celular como dato madre, entrada con solo el celular e historial de compras |
+| `supabase/03_zonas_y_localidades.sql` | Zonas de entrega, localidades de Panamá y vistas para programar la ruta |
 | `netlify.toml` | Publicación en Netlify, sin compilación |
 
 ## Memoria de clientes
@@ -28,7 +29,7 @@ Proyecto conectado: `emprende-con-goldmills` (us-east-1), `https://wajzboetmyyyh
 ### Para montar en otro proyecto
 
 1. En Supabase, crear el proyecto.
-2. Abrir **SQL Editor → New query**, pegar `supabase/esquema.sql` y ejecutar con **Run**. Repetir con `supabase/02_historial_y_entrada.sql`.
+2. Abrir **SQL Editor → New query**, pegar `supabase/esquema.sql` y ejecutar con **Run**. Repetir con `supabase/02_historial_y_entrada.sql` y `supabase/03_zonas_y_localidades.sql`.
 3. En **Project Settings → API**, copiar la **Project URL** y la llave **anon public**.
 4. En `index.html`, pegar ambas en `SUPABASE_URL` y `SUPABASE_KEY`.
 
@@ -43,3 +44,10 @@ En Supabase, **Table Editor**:
 ## Seguridad
 
 La página pública no puede leer las tablas. Solo puede usar tres funciones: `ingresar_cliente`, `enviar_pedido` y `ultimo_pedido`. Para ver el último pedido de un cliente hace falta la llave privada que se guarda en su celular. Si alguien escribe un celular ajeno con otro nombre, la página no lo deja entrar.
+
+## Zonas de entrega
+
+- Al crear su cuenta, el cliente elige su corregimiento (26 del distrito de Panamá) o su distrito (La Chorrera, Arraiján, San Miguelito, Chepo), y escribe su barrio o referencia.
+- La zona y el día salen de la tabla `localidades` → `zonas`. Para cambiar un día: **Table Editor → zonas → dias**. Para mover un corregimiento de zona: **Table Editor → localidades → zona**.
+- Cada pedido guarda la zona, el día y la localidad del momento.
+- Vistas para programar: `v_pedidos_por_zona` (pedidos por día y zona), `v_clientes` (clientes con su zona) y `v_pedidos` (con zona, día y localidad).
