@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#C0631A">
+<link rel="icon" href="img/logo.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<title>Emprende con Gold Mills</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Catálogo de insumos de panadería EPA Bakery y Gold Mills. Arma tu pedido y envíalo por WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&family=Dancing+Script:wght@700&display=swap">
+<style>
+/* Layout: columna móvil centrada (app de pedido), encabezado naranja de marca, tarjetas blancas sobre crema, barra inferior fija. Una sola paleta clara, por decisión de marca. */
+:root{
+  --naranja:#C0631A; --naranja-osc:#9C4D12; --naranja-suave:#FBEADB; --naranja-tinte:#FFF6EE;
+  --crema:#F8F2EA; --crema-osc:#EFE5D8; --blanco:#FFFFFF;
+  --cafe:#3A2214; --texto:#2A1A10; --gris:#7C6B5E; --linea:#EADDCF;
+  --verde:#1DA851; --verde-osc:#178A43; --alerta:#B3261E;
+  --f-display:"Outfit","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Nunito Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-script:"Dancing Script","Brush Script MT",cursive;
+  --r-card:18px; --r-pill:999px;
+  --sombra:0 1px 2px rgba(58,34,20,.06),0 6px 18px rgba(58,34,20,.07);
+  --col:480px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--crema-osc);color:var(--texto)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--naranja)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--naranja);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;color:var(--cafe)}
+
+.app{max-width:var(--col);margin:0 auto;min-height:100vh;background:var(--crema);position:relative;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));box-shadow:0 0 0 1px var(--linea)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.view{display:none}
+.view.on{display:block;animation:entra .28s ease}
+@keyframes entra{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.view.on{animation:none}*{transition:none!important}}
+
+/* ---------- Encabezado de marca ---------- */
+.top{background:var(--naranja);color:var(--blanco);padding-block:18px 56px;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;right:-60px;top:-70px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07)}
+.top-fila{display:flex;align-items:center;justify-content:space-between;gap:14px;position:relative;z-index:1}
+.logo-card{background:var(--blanco);border-radius:16px;padding:8px 14px;display:flex;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.logo-card img{height:46px;width:auto;max-width:140px;object-fit:contain;display:block}
+.saludo{text-align:right}
+.saludo small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;opacity:.85}
+.saludo strong{font-family:var(--f-display);font-size:19px;font-weight:800;line-height:1.15;display:block}
+.saludo-nom{display:block;font-size:13px;font-weight:700;opacity:.9;margin-top:2px}
+.reg-marca{margin-top:18px;display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:var(--r-pill);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;position:relative;z-index:1}
+.reg-marca + h1{margin-top:12px!important}
+
+/* ---------- Hero ---------- */
+.hero{margin-top:-40px;position:relative;z-index:2;border-radius:22px;overflow:hidden;min-height:188px;display:flex;align-items:flex-end;background:var(--cafe) url("img/hero.webp") center 30%/cover no-repeat;box-shadow:var(--sombra)}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,22,10,.86) 0%,rgba(42,22,10,.62) 52%,rgba(42,22,10,.05) 100%)}
+.hero-txt{position:relative;padding:20px 18px;color:var(--blanco);max-width:78%}
+.hero-txt .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#F7C9A2}
+.hero-txt h1{color:var(--blanco);font-size:25px;line-height:1.1;font-weight:800;margin-top:6px}
+.hero-txt h1 em{font-family:var(--f-script);font-style:normal;font-weight:700;color:#FFB778;font-size:1.22em;display:inline-block;transform:translateY(2px)}
+.hero-txt p{margin:8px 0 14px;font-size:13px;line-height:1.4;opacity:.92}
+.btn-blanco{background:var(--blanco);color:var(--cafe);font-weight:800;font-size:13px;padding:9px 16px;border-radius:var(--r-pill);display:inline-flex;align-items:center;gap:6px}
+
+/* ---------- Beneficios ---------- */
+.beneficios{margin-top:14px;background:var(--blanco);border-radius:var(--r-card);display:grid;grid-template-columns:repeat(3,1fr);box-shadow:var(--sombra)}
+.ben{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:12px 6px;font-size:11.5px;font-weight:800;line-height:1.2;color:var(--cafe)}
+.ben+.ben{border-left:1px solid var(--linea)}
+.ben-ic{flex:none;width:30px;height:30px;border-radius:10px;background:var(--naranja-suave);color:var(--naranja);display:grid;place-items:center}
+.ben-ic svg{width:17px;height:17px}
+
+/* ---------- Secciones ---------- */
+.sec{margin-top:26px}
+.sec-cab{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sec-cab h2{font-size:19px;font-weight:700}
+.sec-cab .lnk{font-size:12.5px;font-weight:800;color:var(--naranja)}
+.sec-cab p{margin:2px 0 0;font-size:12.5px;color:var(--gris)}
+
+/* Carrusel Más pedido */
+.carrusel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
+.carrusel::-webkit-scrollbar{display:none}
+.mini{scroll-snap-align:start;flex:0 0 156px;background:var(--blanco);border-radius:var(--r-card);padding:10px;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:6px;position:relative}
+.mini .foto{aspect-ratio:1;border-radius:12px;background:var(--blanco);overflow:hidden;max-width:100%}
+.mini .foto img,.mini .foto svg{width:100%;height:100%;object-fit:contain;display:block}
+.mini h3{font-size:13.5px;font-weight:700;line-height:1.2;min-height:2.4em}
+.mini .pres{font-size:11.5px;color:var(--gris);margin-top:-3px}
+.mini .pie{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:auto}
+.mini .pie .stepper{justify-content:space-between;background:var(--crema);border-radius:var(--r-pill);padding:3px}
+.mini .precio{font-family:var(--f-display);font-weight:800;font-size:16px;color:var(--cafe)}
+
+/* Categorías */
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cat{background:var(--blanco);border-radius:var(--r-card);padding:14px 12px 12px 14px;display:block;text-align:left;box-shadow:var(--sombra);min-height:128px;position:relative;overflow:hidden;transition:transform .15s}
+.cat:active{transform:scale(.98)}
+.cat::before{content:"";position:absolute;right:-26px;bottom:-26px;width:110px;height:110px;border-radius:50%;background:var(--naranja-tinte)}
+.cat-txt{display:flex;flex-direction:column;gap:3px;position:relative;z-index:1;min-width:0;min-height:102px}
+.cat-txt b{font-family:var(--f-display);font-size:15.5px;font-weight:700;color:var(--cafe);line-height:1.15}
+.cat-txt span{font-size:11.5px;color:var(--gris);line-height:1.25}
+.cat-txt i{margin-top:auto;font-style:normal;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--linea);display:grid;place-items:center;color:var(--naranja)}
+.cat img{width:72px;height:72px;object-fit:contain;position:absolute;right:8px;bottom:8px;z-index:1;max-width:100%;mix-blend-mode:multiply}
+.cat.ancha{grid-column:1/-1;min-height:112px}
+.cat.ancha .cat-txt{min-height:86px}
+.cat.ancha img{width:92px;height:92px;right:16px;bottom:10px}
+
+/* Cómo funciona + Crecemos contigo */
+.crecemos{background:var(--cafe);color:#F6EADF;border-radius:22px;padding:22px 18px;position:relative;overflow:hidden}
+.crecemos::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;border:26px solid rgba(192,99,26,.25);right:-70px;top:-70px}
+.crecemos .eyebrow{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#F2A86B}
+.crecemos h2{color:var(--blanco);font-size:22px;margin-top:6px;line-height:1.15;position:relative;z-index:1}
+.crecemos h2 em{font-family:var(--f-script);font-style:normal;color:#FFB778;font-size:1.2em}
+.crecemos p{font-size:13.5px;margin:10px 0 0;line-height:1.5;opacity:.92;position:relative;z-index:1}
+.pasos{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:10px;counter-reset:p}
+.pasos li{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;background:rgba(255,255,255,.06);border-radius:14px;padding:10px 12px;counter-increment:p}
+.pasos li::before{content:counter(p);width:34px;height:34px;border-radius:50%;background:var(--naranja);color:var(--blanco);font-family:var(--f-display);font-weight:800;display:grid;place-items:center}
+.pasos b{display:block;color:var(--blanco);font-size:14px}
+.pasos span{font-size:12.5px;opacity:.85}
+
+.pie-marca{text-align:center;font-size:11.5px;color:var(--gris);margin-top:26px;line-height:1.6}
+.pie-marca b{color:var(--cafe)}
+
+/* ---------- Cabecera de vistas internas ---------- */
+.cab{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--crema);padding-block:14px 10px}
+.cab-fila{display:flex;align-items:center;gap:12px}
+.volver{width:40px;height:40px;border-radius:12px;background:var(--blanco);box-shadow:var(--sombra);display:grid;place-items:center;flex:none}
+.volver svg{width:18px;height:18px}
+.cab-tit{flex:1;min-width:0}
+.cab-tit small{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--gris)}
+.cab-tit h1{font-size:24px;font-weight:800;line-height:1.1}
+.bolsa{width:44px;height:44px;border-radius:14px;background:var(--naranja);color:var(--blanco);display:grid;place-items:center;position:relative;flex:none}
+.bolsa svg{width:21px;height:21px}
+.badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--cafe);color:var(--blanco);font-size:11px;font-weight:800;display:grid;place-items:center;border:2px solid var(--crema)}
+.badge[data-n="0"]{display:none}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin-top:12px;padding-bottom:4px;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:8px 14px;border-radius:var(--r-pill);background:var(--blanco);border:1.5px solid var(--linea);font-size:12.5px;font-weight:800;color:var(--cafe);white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--naranja);border-color:var(--naranja);color:var(--blanco)}
+.cat-desc{font-size:12.5px;color:var(--gris);margin:6px 0 0}
+
+/* ---------- Tarjeta de producto ---------- */
+.lista{display:grid;gap:12px;margin-top:6px}
+.prod{background:var(--blanco);border-radius:var(--r-card);box-shadow:var(--sombra);display:grid;grid-template-columns:104px 1fr;gap:14px;padding:10px 12px 10px 10px;align-items:center}
+.prod .foto{width:104px;height:104px;border-radius:14px;background:var(--blanco);border:1px solid #F3ECE3;position:relative;overflow:hidden;max-width:100%}
+.prod .foto img,.prod .foto svg{width:100%;height:100%;object-fit:contain;display:block}
+.tag-top{position:absolute;left:6px;top:6px;background:var(--cafe);color:var(--blanco);font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:3px 7px;border-radius:var(--r-pill);text-transform:uppercase}
+.mini .tag-top{left:14px;top:14px}
+.prod-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.prod-info h3{font-size:15.5px;font-weight:700;line-height:1.2}
+.pres{font-size:12px;color:var(--gris);display:flex;align-items:center;gap:6px}
+.pres::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--naranja);flex:none}
+.mini .pres::before{display:none}
+.prod-pie{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
+.precio{font-family:var(--f-display);font-weight:800;font-size:21px;color:var(--cafe);letter-spacing:-.01em}
+.precio.consultar{font-size:15px;color:var(--naranja-osc)}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;transition:transform .1s,background .15s}
+.stepper button:active{transform:scale(.9)}
+.stepper .menos{border:1.5px solid var(--linea);color:var(--cafe);background:var(--blanco)}
+.stepper .menos:disabled{opacity:.35;cursor:default}
+.stepper .mas{background:var(--naranja);color:var(--blanco);box-shadow:0 3px 8px rgba(192,99,26,.35)}
+.stepper svg{width:14px;height:14px}
+.stepper output{min-width:18px;text-align:center;font-weight:800;font-size:14px}
+.mini .stepper button{width:28px;height:28px}
+
+/* ---------- Buscar ---------- */
+.buscador{display:flex;align-items:center;gap:10px;background:var(--blanco);border:1.5px solid var(--linea);border-radius:14px;padding:0 14px;height:48px;margin-top:4px}
+.buscador svg{width:18px;height:18px;color:var(--gris);flex:none}
+.buscador input{border:0;outline:0;flex:1;min-width:0;font:inherit;font-size:15px;background:transparent;color:var(--texto)}
+.buscador:focus-within{border-color:var(--naranja)}
+.vacio{text-align:center;color:var(--gris);padding:36px 12px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+/* ---------- Mi pedido ---------- */
+.items{background:var(--blanco);border-radius:var(--r-card);box-shadow:var(--sombra);padding:4px 14px}
+.item{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0}
+.item+.item{border-top:1px solid var(--linea)}
+.item .foto{width:64px;height:64px;border-radius:12px;border:1px solid #F3ECE3;overflow:hidden;background:var(--blanco)}
+.item .foto img,.item .foto svg{width:100%;height:100%;object-fit:contain;display:block}
+.item h3{font-size:14px;font-weight:700;line-height:1.2}
+.item .u{font-size:11.5px;color:var(--gris);margin:2px 0 6px}
+.item .sub{text-align:right;align-self:start;padding-top:4px}
+.item .sub small{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris);font-weight:700}
+.item .sub b{font-family:var(--f-display);font-size:16px;font-weight:800;color:var(--cafe)}
+.item .stepper button{width:28px;height:28px}
+.campo{margin-top:18px}
+.campo label{display:block;font-size:12.5px;font-weight:800;color:var(--cafe);margin-bottom:6px}
+.campo input{width:100%;height:50px;border:1.5px solid var(--linea);border-radius:14px;padding:0 14px;font:inherit;font-size:15px;background:var(--blanco);color:var(--texto)}
+.campo input:focus{outline:0;border-color:var(--naranja);box-shadow:0 0 0 3px var(--naranja-suave)}
+.campo input[aria-invalid="true"]{border-color:var(--alerta)}
+.campo .err{color:var(--alerta);font-size:12px;font-weight:700;margin-top:6px}
+.campo .ayuda{color:var(--gris);font-size:12px;margin-top:6px}
+.nota{margin-top:14px;background:var(--naranja-tinte);border:1px solid var(--naranja-suave);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;font-size:13px;font-weight:700;color:var(--cafe);line-height:1.35}
+.nota .ic{width:30px;height:30px;border-radius:50%;background:var(--blanco);color:var(--naranja);display:grid;place-items:center}
+.nota .ic svg{width:16px;height:16px}
+.nota span small{display:block;font-weight:600;color:var(--gris);font-size:12px;margin-top:2px}
+.total{display:flex;align-items:flex-end;justify-content:space-between;margin-top:20px;gap:10px}
+.total small{display:block;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:var(--gris)}
+.total strong{font-family:var(--f-display);font-size:34px;font-weight:800;color:var(--cafe);line-height:1}
+.total .env{font-size:12px;font-weight:700;color:var(--verde-osc);background:#E6F5EC;padding:5px 10px;border-radius:var(--r-pill)}
+.aviso-consultar{font-size:12px;color:var(--naranja-osc);font-weight:700;margin-top:8px}
+.btn-wa{margin-top:16px;width:100%;height:56px;border-radius:16px;background:var(--verde);color:var(--blanco);font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;box-shadow:0 6px 16px rgba(29,168,81,.32);transition:background .15s}
+.btn-wa:hover{background:var(--verde-osc)}
+.btn-wa svg{width:22px;height:22px}
+.btn-wa[aria-disabled="true"]{background:#9FCFB2;box-shadow:none;cursor:not-allowed}
+.garantia{margin-top:12px;background:var(--blanco);border-radius:14px;border:1px solid var(--linea);padding:12px 14px;display:grid;grid-template-columns:24px 1fr;gap:10px;font-size:12.5px;color:var(--gris)}
+.garantia b{display:block;color:var(--cafe);font-size:13px}
+.garantia svg{width:20px;height:20px;color:var(--verde)}
+details.preview{margin-top:12px;border:1px dashed var(--linea);border-radius:14px;background:var(--blanco)}
+details.preview summary{padding:12px 14px;font-size:12.5px;font-weight:800;color:var(--naranja-osc);cursor:pointer;list-style:none;display:flex;justify-content:space-between}
+details.preview summary::-webkit-details-marker{display:none}
+details.preview summary::after{content:"+";font-size:16px}
+details.preview[open] summary::after{content:"–"}
+.wa-burbuja{margin:0 14px 14px;background:#E7FFDB;border-radius:12px 12px 12px 4px;padding:10px 12px;font-size:13px;white-space:pre-wrap;line-height:1.45;color:#111B21;font-family:var(--f-body);overflow-wrap:anywhere}
+.enviado{margin-top:14px;background:#E6F5EC;border-radius:14px;padding:12px 14px;font-size:13px;color:var(--cafe);line-height:1.45}
+.enviado b{color:var(--verde-osc)}
+.copiar{margin-top:8px;font-size:12.5px;font-weight:800;color:var(--verde-osc);text-decoration:underline}
+.vaciar{display:block;margin:14px auto 0;font-size:12.5px;font-weight:700;color:var(--gris);text-decoration:underline}
+
+/* ---------- Registro ---------- */
+.reg-top{background:var(--naranja);padding-block:22px 74px;border-radius:0 0 32px 32px;color:var(--blanco);position:relative;overflow:hidden}
+.reg-top::after{content:"";position:absolute;inset:auto -40px -90px auto;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07)}
+.reg-top .logo-card{display:inline-flex}
+.reg-top h1{color:var(--blanco);font-size:30px;line-height:1.08;font-weight:800;margin-top:22px;position:relative;z-index:1}
+.reg-top h1 em{font-family:var(--f-script);font-style:normal;color:#FFD0A6;font-size:1.2em}
+.reg-top p{margin:10px 0 0;font-size:14px;line-height:1.5;opacity:.94;max-width:36ch;position:relative;z-index:1}
+.reg-card{background:var(--blanco);border-radius:22px;box-shadow:var(--sombra);margin-top:-48px;position:relative;z-index:2;padding:18px 16px 20px}
+.reg-card h2{font-size:19px}
+.reg-card > p{font-size:13px;color:var(--gris);margin:4px 0 0}
+.reg-card .campo{margin-top:14px}
+.btn-pri{margin-top:18px;width:100%;height:54px;border-radius:16px;background:var(--naranja);color:var(--blanco);font-weight:800;font-size:16px;box-shadow:0 6px 16px rgba(192,99,26,.3)}
+.btn-pri:hover{background:var(--naranja-osc)}
+.btn-sec{display:block;margin:14px auto 0;font-size:13.5px;font-weight:800;color:var(--naranja-osc)}
+.reg-ben{display:grid;gap:10px;margin-top:20px}
+.reg-ben div{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:center;font-size:13px;color:var(--gris)}
+.reg-ben b{display:block;color:var(--cafe);font-size:14px}
+
+/* ---------- Barras fijas ---------- */
+.fijo{position:fixed;left:0;right:0;margin-inline:auto;max-width:var(--col);z-index:40}
+.carrito-bar{bottom:calc(70px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:10px;transform:translateY(0);transition:transform .25s,opacity .25s}
+.carrito-bar[hidden]{display:none!important}
+.carrito-bar button{width:100%;background:var(--cafe);color:var(--blanco);border-radius:18px;padding:10px 10px 10px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 10px 24px rgba(58,34,20,.32)}
+.carrito-bar .res{font-family:var(--f-display);font-weight:700;font-size:15.5px;text-align:left}
+.carrito-bar .res small{display:block;font-family:var(--f-body);font-weight:600;font-size:11.5px;opacity:.75}
+.carrito-bar .ver{background:var(--naranja);border-radius:13px;padding:10px 16px;font-weight:800;font-size:13.5px;white-space:nowrap}
+.carrito-bar.bump button{animation:bump .35s ease}
+@keyframes bump{40%{transform:scale(1.03)}}
+.nav{bottom:0;background:var(--blanco);border-top:1px solid var(--linea);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 9px;font-size:11.5px;font-weight:800;color:var(--gris);position:relative}
+.nav button svg{width:23px;height:23px}
+.nav button[aria-current="page"]{color:var(--naranja)}
+.nav button[aria-current="page"]::before{content:"";position:absolute;top:0;width:34px;height:3px;border-radius:0 0 3px 3px;background:var(--naranja)}
+.nav .ico{position:relative}
+.nav .badge{border-color:var(--blanco);top:-5px;right:-11px;background:var(--naranja)}
+.reg-activo .nav,.reg-activo .carrito-bar{display:none!important}
+
+@media (min-width:560px){
+  body{padding-block:0}
+  .app{border-radius:0}
+}
+</style>
+
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- ============ REGISTRO ============ -->
+  <section class="view" id="v-registro" aria-labelledby="reg-tit">
+    <div class="reg-top gut">
+      <div class="logo-card"><img src="img/logo.png" alt="EPA Bakery Solutions"></div>
+      <div class="reg-marca">Emprende con Gold Mills</div>
+      <h1 id="reg-tit">Tu sueño también <em>se hornea</em></h1>
+      <p>EPA Bakery y Gold Mills creemos en los emprendedores de Panamá. Te llevamos los insumos hasta tu puerta para que tú te dediques a crecer.</p>
+    </div>
+    <div class="gut">
+      <form class="reg-card" id="f-registro" novalidate>
+        <h2>Crea tu cuenta</h2>
+        <p>Te registras una sola vez. Después solo eliges productos y envías tu pedido.</p>
+        <div class="campo">
+          <label for="r-nombre">Nombre y apellido</label>
+          <input id="r-nombre" name="nombre" autocomplete="name" placeholder="Ej. Rosa Méndez" required>
+          <div class="err" id="r-nombre-err" hidden>Escribe tu nombre para registrarte.</div>
+        </div>
+        <div class="campo">
+          <label for="r-negocio">Nombre de tu negocio <span style="font-weight:600;color:var(--gris)">(opcional)</span></label>
+          <input id="r-negocio" name="negocio" autocomplete="organization" placeholder="Ej. Panadería Doña Rosa">
+        </div>
+        <div class="campo">
+          <label for="r-cel">Celular</label>
+          <input id="r-cel" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="6000-0000" maxlength="9" required>
+          <div class="err" id="r-cel-err" hidden>Escribe un celular de 8 dígitos que empiece por 6.</div>
+        </div>
+        <div class="nota">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <span>Tu ubicación la compartes por WhatsApp con tu primer pedido.<small>Con ella te asignamos tu zona y tu día de entrega de ruta.</small></span>
+        </div>
+        <button class="btn-pri" type="submit">Crear mi cuenta</button>
+        <button class="btn-sec" type="button" data-ir="inicio">Ver el catálogo primero</button>
+        <div class="reg-ben">
+          <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></span><span><b>Sin costo de envío</b>Te lo llevamos el día de tu ruta.</span></div>
+          <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span><b>Precios de fábrica</b>Directo de Gold Mills a tu negocio.</span></div>
+          <div><span class="ben-ic" style="width:36px;height:36px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/></svg></span><span><b>Asesoría personalizada</b>Un asesor confirma cada pedido contigo.</span></div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ INICIO ============ -->
+  <section class="view" id="v-inicio" aria-label="Inicio">
+    <header class="top gut">
+      <div class="top-fila">
+        <div class="logo-card"><img src="img/logo.png" alt="EPA Bakery Solutions"></div>
+        <div class="saludo"><small>Bienvenido a</small><strong>Emprende con Gold Mills</strong><span class="saludo-nom" id="saludo-nombre">Hola, emprendedor</span></div>
+      </div>
+    </header>
+    <div class="gut">
+      <div class="hero">
+        <div class="hero-txt">
+          <div class="eyebrow">EPA Bakery · Gold Mills</div>
+          <h1>Insumos de panadería <em>hasta tu casa</em></h1>
+          <p>Tú pones las ganas. Nosotros, los insumos para que tu negocio crezca.</p>
+          <button class="btn-blanco" data-ir="cat" data-cat="harinas">Hacer mi pedido <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+
+      <div class="beneficios">
+        <div class="ben"><span class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></span>Sin costo de envío</div>
+        <div class="ben"><span class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>Precios de fábrica</div>
+        <div class="ben"><span class="ben-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/></svg></span>Asesoría personalizada</div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-cab"><div><h2>Lo más pedido</h2><p>Lo que más llevan los emprendedores de la ruta</p></div></div>
+        <div class="carrusel" id="carrusel"></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-cab"><h2>Compra por categoría</h2><button class="lnk" data-ir="buscar">Buscar producto</button></div>
+        <div class="cats" id="cats"></div>
+      </div>
+
+      <div class="sec">
+        <div class="crecemos">
+          <div class="eyebrow">Crecemos contigo</div>
+          <h2>Cada pedido es un paso más <em>de tu negocio</em></h2>
+          <p>En EPA Bakery y Gold Mills apostamos por quien amasa su propio camino. Por eso llevamos la fábrica hasta tu puerta, con precios justos y un asesor que te acompaña.</p>
+          <ol class="pasos">
+            <li><div><b>Arma tu pedido</b><span>Elige productos con los botones + y −.</span></div></li>
+            <li><div><b>Envíalo por WhatsApp</b><span>Le llega directo a tu asesor de ruta.</span></div></li>
+            <li><div><b>Recíbelo en tu día de ruta</b><span>Compartes tu ubicación y te lo llevamos sin costo.</span></div></li>
+          </ol>
+        </div>
+      </div>
+
+      <p class="pie-marca"><b>EPA Bakery Solutions</b> · Gold Mills Panamá<br>Precios en dólares (USD) por unidad de venta.</p>
+    </div>
+  </section>
+
+  <!-- ============ CATEGORÍA ============ -->
+  <section class="view" id="v-cat" aria-labelledby="cat-tit">
+    <div class="cab gut">
+      <div class="cab-fila">
+        <button class="volver" data-ir="inicio" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
+        <div class="cab-tit"><small>Catálogo</small><h1 id="cat-tit">Harinas</h1></div>
+        <button class="bolsa" data-ir="pedido" aria-label="Ver mi pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
+      </div>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Categorías"></div>
+    </div>
+    <div class="gut">
+      <p class="cat-desc" id="cat-desc"></p>
+      <div class="lista" id="lista"></div>
+    </div>
+  </section>
+
+  <!-- ============ BUSCAR ============ -->
+  <section class="view" id="v-buscar" aria-labelledby="bus-tit">
+    <div class="cab gut">
+      <div class="cab-fila">
+        <button class="volver" data-ir="inicio" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
+        <div class="cab-tit"><small>Catálogo completo</small><h1 id="bus-tit">Buscar</h1></div>
+        <button class="bolsa" data-ir="pedido" aria-label="Ver mi pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></button>
+      </div>
+      <label class="buscador" for="q"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Harina, margarina, esencia…" autocomplete="off"></label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="gut"><div class="lista" id="resultados" style="margin-top:12px"></div></div>
+  </section>
+
+  <!-- ============ MI PEDIDO ============ -->
+  <section class="view" id="v-pedido" aria-labelledby="ped-tit">
+    <div class="cab gut">
+      <div class="cab-fila">
+        <button class="volver" data-ir="atras" aria-label="Seguir comprando"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18 9 12l6-6"/></svg></button>
+        <div class="cab-tit"><small>Revisa antes de enviar</small><h1 id="ped-tit">Mi pedido</h1></div>
+      </div>
+    </div>
+    <div class="gut">
+      <div id="ped-vacio" class="vacio" hidden>
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--naranja)"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+        <p style="font-weight:800;color:var(--cafe);font-size:16px;margin:10px 0 4px">Tu pedido está vacío</p>
+        <p style="margin:0 0 16px">Agrega productos desde el catálogo con el botón +.</p>
+        <button class="btn-pri" style="max-width:260px" data-ir="cat" data-cat="harinas">Ir al catálogo</button>
+      </div>
+      <div id="ped-lleno">
+        <div class="items" id="items"></div>
+        <div class="campo">
+          <label for="p-nombre">Tu nombre</label>
+          <input id="p-nombre" autocomplete="name" placeholder="Escribe tu nombre o el de tu negocio">
+          <div class="err" id="p-nombre-err" hidden>Escribe tu nombre para que el asesor sepa de quién es el pedido.</div>
+        </div>
+        <div class="nota">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <span>Al enviar, comparte tu ubicación por WhatsApp para la entrega.</span>
+        </div>
+        <div class="total">
+          <div><small>Total del pedido</small><strong class="num" id="total">$0.00</strong></div>
+          <span class="env">Envío sin costo</span>
+        </div>
+        <p class="aviso-consultar" id="aviso-consultar" hidden></p>
+        <a class="btn-wa" id="btn-wa" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3z"/></svg>
+          Enviar pedido por WhatsApp
+        </a>
+        <div class="enviado" id="enviado" hidden>
+          <b>Tu pedido está listo en WhatsApp.</b> Toca enviar y luego comparte tu ubicación de entrega en el mismo chat.<br>
+          Si WhatsApp no se abrió, escríbele a tu asesor al <b class="num" id="num-asesor">+507 6757-7826</b>.
+          <br><button class="copiar" id="copiar">Copiar el pedido</button>
+        </div>
+        <div class="garantia">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <div><b>Pedido directo y atención personalizada</b>Un asesor confirmará la entrega contigo.</div>
+        </div>
+        <details class="preview">
+          <summary>Ver el mensaje que recibirá tu asesor</summary>
+          <div class="wa-burbuja" id="wa-preview"></div>
+        </details>
+        <button class="vaciar" id="vaciar">Vaciar pedido</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barra de carrito -->
+  <div class="fijo carrito-bar" id="carrito-bar" hidden>
+    <button data-ir="pedido"><span class="res num" id="bar-res">0 productos · $0.00<small>Envío sin costo</small></span><span class="ver">Ver pedido →</span></button>
+  </div>
+
+  <!-- Navegación -->
+  <nav class="fijo nav" aria-label="Navegación principal">
+    <button data-ir="inicio" data-nav="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+    <button data-ir="buscar" data-nav="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar</button>
+    <button data-ir="pedido" data-nav="pedido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span class="badge num" data-cuenta data-n="0">0</span></span>Mi pedido</button>
+  </nav>
+</div>
+
+<script>
+const PRODUCTOS=[{"c": 320058, "n": "Harina Multiuso", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320042, "n": "Harina Dura", "p": "Saco 25 LB", "k": "harinas", "$": 11.0, "i": true, "t": false}, {"c": 320048, "n": "Harina Pan Francés", "p": "Saco 50 LB", "k": "harinas", "$": 22.0, "i": false, "t": true}, {"c": 320055, "n": "Harina Suave", "p": "Saco 25 LB", "k": "harinas", "$": 10.0, "i": true, "t": true}, {"c": 320186, "n": "Harina Integral", "p": "Saco 25 LB", "k": "harinas", "$": null, "i": true, "t": false}, {"c": 320003, "n": "Harina Semidura", "p": "Fardo 9 × 5 LB", "k": "harinas", "$": 3.1, "i": true, "t": false}, {"c": 320004, "n": "Harina Dura para Pan", "p": "Fardo 9 × 5 LB", "k": "harinas", "$": null, "i": true, "t": false}, {"c": 320129, "n": "Premezcla Creme Cake", "p": "Saco 25 LB", "k": "harinas", "$": 27.0, "i": true, "t": false}, {"c": 320128, "n": "Premezcla Creme Cake", "p": "Saco 50 LB", "k": "harinas", "$": 54.0, "i": true, "t": false}, {"c": 8790, "n": "Margarina Dagusto Multipropósitos", "p": "Caja 15 KG", "k": "grasas", "$": 31.95, "i": true, "t": true}, {"c": 8832, "n": "Hojaldrina en Hojas", "p": "Caja 10 KG", "k": "grasas", "$": 26.2, "i": true, "t": true}, {"c": 8781, "n": "Margarina Dagusto Repostería Especial", "p": "Caja 15 KG", "k": "grasas", "$": 36.0, "i": true, "t": false}, {"c": 8871, "n": "Margarina Dagusto Panadera", "p": "Caja 15 KG", "k": "grasas", "$": 25.5, "i": true, "t": false}, {"c": 8834, "n": "Margarina Exclusiva Hojaldre", "p": "Caja 20 × 500 g (10 KG)", "k": "grasas", "$": 23.2, "i": true, "t": false}, {"c": 310285, "n": "Margarina La Comadre Multipropósito", "p": "Caja 33 LB", "k": "grasas", "$": 37.0, "i": true, "t": false}, {"c": 8858, "n": "Manteca La Comadre", "p": "30 LB", "k": "grasas", "$": 23.5, "i": false, "t": false}, {"c": 8799, "n": "Aceite Super Fry Vegetal", "p": "Galón 5.000 ml", "k": "grasas", "$": 12.7, "i": false, "t": false}, {"c": 8882, "n": "Aceite La Sevillana", "p": "18 L", "k": "grasas", "$": 35.0, "i": false, "t": false}, {"c": 310442, "n": "Relleno de Guayaba", "p": "Horneable", "k": "rellenos", "$": 4.2, "i": true, "t": false}, {"c": 310444, "n": "Relleno Chocolate y Avellana", "p": "Horneable", "k": "rellenos", "$": 6.6, "i": true, "t": false}, {"c": 310440, "n": "Relleno de Fresa", "p": "Horneable", "k": "rellenos", "$": 5.05, "i": true, "t": false}, {"c": 310441, "n": "Relleno de Frutos Rojos", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310443, "n": "Relleno de Piña", "p": "Horneable", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310445, "n": "Dulce de Leche", "p": "1 KG", "k": "rellenos", "$": 5.5, "i": true, "t": false}, {"c": 310456, "n": "KitKat Pasta Cremosa Chocolate", "p": "Balde 1 KG", "k": "rellenos", "$": 11.5, "i": true, "t": false}, {"c": 310455, "n": "Manjar Nestlé", "p": "Bolsa 6 KG", "k": "rellenos", "$": 25.5, "i": true, "t": false}, {"c": 8909, "n": "Esencia de Mantequilla", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8907, "n": "Esencia Vainilla Blanca", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8901, "n": "Esencia Vainilla Negra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8903, "n": "Esencia Dulce de Leche", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8911, "n": "Esencia de Coco", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8912, "n": "Esencia de Almendra", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8913, "n": "Esencia de Canela", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8914, "n": "Esencia de Banano", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8916, "n": "Esencia de Fresa", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8946, "n": "Esencia de Piña", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8921, "n": "Esencia de Margarina", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8923, "n": "Esencia Pan Caliente", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8902, "n": "Esencia de Ron", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8918, "n": "Esencia Naranja Oil", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8922, "n": "Esencia Hinojo / Anís", "p": "500 ml", "k": "esencias", "$": 6.5, "i": true, "t": false}, {"c": 8944, "n": "Color Caramelo", "p": "500 ml", "k": "esencias", "$": 4.99, "i": true, "t": false}, {"c": 8947, "n": "Colorante en Polvo Amarillo Huevo", "p": "500 g", "k": "esencias", "$": 5.5, "i": true, "t": false}, {"c": 310207, "n": "Levadura Dorada Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 310200, "n": "Levadura Roja Saf-Instant", "p": "Paquete 500 g", "k": "levaduras", "$": 2.8, "i": true, "t": false}, {"c": 8900, "n": "Polvo para Hornear", "p": "Bolsa 1 KG", "k": "complementos", "$": 4.15, "i": true, "t": true}, {"c": 8924, "n": "Polvo para Hornear", "p": "Bolsa 5 KG", "k": "complementos", "$": 19.0, "i": true, "t": false}, {"c": 310199, "n": "Pasitas Sweety", "p": "Caja 22 LB", "k": "complementos", "$": 34.0, "i": true, "t": false}, {"c": 310238, "n": "Frutas Cristalizadas La Comadre", "p": "Caja 30 LB", "k": "complementos", "$": 44.0, "i": true, "t": false}, {"c": 9404, "n": "Azúcar Blanca La Estrella", "p": "2 LB", "k": "complementos", "$": 1.29, "i": true, "t": true}, {"c": 310265, "n": "Azúcar Morena Doradita", "p": "Saco 44 LB", "k": "complementos", "$": 25.1, "i": true, "t": false}, {"c": 9000, "n": "Café Durán Tradicional", "p": "Docena de sobres 22 g", "k": "cafe", "$": 4.2, "i": true, "t": true}, {"c": 9023, "n": "Café Durán Tradicional", "p": "212 g", "k": "cafe", "$": 2.96, "i": true, "t": false}, {"c": 9020, "n": "Café Durán Tradicional", "p": "425 g", "k": "cafe", "$": 5.66, "i": true, "t": false}, {"c": 9180, "n": "Café Durán Legado", "p": "425 g", "k": "cafe", "$": 7.08, "i": true, "t": false}, {"c": 9014, "n": "Café Durán en Granos", "p": "354 g", "k": "cafe", "$": 6.01, "i": true, "t": false}, {"c": 9010, "n": "Café Durán Granos de Altura", "p": "2,27 KG", "k": "cafe", "$": 30.68, "i": true, "t": false}, {"c": 9231, "n": "Café Coclé Instantáneo", "p": "425 g", "k": "cafe", "$": 4.33, "i": true, "t": false}, {"c": 9145, "n": "Té de Canela", "p": "100 sobres", "k": "cafe", "$": 3.38, "i": true, "t": false}, {"c": 9141, "n": "Té Negro", "p": "24 sobres", "k": "cafe", "$": 0.69, "i": true, "t": false}, {"c": 9149, "n": "Té de Manzanilla", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9148, "n": "Té de Menta", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9152, "n": "Té de Limón", "p": "20 sobres", "k": "cafe", "$": 0.87, "i": true, "t": false}, {"c": 9163, "n": "Té Verde Surtido", "p": "20 sobres", "k": "cafe", "$": 1.29, "i": true, "t": false}, {"c": 9659, "n": "Coffee-mate Nestlé", "p": "200 sobres", "k": "cafe", "$": 16.37, "i": true, "t": false}, {"c": 9652, "n": "Azúcar en Sobres Tubulares", "p": "Bolsa 250 sobres", "k": "cafe", "$": 3.24, "i": true, "t": false}, {"c": 9839, "n": "Azúcar Morena en Sobres", "p": "Bolsa 250 sobres", "k": "cafe", "$": 3.24, "i": true, "t": false}, {"c": 9670, "n": "Vaso de Papel con Asa Durán", "p": "6 oz · 50 und", "k": "cafe", "$": 2.16, "i": true, "t": false}, {"c": 9857, "n": "Tapa Negra Bebida Caliente", "p": "100 und · 6 oz", "k": "cafe", "$": 3.14, "i": true, "t": false}, {"c": 9935, "n": "Revolvedores de Bambú Individuales", "p": "100 und", "k": "cafe", "$": 1.1, "i": true, "t": false}, {"c": 9593, "n": "Revolvedores de Bambú", "p": "700 und", "k": "cafe", "$": 2.99, "i": true, "t": false}];
+const WA_NUM="50767577826";
+const CATS=[
+  {k:"harinas",n:"Harinas",d:"Harinas Gold Mills y premezclas",img:320058},
+  {k:"grasas",n:"Aceites y Grasas",d:"Margarinas, manteca y aceites",img:8790},
+  {k:"rellenos",n:"Rellenos",d:"Horneables, cremas y manjar",img:310444},
+  {k:"esencias",n:"Esencias",d:"Sabores y colores",img:8907},
+  {k:"levaduras",n:"Levaduras",d:"Saf-Instant dorada y roja",img:310207},
+  {k:"complementos",n:"Complementos",d:"Polvo de hornear, frutas y azúcar",img:310199},
+  {k:"cafe",n:"Café y Bebidas",d:"Café Durán, té y desechables",img:9020}
+];
+const P=Object.fromEntries(PRODUCTOS.map(p=>[p.c,p]));
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const money=v=>"$"+v.toFixed(2);
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+
+/* Ilustraciones para productos sin foto todavía */
+const ILUS={
+  saco:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M30 22h40l4 10-3 50a6 6 0 0 1-6 6H35a6 6 0 0 1-6-6l-3-50z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><path d="M30 22l4-6h32l4 6" fill="none" stroke="#C0631A" stroke-width="2.5"/><rect x="36" y="42" width="28" height="18" rx="3" fill="#FBEADB"/><path d="M50 46v10M45 49l5 3 5-3" stroke="#C0631A" stroke-width="2" fill="none"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>',
+  balde:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M26 34h48l-5 44a5 5 0 0 1-5 4H36a5 5 0 0 1-5-4z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><rect x="22" y="26" width="56" height="9" rx="3" fill="#FBEADB" stroke="#C0631A" stroke-width="2.5"/><rect x="38" y="48" width="24" height="14" rx="3" fill="#FBEADB"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>',
+  galon:'<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#FFF6EE"/><path d="M34 30h22l12 10v38a5 5 0 0 1-5 5H37a5 5 0 0 1-5-5V34z" fill="#fff" stroke="#C0631A" stroke-width="2.5"/><rect x="38" y="20" width="12" height="10" rx="2" fill="#F2A86B" stroke="#C0631A" stroke-width="2"/><path d="M58 32c8 0 10 4 10 10" fill="none" stroke="#C0631A" stroke-width="2.5"/><path d="M50 52c-4 6-5 9-5 11a5 5 0 0 0 10 0c0-2-1-5-5-11z" fill="#F2A86B"/><text x="50" y="94" text-anchor="middle" font-size="7.5" font-family="Nunito Sans,sans-serif" fill="#9C4D12" font-weight="700">Foto en camino</text></svg>'
+};
+function foto(p){
+  if(p.i) return `<img src="img/${p.c}.webp" alt="${p.n} ${p.p}" loading="lazy" width="400" height="400">`;
+  const t = p.k==="harinas"?"saco":(/aceite/i.test(p.n)?"galon":"balde");
+  return ILUS[t];
+}
+
+/* ---------- Estado ---------- */
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let carrito=store.get("epa_carrito",{});
+let usuario=store.get("epa_usuario",null);
+let catActual="harinas", vistaActual="inicio", vistaPrevia="inicio";
+for(const c in carrito){ if(!P[c]) delete carrito[c]; }
+
+const ICON_MENOS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+const ICON_MAS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+function stepper(c){
+  const q=carrito[c]||0, p=P[c];
+  return `<div class="stepper" data-step="${c}">
+    <button class="menos" data-d="-1" aria-label="Quitar una unidad de ${p.n}" ${q?"":"disabled"}>${ICON_MENOS}</button>
+    <output class="num" aria-live="polite">${q}</output>
+    <button class="mas" data-d="1" aria-label="Agregar una unidad de ${p.n}">${ICON_MAS}</button></div>`;
+}
+const precioHTML=p=>p.$==null?'<span class="precio consultar">Consultar</span>':`<span class="precio num">${money(p.$)}</span>`;
+
+function tarjeta(p){
+  return `<article class="prod">
+    <div class="foto">${foto(p)}${p.t?'<span class="tag-top">Más pedido</span>':""}</div>
+    <div class="prod-info"><h3>${p.n}</h3><span class="pres">${p.p}</span>
+      <div class="prod-pie">${precioHTML(p)}${stepper(p.c)}</div></div></article>`;
+}
+function mini(p){
+  return `<article class="mini"><div class="foto">${foto(p)}</div><span class="tag-top">Más pedido</span>
+    <h3>${p.n}</h3><span class="pres">${p.p}</span>
+    <div class="pie">${p.$==null?'<span class="precio" style="font-size:13px;color:var(--naranja-osc)">Consultar</span>':`<span class="precio num">${money(p.$)}</span>`}${stepper(p.c)}</div></article>`;
+}
+
+/* ---------- Render ---------- */
+function renderInicio(){
+  $("#saludo-nombre").textContent = usuario?.nombre ? "Hola, "+usuario.nombre.split(" ")[0] : "Hola, emprendedor";
+  const top=PRODUCTOS.filter(p=>p.t);
+  $("#carrusel").innerHTML=top.map(mini).join("");
+  $("#cats").innerHTML=CATS.map((c,i)=>{
+    const n=PRODUCTOS.filter(p=>p.k===c.k).length;
+    return `<button class="cat${i===CATS.length-1?" ancha":""}" data-ir="cat" data-cat="${c.k}">
+      <span class="cat-txt"><b>${c.n}</b><span>${n} productos</span><i aria-hidden="true">›</i></span>
+      <img src="img/${c.img}.webp" alt="" loading="lazy" width="400" height="400"></button>`;
+  }).join("");
+}
+function ordenar(lista){return [...lista].sort((a,b)=>(b.t-a.t))}
+function renderCat(){
+  const c=CATS.find(x=>x.k===catActual);
+  $("#cat-tit").textContent=c.n;
+  $("#cat-desc").textContent=c.d;
+  $("#tabs").innerHTML=CATS.map(x=>`<button class="tab" role="tab" aria-selected="${x.k===catActual}" data-ir="cat" data-cat="${x.k}">${x.n}</button>`).join("");
+  $("#lista").innerHTML=ordenar(PRODUCTOS.filter(p=>p.k===catActual)).map(tarjeta).join("");
+  const sel=$("#tabs [aria-selected=true]"); if(sel) sel.scrollIntoView({inline:"center",block:"nearest"});
+}
+function renderBuscar(){
+  const q=norm($("#q").value.trim());
+  $("#chips").innerHTML = q ? "" : CATS.map(x=>`<button class="tab" data-ir="cat" data-cat="${x.k}">${x.n}</button>`).join("");
+  if(!q){ $("#resultados").innerHTML=ordenar(PRODUCTOS.filter(p=>p.t)).map(tarjeta).join(""); return; }
+  const r=PRODUCTOS.filter(p=>norm(p.n+" "+p.p+" "+CATS.find(c=>c.k===p.k).n).includes(q));
+  $("#resultados").innerHTML = r.length ? r.map(tarjeta).join("") : `<div class="vacio">No encontramos “${$("#q").value.trim()}”.<br>Prueba con harina, margarina, relleno o esencia.</div>`;
+}
+const ORDEN=Object.fromEntries(PRODUCTOS.map((p,i)=>[p.c,i]));
+function lineas(){ return Object.entries(carrito).filter(([c,q])=>q>0).map(([c,q])=>({p:P[c],q:q})).sort((a,b)=>ORDEN[a.p.c]-ORDEN[b.p.c]); }
+function totales(){
+  const l=lineas(); let unidades=0,total=0,consultar=0;
+  l.forEach(({p,q})=>{unidades+=q; if(p.$==null) consultar++; else total+=p.$*q;});
+  return {l,unidades,total,consultar};
+}
+function mensaje(){
+  const {l,total,consultar}=totales();
+  const nom=$("#p-nombre").value.trim()||"(sin nombre)";
+  const items=l.map(({p,q})=>`• ${q} x ${p.n} ${p.p} — ${p.$==null?"Consultar precio":money(p.$*q)}`).join("\n");
+  return `🧁 *NUEVO PEDIDO – Emprende con Gold Mills*\n\n👤 *Cliente:* ${nom}\n\n🛒 *Pedido:*\n${items}\n\n💰 *Total:* ${money(total)}${consultar?" + productos por consultar":""}\n🚚 Envío sin costo\n\n📍 Por favor, envía la ubicación donde se va a entregar el producto.`;
+}
+function renderPedido(){
+  const {l,total,consultar}=totales();
+  $("#ped-vacio").hidden = l.length>0; $("#ped-lleno").hidden = l.length===0;
+  $("#items").innerHTML=l.map(({p,q})=>`<div class="item"><div class="foto">${foto(p)}</div>
+    <div><h3>${p.n}</h3><div class="u">${p.p}${p.$!=null?" · "+money(p.$)+" c/u":""}</div>${stepper(p.c)}</div>
+    <div class="sub"><small>Subtotal</small><b class="num">${p.$==null?"Consultar":money(p.$*q)}</b></div></div>`).join("");
+  $("#total").textContent=money(total);
+  const av=$("#aviso-consultar");
+  av.hidden=!consultar;
+  av.textContent= consultar ? `Incluye ${consultar} producto${consultar>1?"s":""} con precio por confirmar. Tu asesor te lo confirma por WhatsApp.` : "";
+  actualizarWA();
+}
+function actualizarWA(){
+  const m=mensaje(), ok=$("#p-nombre").value.trim().length>0;
+  $("#wa-preview").textContent=m;
+  const a=$("#btn-wa");
+  a.href=`https://wa.me/${WA_NUM}?text=${encodeURIComponent(m)}`;
+  a.setAttribute("aria-disabled", ok?"false":"true");
+}
+function renderContadores(){
+  const {unidades,total,l}=totales();
+  $$("[data-cuenta]").forEach(b=>{b.textContent=unidades;b.dataset.n=unidades;});
+  const bar=$("#carrito-bar");
+  const visible = unidades>0 && vistaActual!=="pedido" && vistaActual!=="registro";
+  bar.hidden=!visible;
+  $("#bar-res").innerHTML=`${unidades} ${unidades===1?"producto":"productos"} · ${money(total)}<small>${l.length} ${l.length===1?"referencia":"referencias"} · Envío sin costo</small>`;
+}
+
+/* ---------- Navegación ---------- */
+function ir(v,cat){
+  if(v==="atras") v = vistaPrevia && vistaPrevia!=="pedido" ? vistaPrevia : "inicio";
+  if(cat) catActual=cat;
+  if(v!==vistaActual) vistaPrevia=vistaActual;
+  vistaActual=v;
+  $$(".view").forEach(s=>s.classList.toggle("on", s.id==="v-"+v));
+  document.body.classList.toggle("reg-activo", v==="registro");
+  $$(".nav [data-nav]").forEach(b=>b.toggleAttribute("aria-current", false));
+  const navK = v==="cat"?"inicio":v; const nb=$(`.nav [data-nav="${navK}"]`); if(nb) nb.setAttribute("aria-current","page");
+  if(v==="inicio") renderInicio();
+  if(v==="cat") renderCat();
+  if(v==="buscar") renderBuscar();
+  if(v==="pedido"){
+    if(!$("#p-nombre").value && usuario) $("#p-nombre").value = usuario.negocio ? `${usuario.nombre} – ${usuario.negocio}` : usuario.nombre;
+    $("#enviado").hidden=true; renderPedido();
+  }
+  renderContadores();
+  window.scrollTo({top:0});
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click",e=>{
+  const st=e.target.closest("[data-step] button");
+  if(st){
+    const c=st.closest("[data-step]").dataset.step, d=+st.dataset.d;
+    carrito[c]=Math.max(0,Math.min(99,(carrito[c]||0)+d));
+    if(!carrito[c]) delete carrito[c];
+    store.set("epa_carrito",carrito);
+    $$(`[data-step="${c}"]`).forEach(w=>{const q=carrito[c]||0; w.querySelector("output").textContent=q; w.querySelector(".menos").disabled=!q;});
+    if(vistaActual==="pedido") renderPedido();
+    renderContadores();
+    if(d>0){const b=$("#carrito-bar"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");}
+    return;
+  }
+  const n=e.target.closest("[data-ir]");
+  if(n){ e.preventDefault(); ir(n.dataset.ir, n.dataset.cat); }
+});
+$("#q").addEventListener("input",renderBuscar);
+$("#p-nombre").addEventListener("input",()=>{ $("#p-nombre-err").hidden=true; $("#p-nombre").removeAttribute("aria-invalid"); actualizarWA(); });
+$("#btn-wa").addEventListener("click",e=>{
+  if(!$("#p-nombre").value.trim()){
+    e.preventDefault(); $("#p-nombre-err").hidden=false; $("#p-nombre").setAttribute("aria-invalid","true"); $("#p-nombre").focus(); return;
+  }
+  actualizarWA();
+  setTimeout(()=>{$("#enviado").hidden=false;},300);
+});
+$("#copiar").addEventListener("click",()=>{
+  const t=mensaje(), b=$("#copiar");
+  const ok=()=>{b.textContent="Pedido copiado";setTimeout(()=>b.textContent="Copiar el pedido",2000)};
+  try{ navigator.clipboard.writeText(t).then(ok).catch(()=>{ $("details.preview").open=true; ok(); }); }catch(err){ $("details.preview").open=true; }
+});
+$("#vaciar").addEventListener("click",()=>{ carrito={}; store.set("epa_carrito",carrito); renderPedido(); renderContadores(); });
+$("#r-cel").addEventListener("input",e=>{ let d=e.target.value.replace(/\D/g,"").slice(0,8); e.target.value=d.length>4?d.slice(0,4)+"-"+d.slice(4):d; });
+$("#f-registro").addEventListener("submit",e=>{
+  e.preventDefault();
+  const nom=$("#r-nombre").value.trim(), cel=$("#r-cel").value.replace(/\D/g,"");
+  const okN=nom.length>1, okC=/^6\d{7}$/.test(cel);
+  $("#r-nombre-err").hidden=okN; $("#r-nombre").setAttribute("aria-invalid",!okN);
+  $("#r-cel-err").hidden=okC; $("#r-cel").setAttribute("aria-invalid",!okC);
+  if(!okN||!okC) return;
+  usuario={nombre:nom,negocio:$("#r-negocio").value.trim(),celular:cel};
+  store.set("epa_usuario",usuario);
+  ir("inicio");
+});
+
+/* Arranque */
+const h=(location.hash||"").slice(1);
+if(CATS.some(c=>c.k===h)) ir("cat",h);
+else if(h==="pedido") ir("pedido");
+else if(h==="inicio"||usuario) ir("inicio");
+else ir("registro");
+</script>
+
+</body>
+</html>
