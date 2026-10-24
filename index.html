@@ -921,13 +921,29 @@ function totales(){
 }
 function pideZona(){ return !zonaUsuario(); }
 function zonaPedido(){ return zonaUsuario() || (pideZona()&&$("#p-loc").value ? zonaInfo($("#p-loc").value,$("#p-barrio").value) : null); }
+/* Mensaje de WhatsApp: solo texto, sin emojis, para que se lea bien en cualquier celular o computadora.
+   Formato: *negrita* de WhatsApp, guiones normales y lista numerada. */
+const limpiar=t=>String(t||"").replace(/[\u2013\u2014]/g,"-").replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\uFE0F]/gu,"").replace(/\s+/g," ").trim();
 function mensaje(){
   const {l,total,consultar}=totales();
-  const nom=$("#p-nombre").value.trim()||"(sin nombre)";
-  const items=l.map(({p,q})=>`• ${q} x ${p.n} ${p.p} — ${p.$==null?"Consultar precio":money(p.$*q)}`).join("\n");
+  const nom=limpiar($("#p-nombre").value)||"(sin nombre)";
+  const cel=usuario?.celular||($("#p-cel").value||"").replace(/\D/g,"");
   const zp=zonaPedido();
-  const zl = zp ? `\n📍 *Zona:* ${zp.zona_nombre}${zp.zona==="PORASIGNAR"?"":" ("+zp.dias+")"}\n🏠 *Localidad:* ${zp.localidad}${zp.barrio?" – "+zp.barrio:""}` : "";
-  return `🧁 *NUEVO PEDIDO – Emprende con Gold Mills*\n\n👤 *Cliente:* ${nom}${zl}\n\n🛒 *Pedido:*\n${items}\n\n💰 *Total:* ${money(total)}${consultar?" + productos por consultar":""}\n🚚 Envío sin costo\n\n📍 Por favor, envía la ubicación donde se va a entregar el producto.`;
+  const lineas=[
+    "*NUEVO PEDIDO - Emprende con Gold Mills*",
+    "",
+    "*Cliente:* "+nom,
+  ];
+  if(/^6\d{7}$/.test(cel)) lineas.push("*Celular:* "+fmtCel(cel));
+  if(zp){
+    lineas.push("*Zona:* "+limpiar(zp.zona_nombre)+(zp.zona==="PORASIGNAR"?" (día por confirmar)":" - "+limpiar(zp.dias)));
+    lineas.push("*Localidad:* "+limpiar(zp.localidad)+(zp.barrio?" - "+limpiar(zp.barrio):""));
+  }
+  lineas.push("","*PEDIDO*");
+  l.forEach(({p,q},i)=>lineas.push(`${i+1}. ${q} x ${limpiar(p.n)} ${limpiar(p.p)} = ${p.$==null?"consultar precio":money(p.$*q)}`));
+  lineas.push("","*Total:* "+money(total)+(consultar?" + productos por consultar":""),"Envío sin costo","",
+              "Por favor, envía la ubicación donde se va a entregar el producto.");
+  return lineas.join("\n");
 }
 function renderPedido(){
   const {l,total,consultar}=totales();
