@@ -921,28 +921,38 @@ function totales(){
 }
 function pideZona(){ return !zonaUsuario(); }
 function zonaPedido(){ return zonaUsuario() || (pideZona()&&$("#p-loc").value ? zonaInfo($("#p-loc").value,$("#p-barrio").value) : null); }
-/* Mensaje de WhatsApp: solo texto, sin emojis, para que se lea bien en cualquier celular o computadora.
-   Formato: *negrita* de WhatsApp, guiones normales y lista numerada. */
-const limpiar=t=>String(t||"").replace(/[\u2013\u2014]/g,"-").replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\uFE0F]/gu,"").replace(/\s+/g," ").trim();
+/* ===== Mensaje de WhatsApp (parametrizable) =====
+   Los emojis van escritos como códigos \u{...} para que no se dañen aunque el archivo se guarde con otra codificación.
+   Para cambiar un emoji o un texto, edita solo esta lista. */
+const MSG={
+  titulo:   "\u{1F35E} *NUEVO PEDIDO - Emprende con Gold Mills*",   // 🍞
+  cliente:  "\u{1F464} *Cliente:* ",                                 // 👤
+  celular:  "\u{1F4F1} *Celular:* ",                                 // 📱
+  zona:     "\u{1F4CD} *Zona:* ",                                    // 📍
+  dia:      "\u{1F4C5} *Día de entrega:* ",                          // 📅
+  localidad:"\u{1F3E0} *Localidad:* ",                               // 🏠
+  pedido:   "\u{1F4E6} *PEDIDO*",                                    // 📦
+  total:    "\u{1F4B0} *Total:* ",                                   // 💰
+  envio:    "\u{1F69A} Envío sin costo",                             // 🚚
+  cierre:   "\u{1F4CC} Por favor, envía la ubicación donde se va a entregar el producto."  // 📌
+};
+// Lo que escribe el cliente se limpia de emojis propios para que el mensaje quede ordenado
+const limpiar=t=>String(t||"").replace(/[–—]/g,"-").replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}️‍]/gu,"").replace(/\s+/g," ").trim();
 function mensaje(){
   const {l,total,consultar}=totales();
   const nom=limpiar($("#p-nombre").value)||"(sin nombre)";
   const cel=usuario?.celular||($("#p-cel").value||"").replace(/\D/g,"");
   const zp=zonaPedido();
-  const lineas=[
-    "*NUEVO PEDIDO - Emprende con Gold Mills*",
-    "",
-    "*Cliente:* "+nom,
-  ];
-  if(/^6\d{7}$/.test(cel)) lineas.push("*Celular:* "+fmtCel(cel));
+  const lineas=[MSG.titulo,"",MSG.cliente+nom];
+  if(/^6\d{7}$/.test(cel)) lineas.push(MSG.celular+fmtCel(cel));
   if(zp){
-    lineas.push("*Zona:* "+limpiar(zp.zona_nombre)+(zp.zona==="PORASIGNAR"?" (día por confirmar)":" - "+limpiar(zp.dias)));
-    lineas.push("*Localidad:* "+limpiar(zp.localidad)+(zp.barrio?" - "+limpiar(zp.barrio):""));
+    lineas.push(MSG.zona+limpiar(zp.zona_nombre));
+    lineas.push(MSG.dia+(zp.zona==="PORASIGNAR"?"por confirmar":limpiar(zp.dias)));
+    lineas.push(MSG.localidad+limpiar(zp.localidad)+(zp.barrio?" - "+limpiar(zp.barrio):""));
   }
-  lineas.push("","*PEDIDO*");
+  lineas.push("",MSG.pedido);
   l.forEach(({p,q},i)=>lineas.push(`${i+1}. ${q} x ${limpiar(p.n)} ${limpiar(p.p)} = ${p.$==null?"consultar precio":money(p.$*q)}`));
-  lineas.push("","*Total:* "+money(total)+(consultar?" + productos por consultar":""),"Envío sin costo","",
-              "Por favor, envía la ubicación donde se va a entregar el producto.");
+  lineas.push("",MSG.total+money(total)+(consultar?" + productos por consultar":""),MSG.envio,"",MSG.cierre);
   return lineas.join("\n");
 }
 function renderPedido(){
@@ -978,7 +988,7 @@ function actualizarWA(){
   const m=mensaje(), ok=$("#p-nombre").value.trim().length>0;
   $("#wa-preview").textContent=m;
   const a=$("#btn-wa");
-  a.href=`https://wa.me/${WA_NUM}?text=${encodeURIComponent(m)}`;
+  a.href=`https://api.whatsapp.com/send?phone=${WA_NUM}&text=${encodeURIComponent(m)}`;   // wa.me daña los emojis; api.whatsapp.com/send los conserva
   a.setAttribute("aria-disabled", ok?"false":"true");
 }
 function renderContadores(){
